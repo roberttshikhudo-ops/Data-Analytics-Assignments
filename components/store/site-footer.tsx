@@ -205,15 +205,15 @@ export function SiteFooter() {
                   <span>079 109 9490 / 083 306 1529</span>
                 </Link>
               </li>
-              <li>
-                <Link 
-                  href="mailto:Robert.tshikhudo@gmail.com" 
-                  className="flex items-center gap-2 text-base text-secondary-foreground/80 hover:text-primary transition-colors"
-                >
-                  <Mail className="h-5 w-5 shrink-0" />
-                  <span>Robert.tshikhudo@gmail.com</span>
-                </Link>
-              </li>
+                    <li>
+                      <Link
+                        href="mailto:info@agrihubsa.co.za"
+                        className="flex items-center gap-2 text-base text-secondary-foreground/80 hover:text-primary transition-colors"
+                      >
+                        <Mail className="h-5 w-5 shrink-0" />
+                        <span>info@agrihubsa.co.za</span>
+                      </Link>
+                    </li>
             </ul>
           </div>
         </div>

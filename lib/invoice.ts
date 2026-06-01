@@ -11,7 +11,7 @@ export const BUSINESS_INFO = {
   country: 'South Africa',
   phone: '079 109 9490',
   altPhone: '083 306 1529',
-  email: 'Robert.tshikhudo@gmail.com',
+  email: 'info@agrihubsa.co.za',
   website: 'https://agrihubsa.co.za',
   // Not VAT registered
   vatRegistered: false,
