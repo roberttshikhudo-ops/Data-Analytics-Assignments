@@ -74,6 +74,10 @@ export async function GET(request: Request) {
       
       // Copper Flow Plus
       { name: 'Copper-flow-plus 100ml', price: 115, image_url: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-qS6IG7ICYdwTYGTQiJqkLvUHp9iU2J.png' },
+      
+      // Organic Fish Fertiliser
+      { name: 'Organic Fish Fertiliser 1L', price: 290, image_url: '/products/fertilisers/organic-fish-fertiliser-1l.jpg' },
+      { name: 'Organic Fish Fertiliser 5L', price: 1100, image_url: '/products/fertilizers/organic-fish-fertilizer-5l.jpg' },
     ]
 
     const results: { name: string; status: string; message: string }[] = []
