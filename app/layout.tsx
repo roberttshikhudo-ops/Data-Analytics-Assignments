@@ -32,17 +32,31 @@ export const metadata: Metadata = {
     telephone: false,
   },
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://agrihubsa.co.za'),
+  icons: {
+    icon: '/favicon.png',
+    shortcut: '/favicon.png',
+    apple: '/favicon.png',
+  },
   openGraph: {
     type: 'website',
     locale: 'en_ZA',
     siteName: 'Agri Hub SA',
     title: 'Agri Hub SA | Agricultural, Hardware & Lifestyle Supplies',
-    description: 'Enabling rural and urban economic participation through supply, distribution, and localisation of high-demand products.',
+    description: 'Your one-stop shop for agriculture, hardware, and lifestyle products in South Africa. Quality seeds, fertilizers, tools, and more.',
+    images: [
+      {
+        url: '/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'Agri Hub SA - Agricultural, Hardware & Lifestyle Supplies',
+      },
+    ],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Agri Hub SA | Agricultural, Hardware & Lifestyle Supplies',
-    description: 'Enabling rural and urban economic participation through supply, distribution, and localisation of high-demand products.',
+    description: 'Your one-stop shop for agriculture, hardware, and lifestyle products in South Africa.',
+    images: ['/og-image.png'],
   },
   robots: {
     index: true,
