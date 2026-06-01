@@ -1,0 +1,262 @@
+import { createClient } from "@/lib/supabase/server"
+import { notFound } from "next/navigation"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { formatPrice } from "@/lib/utils"
+import { ArrowLeft, Package, Truck, MapPin, CreditCard, User } from "lucide-react"
+import Link from "next/link"
+import { Button } from "@/components/ui/button"
+import { OrderStatusUpdater } from "@/components/admin/order-status-updater"
+
+async function getOrder(id: string) {
+  const supabase = await createClient()
+
+  const { data: order } = await supabase
+    .from("orders")
+    .select(`
+      *,
+      order_items(
+        id,
+        product_name,
+        product_sku,
+        product_image_url,
+        quantity,
+        unit_price,
+        total_price
+      )
+    `)
+    .eq("id", id)
+    .single()
+
+  return order
+}
+
+export default async function OrderDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>
+}) {
+  const { id } = await params
+  const order = await getOrder(id)
+
+  if (!order) {
+    notFound()
+  }
+
+  const statusColors: Record<string, "default" | "secondary" | "destructive"> = {
+    pending: "secondary",
+    processing: "secondary",
+    paid: "default",
+    shipped: "default",
+    delivered: "default",
+    cancelled: "destructive",
+    refunded: "destructive",
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center gap-4">
+        <Link href="/admin/orders">
+          <Button variant="ghost" size="icon">
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+        </Link>
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">
+            Order {order.order_number}
+          </h1>
+          <p className="text-muted-foreground">
+            {new Date(order.created_at).toLocaleString("en-ZA")}
+          </p>
+        </div>
+        <div className="flex-1" />
+        <Badge variant={statusColors[order.status]} className="text-sm">
+          {order.status}
+        </Badge>
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-3">
+        {/* Main Content */}
+        <div className="space-y-6 lg:col-span-2">
+          {/* Order Items */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Package className="h-5 w-5" />
+                Order Items
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {order.order_items.map((item: any) => (
+                  <div
+                    key={item.id}
+                    className="flex items-center justify-between border-b pb-4 last:border-0 last:pb-0"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="h-16 w-16 rounded-lg bg-muted flex items-center justify-center">
+                        <Package className="h-6 w-6 text-muted-foreground" />
+                      </div>
+                      <div>
+                        <p className="font-medium">{item.product_name}</p>
+                        {item.product_sku && (
+                          <p className="text-sm text-muted-foreground">
+                            SKU: {item.product_sku}
+                          </p>
+                        )}
+                        <p className="text-sm text-muted-foreground">
+                          Qty: {item.quantity} x {formatPrice(Number(item.unit_price))}
+                        </p>
+                      </div>
+                    </div>
+                    <p className="font-medium">{formatPrice(Number(item.total_price))}</p>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Order Summary */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Order Summary</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Subtotal</span>
+                  <span>{formatPrice(Number(order.subtotal))}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Shipping</span>
+                  <span>{formatPrice(Number(order.shipping_cost))}</span>
+                </div>
+                {Number(order.discount_amount) > 0 && (
+                  <div className="flex justify-between text-primary">
+                    <span>Discount {order.coupon_code && `(${order.coupon_code})`}</span>
+                    <span>-{formatPrice(Number(order.discount_amount))}</span>
+                  </div>
+                )}
+                <div className="flex justify-between border-t pt-2 text-lg font-bold">
+                  <span>Total</span>
+                  <span>{formatPrice(Number(order.total))}</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Sidebar */}
+        <div className="space-y-6">
+          {/* Status Update */}
+          <OrderStatusUpdater
+            orderId={order.id}
+            currentStatus={order.status}
+            currentPaymentStatus={order.payment_status}
+          />
+
+          {/* Customer Info */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <User className="h-5 w-5" />
+                Customer
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {order.user_id ? (
+                <p className="text-muted-foreground">Registered User</p>
+              ) : (
+                <div>
+                  <p className="font-medium">Guest Order</p>
+                  <p className="text-muted-foreground">{order.guest_email}</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Shipping Address */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <MapPin className="h-5 w-5" />
+                Shipping Address
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-sm">
+                <p className="font-medium">
+                  {order.shipping_first_name} {order.shipping_last_name}
+                </p>
+                {order.shipping_company && <p>{order.shipping_company}</p>}
+                <p>{order.shipping_address_line1}</p>
+                {order.shipping_address_line2 && <p>{order.shipping_address_line2}</p>}
+                <p>
+                  {order.shipping_city}, {order.shipping_province}
+                </p>
+                <p>{order.shipping_postal_code}</p>
+                <p>{order.shipping_country}</p>
+                {order.shipping_phone && <p className="mt-2">{order.shipping_phone}</p>}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Payment Info */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <CreditCard className="h-5 w-5" />
+                Payment
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Method</span>
+                  <span className="capitalize">{order.payment_method || "N/A"}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Status</span>
+                  <Badge variant={order.payment_status === "paid" ? "default" : "secondary"}>
+                    {order.payment_status}
+                  </Badge>
+                </div>
+                {order.payment_reference && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Reference</span>
+                    <span className="font-mono text-xs">{order.payment_reference}</span>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Tracking */}
+          {order.tracking_number && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Truck className="h-5 w-5" />
+                  Tracking
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="font-mono text-sm">{order.tracking_number}</p>
+                {order.tracking_url && (
+                  <a
+                    href={order.tracking_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm text-primary hover:underline"
+                  >
+                    Track Shipment
+                  </a>
+                )}
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
