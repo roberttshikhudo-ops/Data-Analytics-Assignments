@@ -1,6 +1,6 @@
 import { Metadata } from 'next'
 import Link from 'next/link'
-import { Tag, Clock, Percent, Truck, ArrowRight } from 'lucide-react'
+import { Tag, Clock, Percent, Truck, ArrowRight, Snowflake } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { ProductCard } from '@/components/store/product-card'
 import { Button } from '@/components/ui/button'
@@ -60,7 +60,21 @@ async function getDealsProducts() {
     .order('created_at', { ascending: false })
     .limit(8)
 
-  // Get featured products as additional deals
+  // Get winter specials (comforters, bedspreads, blankets, heaters)
+  const { data: winterProducts } = await supabase
+    .from('products')
+    .select(`
+      *,
+      category:categories(name, slug),
+      images:product_images(url, alt_text, is_primary)
+    `)
+    .eq('is_active', true)
+    .eq('is_featured', true)
+    .or('name.ilike.%comforter%,name.ilike.%bedspread%,name.ilike.%blanket%,name.ilike.%heater%,name.ilike.%duvet%')
+    .order('created_at', { ascending: false })
+    .limit(12)
+
+  // Get other featured products (excluding winter items)
   const { data: featuredProducts } = await supabase
     .from('products')
     .select(`
@@ -70,18 +84,23 @@ async function getDealsProducts() {
     `)
     .eq('is_active', true)
     .eq('is_featured', true)
+    .not('name', 'ilike', '%comforter%')
+    .not('name', 'ilike', '%bedspread%')
+    .not('name', 'ilike', '%blanket%')
+    .not('name', 'ilike', '%heater%')
     .is('compare_at_price', null)
     .order('created_at', { ascending: false })
     .limit(4)
 
   return {
     saleProducts: (saleProducts || []) as Product[],
+    winterProducts: (winterProducts || []) as Product[],
     featuredProducts: (featuredProducts || []) as Product[],
   }
 }
 
 export default async function DealsPage() {
-  const { saleProducts, featuredProducts } = await getDealsProducts()
+  const { saleProducts, winterProducts, featuredProducts } = await getDealsProducts()
   
   return (
     <div className="flex flex-col">
@@ -180,6 +199,42 @@ export default async function DealsPage() {
         </section>
       )}
 
+      {/* Winter Specials Section */}
+      {winterProducts.length > 0 && (
+        <section className="py-12 md:py-16 bg-gradient-to-br from-blue-50 to-slate-100 dark:from-blue-950/30 dark:to-slate-900/50">
+          <div className="container">
+            <div className="flex items-center justify-between mb-8">
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <Snowflake className="h-5 w-5 text-blue-600" />
+                  <Badge className="bg-blue-600 hover:bg-blue-700">Winter Specials</Badge>
+                </div>
+                <h2 className="text-2xl font-bold md:text-3xl">Stay Warm This Winter</h2>
+                <p className="mt-1 text-muted-foreground">
+                  Cozy comforters, bedspreads, blankets and more to keep you warm
+                </p>
+              </div>
+              <Button variant="outline" asChild className="hidden sm:flex">
+                <Link href="/shop/home-living">
+                  View All Winter Items
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+            </div>
+            <div className="grid gap-6 grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+              {winterProducts.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
+            <div className="mt-8 text-center sm:hidden">
+              <Button asChild>
+                <Link href="/shop/home-living">View All Winter Items</Link>
+              </Button>
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* Featured Products / Staff Picks */}
       {featuredProducts.length > 0 && (
         <section className="py-12 md:py-16 bg-muted/50">
@@ -202,7 +257,7 @@ export default async function DealsPage() {
       )}
 
       {/* Empty State */}
-      {saleProducts.length === 0 && featuredProducts.length === 0 && (
+      {saleProducts.length === 0 && winterProducts.length === 0 && featuredProducts.length === 0 && (
         <section className="py-16 md:py-24">
           <div className="container text-center">
             <Tag className="h-16 w-16 text-muted-foreground/50 mx-auto mb-4" />
