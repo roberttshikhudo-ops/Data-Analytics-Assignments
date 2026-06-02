@@ -216,18 +216,32 @@ export default function ContactPage() {
                 </CardContent>
               </Card>
 
-              {/* Map Placeholder */}
+              {/* Google Map - Tshaulu Store Location */}
               <Card className="mt-6">
-                <CardContent className="pt-6">
-                  <div className="aspect-video bg-muted rounded-lg flex items-center justify-center">
-                    <div className="text-center text-muted-foreground">
-                      <MapPin className="h-12 w-12 mx-auto mb-2" />
-                      <p>Map would be displayed here</p>
-                      <p className="text-sm">
-                        Integrate Google Maps or Leaflet for interactive map
-                      </p>
-                    </div>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <MapPin className="h-5 w-5 text-primary" />
+                    Find Our Tshaulu Store
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="aspect-video rounded-lg overflow-hidden">
+                    <iframe
+                      src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3700.5!2d30.74769!3d-22.80072!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMjLCsDQ4JzAyLjYiUyAzMMKwNDQnNTEuNyJF!5e0!3m2!1sen!2sza!4v1700000000000!5m2!1sen!2sza"
+                      width="100%"
+                      height="100%"
+                      style={{ border: 0 }}
+                      allowFullScreen
+                      loading="lazy"
+                      referrerPolicy="no-referrer-when-downgrade"
+                      title="Luwa Enterprise Tshaulu Store Location"
+                    />
                   </div>
+                  <p className="text-sm text-muted-foreground mt-3">
+                    <strong>Luwa Enterprise - Tshaulu Store</strong><br />
+                    Tshaulu Village, Vhembe District, Limpopo, South Africa<br />
+                    GPS: -22.80072, 30.74769
+                  </p>
                 </CardContent>
               </Card>
             </div>
