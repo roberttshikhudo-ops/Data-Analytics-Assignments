@@ -234,11 +234,11 @@ export default function ContactPage() {
                       allowFullScreen
                       loading="lazy"
                       referrerPolicy="no-referrer-when-downgrade"
-                      title="Luwa Enterprise Tshaulu Store Location"
+                      title="Agri Hub SA Tshaulu Store Location"
                     />
                   </div>
                   <p className="text-sm text-muted-foreground mt-3">
-                    <strong>Luwa Enterprise - Tshaulu Store</strong><br />
+                    <strong>Agri Hub SA - Tshaulu Store</strong><br />
                     Tshaulu Village, Vhembe District, Limpopo, South Africa<br />
                     GPS: -22.80072, 30.74769
                   </p>
