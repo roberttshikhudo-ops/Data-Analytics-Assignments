@@ -10,17 +10,17 @@ const heroSlides = [
   {
     title: "Agricultural",
     subtitle: "Seeds, Feeds & Farming Essentials",
-    image: "/images/categories/seeds.jpg",
+    image: "/images/hero/hero-agriculture.png",
   },
   {
     title: "Hardware",
     subtitle: "Tools & Equipment for Every Job",
-    image: "/images/categories/hardware-diy.jpg",
+    image: "/images/hero/hero-hardware.png",
   },
   {
     title: "Lifestyle",
     subtitle: "Home, Kitchen & Personal Care",
-    image: "/images/categories/home-living.jpg",
+    image: "/images/hero/hero-lifestyle.png",
   },
 ]
 
