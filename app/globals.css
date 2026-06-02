@@ -147,6 +147,17 @@
   body {
     @apply bg-background text-foreground;
   }
+  /* Container with proper mobile padding */
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  @media (min-width: 640px) {
+    .container {
+      padding-left: 2rem;
+      padding-right: 2rem;
+    }
+  }
   /* Ensure readable font sizes on mobile */
   @media (max-width: 640px) {
     html {
