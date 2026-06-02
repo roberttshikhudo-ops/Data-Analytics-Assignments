@@ -203,14 +203,14 @@ export function ShopFilters({
               )}
             </Button>
           </SheetTrigger>
-          <SheetContent side="left" className="w-[300px]">
+          <SheetContent side="left" className="w-[300px] px-4">
             <SheetHeader>
               <SheetTitle className="flex items-center gap-2">
                 <Filter className="h-4 w-4" />
                 Filters
               </SheetTitle>
             </SheetHeader>
-            <div className="mt-6">
+            <div className="mt-6 pr-2">
               <FiltersContent />
             </div>
           </SheetContent>
