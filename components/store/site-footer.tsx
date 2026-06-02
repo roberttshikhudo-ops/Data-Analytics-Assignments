@@ -24,18 +24,18 @@ const footerLinks = {
   support: [
     { name: 'Contact Us', href: '/contact' },
     { name: 'Track Order', href: '/track' },
-    { name: 'Delivery Policy', href: '/policies/delivery' },
-    { name: 'Click & Collect', href: '/policies/click-collect' },
-    { name: 'Returns & Refunds', href: '/policies/returns' },
-    { name: 'Payment Options', href: '/policies/payment' },
+    { name: 'Delivery Policy', href: '/delivery-policy' },
+    { name: 'Click & Collect', href: '/delivery-policy#click-collect' },
+    { name: 'Returns & Refunds', href: '/returns' },
+    { name: 'Payment Options', href: '/terms#payment' },
   ],
   company: [
     { name: 'About Us', href: '/about' },
     { name: 'Our Stores', href: '/about#locations' },
   ],
   legal: [
-    { name: 'Privacy Policy', href: '/policies/privacy' },
-    { name: 'Terms & Conditions', href: '/policies/terms' },
+    { name: 'Privacy Policy', href: '/privacy-policy' },
+    { name: 'Terms & Conditions', href: '/terms' },
   ],
 }
 
