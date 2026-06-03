@@ -3,7 +3,7 @@ import { RotateCcw, Clock, CheckCircle, AlertCircle } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 
 export const metadata: Metadata = {
-  title: 'Returns & Refunds | Agri Hub SA',
+  title: 'Returns & Refunds',
   description: 'Learn about Agri Hub SA returns policy, refund process, and exchange options.',
 }
 

@@ -1,7 +1,7 @@
 import { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Privacy Policy | Agri Hub SA',
+  title: 'Privacy Policy',
   description: 'Learn how Agri Hub SA collects, uses, and protects your personal information.',
 }
 

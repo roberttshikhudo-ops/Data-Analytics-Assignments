@@ -3,7 +3,7 @@ import { Truck, Clock, MapPin, Package } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 
 export const metadata: Metadata = {
-  title: 'Delivery Policy | Agri Hub SA',
+  title: 'Delivery Policy',
   description: 'Learn about Agri Hub SA delivery options, shipping times, and delivery areas.',
 }
 

@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge'
 import type { Product } from '@/lib/types'
 
 export const metadata: Metadata = {
-  title: 'Deals & Special Offers | Agri Hub SA',
+  title: 'Deals & Special Offers',
   description: 'Shop the best deals on agricultural supplies. Save big on seeds, fertilizers, equipment, and more at Agri Hub SA.',
 }
 

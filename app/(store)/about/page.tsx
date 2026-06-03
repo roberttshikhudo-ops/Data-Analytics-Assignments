@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 
 export const metadata: Metadata = {
-  title: 'About Us | Agri Hub SA',
+  title: 'About Us',
   description: 'Learn about Agri Hub SA (Pty) Ltd - A South African enterprise enabling rural and urban economic participation through agriculture, lifestyle, hardware, and light industrial products.',
 }
 
