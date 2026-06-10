@@ -58,6 +58,7 @@ export default function CheckoutPage() {
   const { items: cart, subtotal, clearCart, isLoading: cartLoading } = useCart()
   const { user, profile } = useAuth()
   const [isLoading, setIsLoading] = useState(false)
+  const [isRedirecting, setIsRedirecting] = useState(false)
   const [couponCode, setCouponCode] = useState("")
   const [couponDiscount, setCouponDiscount] = useState(0)
   const [couponError, setCouponError] = useState("")
@@ -100,12 +101,12 @@ export default function CheckoutPage() {
     }
   }, [user, profile])
 
-  // Redirect if cart is empty
+  // Redirect if cart is empty (but not while we're redirecting to payment)
   useEffect(() => {
-    if (cart.length === 0) {
+    if (cart.length === 0 && !isRedirecting) {
       router.push("/cart")
     }
-  }, [cart, router])
+  }, [cart, router, isRedirecting])
 
   // Calculate shipping based on selected method
   const getShippingCost = () => {
@@ -241,6 +242,9 @@ export default function CheckoutPage() {
         // Store order number in localStorage for after payment
         localStorage.setItem("pendingOrder", orderData.orderNumber)
         
+        // Mark as redirecting so the empty-cart screen doesn't flash
+        setIsRedirecting(true)
+        
         // Clear cart before redirecting
         clearCart()
         
@@ -267,6 +271,7 @@ export default function CheckoutPage() {
         // Don't remove form - page will redirect
       } else {
         // EFT payment - redirect to order confirmation with banking details
+        setIsRedirecting(true)
         clearCart()
         router.push(`/checkout/eft-instructions?order=${orderData.orderNumber}`)
       }
@@ -278,10 +283,13 @@ export default function CheckoutPage() {
     }
   }
 
-  if (cartLoading) {
+  if (cartLoading || isRedirecting) {
     return (
-      <div className="min-h-screen bg-muted/30 flex items-center justify-center">
+      <div className="min-h-screen bg-muted/30 flex flex-col items-center justify-center gap-4">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        {isRedirecting && (
+          <p className="text-muted-foreground">Redirecting to secure payment...</p>
+        )}
       </div>
     )
   }
@@ -713,8 +721,16 @@ export default function CheckoutPage() {
                   {/* Cart Items */}
                   <div className="space-y-3 max-h-[300px] overflow-y-auto">
                     {cart.map((item) => (
-                      <div key={item.id} className="flex gap-3">
-                        <div className="w-16 h-16 bg-muted rounded-md flex-shrink-0" />
+                      <div key={item.productId} className="flex gap-3">
+                        <div className="w-16 h-16 bg-muted rounded-md flex-shrink-0 overflow-hidden relative">
+                          {item.image ? (
+                            <img
+                              src={item.image || "/placeholder.svg"}
+                              alt={item.name}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : null}
+                        </div>
                         <div className="flex-1 min-w-0">
                           <p className="font-medium text-sm truncate">{item.name}</p>
                           <p className="text-sm text-muted-foreground">
