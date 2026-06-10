@@ -31,6 +31,21 @@ async function getCategories() {
   return data || []
 }
 
+async function getSeedImages() {
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from('products')
+    .select('image_url')
+    .eq('is_active', true)
+    .or('name.ilike.%seed%,name.ilike.%seedling%,name.ilike.%mbeu%')
+
+  const unique = Array.from(
+    new Set((data || []).map((p) => p.image_url).filter(Boolean))
+  ) as string[]
+
+  return unique
+}
+
 async function getDealsProducts() {
   const supabase = await createClient()
   const { data } = await supabase
@@ -44,16 +59,17 @@ async function getDealsProducts() {
 }
 
 export default async function HomePage() {
-  const [featuredProducts, categories, dealsProducts] = await Promise.all([
+  const [featuredProducts, categories, dealsProducts, seedImages] = await Promise.all([
     getFeaturedProducts(),
     getCategories(),
     getDealsProducts(),
+    getSeedImages(),
   ])
 
   return (
     <div className="flex flex-col">
       {/* Hero Video Section */}
-      <HeroVideo />
+      <HeroVideo seedImages={seedImages} />
 
       {/* Trust Badges */}
       <section className="border-y bg-card">

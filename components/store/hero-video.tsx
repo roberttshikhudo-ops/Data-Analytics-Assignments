@@ -31,9 +31,25 @@ const stats = [
   { value: "Free", label: "Delivery*" },
 ]
 
-export function HeroVideo() {
+export function HeroVideo({ seedImages = [] }: { seedImages?: string[] }) {
   const [currentSlide, setCurrentSlide] = useState(0)
   const [isLoaded, setIsLoaded] = useState(false)
+
+  // Positions for floating seed images across the hero background
+  const floatPositions = [
+    { top: "12%", left: "6%", size: "h-24 w-24 md:h-32 md:w-32", anim: "animate-float", delay: "0s" },
+    { top: "55%", left: "12%", size: "h-20 w-20 md:h-28 md:w-28", anim: "animate-float-delayed", delay: "0.4s" },
+    { top: "20%", right: "8%", size: "h-28 w-28 md:h-40 md:w-40", anim: "animate-float-delayed", delay: "0.8s" },
+    { top: "62%", right: "14%", size: "h-24 w-24 md:h-32 md:w-32", anim: "animate-float", delay: "1.2s" },
+    { top: "38%", right: "4%", size: "h-16 w-16 md:h-24 md:w-24", anim: "animate-float", delay: "1.6s" },
+    { top: "78%", left: "40%", size: "h-16 w-16 md:h-24 md:w-24", anim: "animate-float-delayed", delay: "2s" },
+  ]
+
+  // Repeat seed images so we always fill the available float positions
+  const floatingSeeds =
+    seedImages.length > 0
+      ? floatPositions.map((pos, i) => ({ ...pos, image: seedImages[i % seedImages.length] }))
+      : []
 
   useEffect(() => {
     setIsLoaded(true)
@@ -65,11 +81,34 @@ export function HeroVideo() {
       {/* Animated Gradient Overlay */}
       <div className="absolute inset-0 bg-gradient-to-t from-secondary via-transparent to-secondary/50" />
 
-      {/* Floating Elements Animation */}
+      {/* Floating Seed Products Animation */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 w-64 h-64 bg-primary/10 rounded-full blur-3xl animate-float" />
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-accent/10 rounded-full blur-3xl animate-float-delayed" />
-        <div className="absolute top-1/2 left-1/3 w-48 h-48 bg-primary/5 rounded-full blur-2xl animate-pulse" />
+        {floatingSeeds.length > 0 ? (
+          floatingSeeds.map((seed, index) => (
+            <div
+              key={index}
+              className={cn("absolute rounded-2xl overflow-hidden shadow-2xl ring-1 ring-white/10", seed.size, seed.anim)}
+              style={{
+                top: seed.top,
+                left: seed.left,
+                right: seed.right,
+                animationDelay: seed.delay,
+              }}
+            >
+              <img
+                src={seed.image || "/placeholder.svg"}
+                alt="Seeds we stock"
+                className="h-full w-full object-cover opacity-80"
+              />
+            </div>
+          ))
+        ) : (
+          <>
+            <div className="absolute top-20 left-10 w-64 h-64 bg-primary/10 rounded-full blur-3xl animate-float" />
+            <div className="absolute bottom-20 right-10 w-96 h-96 bg-accent/10 rounded-full blur-3xl animate-float-delayed" />
+            <div className="absolute top-1/2 left-1/3 w-48 h-48 bg-primary/5 rounded-full blur-2xl animate-pulse" />
+          </>
+        )}
       </div>
 
       {/* Content */}
