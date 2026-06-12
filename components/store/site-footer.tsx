@@ -1,8 +1,9 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { Facebook, Instagram, Linkedin, Youtube, Mail, Phone, MapPin } from 'lucide-react'
+import { Facebook, Instagram, Linkedin, Youtube, Phone, MapPin } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { EmailLink } from '@/components/store/email-link'
 
 // Social media links - Update these with your actual account URLs
 const socialLinks = {
@@ -206,13 +207,10 @@ export function SiteFooter() {
                 </a>
               </li>
               <li>
-                <a
-                  href="mailto:info@agrihubsa.co.za"
+                <EmailLink
+                  email="info@agrihubsa.co.za"
                   className="flex items-center gap-2 text-base text-secondary-foreground/80 hover:text-primary transition-colors"
-                >
-                  <Mail className="h-5 w-5 shrink-0" />
-                  <span>info@agrihubsa.co.za</span>
-                </a>
+                />
               </li>
             </ul>
           </div>
