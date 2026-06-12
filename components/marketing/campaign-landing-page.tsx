@@ -285,10 +285,10 @@ export function CampaignLandingPage({
             <h3 className="text-xl font-semibold mb-4">Need Help? Talk to Our Experts</h3>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button variant="outline" size="lg" className="gap-2" asChild>
-                <Link href="tel:+27791099490">
+                <a href="tel:+27791099490">
                   <Phone className="h-5 w-5" />
                   079 109 9490
-                </Link>
+                </a>
               </Button>
               <Button size="lg" className="bg-[#25D366] hover:bg-[#20BD5A] text-white gap-2" asChild>
                 <Link href="https://wa.me/27833061529" target="_blank">
