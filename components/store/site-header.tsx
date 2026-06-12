@@ -167,7 +167,7 @@ export function SiteHeader() {
 
           {/* Wishlist */}
           <Button variant="ghost" size="icon" asChild className="hidden sm:flex">
-            <Link href="/wishlist">
+            <Link href="/account/wishlist">
               <Heart className="h-5 w-5" />
               <span className="sr-only">Wishlist</span>
             </Link>
@@ -190,7 +190,7 @@ export function SiteHeader() {
                   <Link href="/account/orders">My Orders</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link href="/wishlist">Wishlist</Link>
+                  <Link href="/account/wishlist">Wishlist</Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={signOut}>

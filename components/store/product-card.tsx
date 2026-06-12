@@ -8,7 +8,8 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useCart } from '@/hooks/use-cart'
-import { formatPrice, calculateDiscount } from '@/lib/utils'
+import { useWishlist } from '@/hooks/use-wishlist'
+import { formatPrice, calculateDiscount, cn } from '@/lib/utils'
 import type { Product } from '@/lib/types'
 
 interface ProductCardProps {
@@ -17,6 +18,7 @@ interface ProductCardProps {
 
 export function ProductCard({ product }: ProductCardProps) {
   const { addItem } = useCart()
+  const { isInWishlist, isLoading: wishlistLoading, toggleWishlist } = useWishlist(product.id)
   const discount = calculateDiscount(product.price, product.compare_at_price)
   const isOutOfStock = product.stock_quantity <= 0
   const isLowStock = product.stock_quantity > 0 && product.stock_quantity <= 10
@@ -90,12 +92,15 @@ export function ProductCard({ product }: ProductCardProps) {
               size="icon"
               variant="secondary"
               className="h-8 w-8 rounded-full"
+              disabled={wishlistLoading}
+              aria-label={isInWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
+              aria-pressed={isInWishlist}
               onClick={(e) => {
                 e.preventDefault()
-                // TODO: Add to wishlist
+                toggleWishlist()
               }}
             >
-              <Heart className="h-4 w-4" />
+              <Heart className={cn('h-4 w-4', isInWishlist && 'fill-primary text-primary')} />
             </Button>
             <Button
               size="icon"

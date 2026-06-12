@@ -25,6 +25,7 @@ async function getWishlist() {
         compare_at_price,
         stock_quantity,
         is_new,
+        image_url,
         category_id,
         categories(name, slug)
       )
@@ -72,9 +73,9 @@ export default async function WishlistPage() {
                   compare_at_price: product.compare_at_price,
                   stock_quantity: product.stock_quantity,
                   is_new: product.is_new,
+                  image_url: product.image_url,
                   category: product.categories,
-                  images: [],
-                }}
+                } as any}
               />
             )
           })}

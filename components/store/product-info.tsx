@@ -8,7 +8,8 @@ import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { SocialShare } from '@/components/store/social-share'
 import { useCart } from '@/hooks/use-cart'
-import { formatPrice, calculateDiscount } from '@/lib/utils'
+import { useWishlist } from '@/hooks/use-wishlist'
+import { formatPrice, calculateDiscount, cn } from '@/lib/utils'
 import { toast } from 'sonner'
 import type { Product } from '@/lib/types'
 
@@ -19,6 +20,7 @@ interface ProductInfoProps {
 export function ProductInfo({ product }: ProductInfoProps) {
   const [quantity, setQuantity] = useState(1)
   const { addItem } = useCart()
+  const { isInWishlist, isLoading: wishlistLoading, toggleWishlist } = useWishlist(product.id)
   
   const discount = calculateDiscount(product.price, product.compare_at_price)
   const isOutOfStock = product.stock_quantity <= 0
@@ -145,10 +147,17 @@ export function ProductInfo({ product }: ProductInfoProps) {
 
       {/* Secondary actions */}
       <div className="flex items-center gap-4">
-        <Button variant="outline" size="sm" className="gap-2">
-          <Heart className="h-4 w-4" />
-          Add to Wishlist
-        </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-2"
+            disabled={wishlistLoading}
+            aria-pressed={isInWishlist}
+            onClick={() => toggleWishlist()}
+          >
+            <Heart className={cn('h-4 w-4', isInWishlist && 'fill-primary text-primary')} />
+            {isInWishlist ? 'Saved to Wishlist' : 'Add to Wishlist'}
+          </Button>
       </div>
 
       {/* Social Share */}
