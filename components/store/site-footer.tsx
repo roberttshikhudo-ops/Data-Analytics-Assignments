@@ -197,23 +197,23 @@ export function SiteFooter() {
                 <span>Vhembe District, Limpopo &amp; Midrand, Gauteng</span>
               </li>
               <li>
-                <Link 
-                  href="tel:+27791099490" 
+                <a
+                  href="tel:+27791099490"
                   className="flex items-center gap-2 text-base text-secondary-foreground/80 hover:text-primary transition-colors"
                 >
                   <Phone className="h-5 w-5 shrink-0" />
                   <span>079 109 9490 / 083 306 1529</span>
-                </Link>
+                </a>
               </li>
-                    <li>
-                      <Link
-                        href="mailto:info@agrihubsa.co.za"
-                        className="flex items-center gap-2 text-base text-secondary-foreground/80 hover:text-primary transition-colors"
-                      >
-                        <Mail className="h-5 w-5 shrink-0" />
-                        <span>info@agrihubsa.co.za</span>
-                      </Link>
-                    </li>
+              <li>
+                <a
+                  href="mailto:info@agrihubsa.co.za"
+                  className="flex items-center gap-2 text-base text-secondary-foreground/80 hover:text-primary transition-colors"
+                >
+                  <Mail className="h-5 w-5 shrink-0" />
+                  <span>info@agrihubsa.co.za</span>
+                </a>
+              </li>
             </ul>
           </div>
         </div>
