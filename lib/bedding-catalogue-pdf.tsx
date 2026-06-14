@@ -18,6 +18,18 @@ export interface CatalogueBusinessInfo {
   address: string
 }
 
+export interface CatalogueBankingInfo {
+  bank: string
+  accountName: string
+  accountNumber: string
+  branchCode: string
+}
+
+export interface CatalogueDeliveryInfo {
+  standardFee: string
+  freeThreshold: string
+}
+
 const NAVY = "#1a365d"
 const GREEN = "#059669"
 const GREY = "#64748b"
@@ -37,6 +49,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 40,
     textAlign: "center",
   },
+  logo: { width: 70, height: 70, objectFit: "contain", marginBottom: 10, alignSelf: "center" },
   brand: { fontSize: 22, fontFamily: "Helvetica-Bold", letterSpacing: 1 },
   tagline: { fontSize: 9, color: "#9ae6c4", marginTop: 4 },
   title: {
@@ -88,6 +101,27 @@ const styles = StyleSheet.create({
     color: "#94a3b8",
     textDecoration: "line-through",
   },
+  infoPanel: {
+    flexDirection: "row",
+    marginHorizontal: 24,
+    marginTop: 20,
+    borderRadius: 8,
+    overflow: "hidden",
+    border: `1pt solid #e2e8f0`,
+  },
+  infoCol: { flex: 1, padding: 14 },
+  infoColDivider: { borderRightWidth: 1, borderRightColor: "#e2e8f0" },
+  infoHeading: {
+    fontSize: 11,
+    fontFamily: "Helvetica-Bold",
+    color: NAVY,
+    marginBottom: 8,
+    textTransform: "uppercase",
+    letterSpacing: 1,
+  },
+  infoLine: { fontSize: 9, color: "#1a202c", marginBottom: 3 },
+  infoLabel: { fontFamily: "Helvetica-Bold", color: GREY },
+  deliveryHighlight: { fontSize: 9, color: GREEN, fontFamily: "Helvetica-Bold", marginBottom: 3 },
   footer: {
     position: "absolute",
     bottom: 0,
@@ -110,16 +144,23 @@ function formatCurrency(amount: number): string {
 export function BeddingCatalogue({
   products,
   business,
+  banking,
+  delivery,
+  logoDataUri,
   generatedDate,
 }: {
   products: CatalogueProduct[]
   business: CatalogueBusinessInfo
+  banking: CatalogueBankingInfo
+  delivery: CatalogueDeliveryInfo
+  logoDataUri: string | null
   generatedDate: string
 }) {
   return (
     <Document title={`${business.name} - Bedding Catalogue`} author={business.name}>
       <Page size="A4" style={styles.page}>
         <View style={styles.cover} fixed={false}>
+          {logoDataUri ? <Image style={styles.logo} src={logoDataUri} /> : null}
           <Text style={styles.brand}>{business.name}</Text>
           <Text style={styles.tagline}>{business.tagline}</Text>
           <Text style={styles.title}>Bedding Catalogue</Text>
@@ -157,6 +198,43 @@ export function BeddingCatalogue({
               </View>
             )
           })}
+        </View>
+
+        <View style={styles.infoPanel} wrap={false}>
+          <View style={[styles.infoCol, styles.infoColDivider]}>
+            <Text style={styles.infoHeading}>Banking Details</Text>
+            <Text style={styles.infoLine}>
+              <Text style={styles.infoLabel}>Bank: </Text>
+              {banking.bank}
+            </Text>
+            <Text style={styles.infoLine}>
+              <Text style={styles.infoLabel}>Account Name: </Text>
+              {banking.accountName}
+            </Text>
+            <Text style={styles.infoLine}>
+              <Text style={styles.infoLabel}>Account Number: </Text>
+              {banking.accountNumber}
+            </Text>
+            <Text style={styles.infoLine}>
+              <Text style={styles.infoLabel}>Branch Code: </Text>
+              {banking.branchCode}
+            </Text>
+            <Text style={styles.infoLine}>
+              <Text style={styles.infoLabel}>Reference: </Text>
+              Your name / order number
+            </Text>
+          </View>
+          <View style={styles.infoCol}>
+            <Text style={styles.infoHeading}>Delivery</Text>
+            <Text style={styles.deliveryHighlight}>FREE delivery on orders over {delivery.freeThreshold}</Text>
+            <Text style={styles.infoLine}>
+              <Text style={styles.infoLabel}>Standard delivery: </Text>
+              {delivery.standardFee}
+            </Text>
+            <Text style={styles.infoLine}>
+              Nationwide delivery across South Africa. Contact us to confirm delivery to your area.
+            </Text>
+          </View>
         </View>
 
         <View style={styles.footer} fixed>

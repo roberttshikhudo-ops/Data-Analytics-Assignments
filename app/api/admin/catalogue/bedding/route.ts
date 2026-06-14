@@ -29,6 +29,19 @@ const BUSINESS_INFO = {
   address: "The Parks Lifestyle Apartments, Block 38 Unit 2F, Midrand, Gauteng 1685",
 }
 
+// Banking details — kept in sync with the invoice (lib/invoice.ts).
+const BANKING_INFO = {
+  bank: "First National Bank (FNB)",
+  accountName: "Agri Hub SA",
+  accountNumber: "63014180606",
+  branchCode: "250655",
+}
+
+const DELIVERY_INFO = {
+  standardFee: "R80",
+  freeThreshold: "R1000",
+}
+
 const BEDDING_KEYWORDS = [
   "comforter",
   "bedspread",
@@ -40,6 +53,8 @@ const BEDDING_KEYWORDS = [
   "pillow",
   "sheet",
   "linen",
+  "fleece",
+  "corduroy",
 ]
 
 const EXCLUDE_KEYWORDS = ["bag", "travel", "curtain only", "towel"]
@@ -137,10 +152,15 @@ export async function GET(request: Request) {
     day: "numeric",
   })
 
+  const logoDataUri = await imageToDataUri("/agri-hub-logo.png", origin)
+
   const buffer = await renderToBuffer(
     createElement(BeddingCatalogue, {
       products: catalogueProducts,
       business: BUSINESS_INFO,
+      banking: BANKING_INFO,
+      delivery: DELIVERY_INFO,
+      logoDataUri,
       generatedDate,
     }) as ReactElement<DocumentProps>,
   )
