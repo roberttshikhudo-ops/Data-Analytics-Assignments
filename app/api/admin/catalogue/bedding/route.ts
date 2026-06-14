@@ -9,6 +9,11 @@ import {
   type CatalogueProduct,
 } from "@/lib/bedding-catalogue-pdf"
 
+// @react-pdf/renderer and fs require the Node.js runtime, and the PDF must be
+// generated fresh on each request.
+export const runtime = "nodejs"
+export const dynamic = "force-dynamic"
+
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!,
@@ -46,26 +51,58 @@ function mimeFromExt(filePath: string): string {
   return "image/jpeg"
 }
 
-// Reads a /public image and returns a base64 data URI, or null if unavailable
-async function imageToDataUri(imageUrl: string | null): Promise<string | null> {
+// Converts a product image into a base64 data URI so it can be embedded in the
+// PDF. Works both locally (filesystem) and on Vercel (HTTP fetch), since
+// /public assets are not readable via fs in serverless functions.
+async function imageToDataUri(
+  imageUrl: string | null,
+  origin: string,
+): Promise<string | null> {
   if (!imageUrl) return null
-  try {
-    if (imageUrl.startsWith("http")) {
-      const res = await fetch(imageUrl)
-      if (!res.ok) return null
-      const buf = Buffer.from(await res.arrayBuffer())
-      return `data:${mimeFromExt(imageUrl)};base64,${buf.toString("base64")}`
+
+  const cleanPath = imageUrl.split("?")[0]
+
+  // 1. External absolute URL — fetch directly.
+  if (cleanPath.startsWith("http")) {
+    try {
+      const res = await fetch(cleanPath)
+      if (res.ok) {
+        const buf = Buffer.from(await res.arrayBuffer())
+        return `data:${mimeFromExt(cleanPath)};base64,${buf.toString("base64")}`
+      }
+    } catch {
+      return null
     }
-    const cleanPath = imageUrl.split("?")[0]
+    return null
+  }
+
+  // 2. Local /public asset — try filesystem first (fast in dev), then HTTP
+  //    fetch from the deployment origin (works on Vercel serverless).
+  try {
     const filePath = path.join(process.cwd(), "public", cleanPath)
     const buf = await readFile(filePath)
     return `data:${mimeFromExt(cleanPath)};base64,${buf.toString("base64")}`
   } catch {
+    // fall through to HTTP fetch
+  }
+
+  try {
+    const absolute = `${origin}${cleanPath.startsWith("/") ? "" : "/"}${cleanPath}`
+    const res = await fetch(absolute)
+    if (res.ok) {
+      const buf = Buffer.from(await res.arrayBuffer())
+      return `data:${mimeFromExt(cleanPath)};base64,${buf.toString("base64")}`
+    }
+  } catch {
     return null
   }
+
+  return null
 }
 
-export async function GET() {
+export async function GET(request: Request) {
+  const origin = new URL(request.url).origin
+
   const { data: products, error } = await supabaseAdmin
     .from("products")
     .select("name, price, compare_at_price, image_url, short_description, categories(slug)")
@@ -90,7 +127,7 @@ export async function GET() {
       price: p.price,
       compareAtPrice: p.compare_at_price,
       description: p.short_description ?? null,
-      imageDataUri: await imageToDataUri(p.image_url),
+      imageDataUri: await imageToDataUri(p.image_url, origin),
     })),
   )
 

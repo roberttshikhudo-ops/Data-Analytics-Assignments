@@ -1,8 +1,9 @@
 import { createClient } from "@/lib/supabase/server"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Plus, Image, FileText } from "lucide-react"
+import { Plus, Image } from "lucide-react"
 import { ProductsTable } from "@/components/admin/products-table"
+import { CatalogueDownloadButton } from "@/components/admin/catalogue-download-button"
 
 async function getProducts() {
   const supabase = await createClient()
@@ -43,12 +44,7 @@ export default async function ProductsPage() {
           <p className="text-muted-foreground">Manage your product catalog</p>
         </div>
         <div className="flex gap-2">
-          <a href="/api/admin/catalogue/bedding" target="_blank" rel="noopener noreferrer">
-            <Button variant="outline">
-              <FileText className="mr-2 h-4 w-4" />
-              Bedding Catalogue
-            </Button>
-          </a>
+          <CatalogueDownloadButton />
           <Link href="/admin/products/images">
             <Button variant="outline">
               <Image className="mr-2 h-4 w-4" />
