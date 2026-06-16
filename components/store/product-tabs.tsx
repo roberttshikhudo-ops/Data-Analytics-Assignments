@@ -79,7 +79,7 @@ export function ProductTabs({ product }: ProductTabsProps) {
             <div>
               <h4 className="font-medium mb-2">Delivery Options</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><strong>Standard Delivery:</strong> 5-7 business days - R99 (Free on orders over R1,500)</li>
+                <li><strong>Standard Delivery:</strong> 5-7 business days - R80 (Free on orders over R1,000)</li>
                 <li><strong>Express Delivery:</strong> 2-3 business days - R199</li>
               </ul>
             </div>

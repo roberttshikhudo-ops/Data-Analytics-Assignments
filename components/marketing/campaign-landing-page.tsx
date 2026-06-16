@@ -175,7 +175,7 @@ export function CampaignLandingPage({
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             <div className="flex items-center justify-center gap-3 text-sm">
               <Truck className="h-5 w-5 text-primary shrink-0" />
-              <span>Free Delivery over R1,500</span>
+              <span>Free Delivery over R1,000</span>
             </div>
             <div className="flex items-center justify-center gap-3 text-sm">
               <Shield className="h-5 w-5 text-primary shrink-0" />

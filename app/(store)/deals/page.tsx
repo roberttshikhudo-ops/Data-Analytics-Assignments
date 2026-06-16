@@ -35,7 +35,7 @@ const promotions = [
   {
     id: 3,
     title: 'Free Delivery',
-    description: 'Free nationwide delivery on all orders over R1,500. No code needed.',
+    description: 'Free nationwide delivery on all orders over R1,000. No code needed.',
     discount: 'FREE SHIPPING',
     code: null,
     validUntil: 'Ongoing',

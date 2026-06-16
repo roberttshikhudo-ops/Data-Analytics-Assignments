@@ -176,7 +176,7 @@ export function ProductInfo({ product }: ProductInfoProps) {
         <div className="flex items-center gap-3 text-sm">
           <Truck className="h-5 w-5 text-primary shrink-0" />
           <div>
-            <p className="font-medium">Free delivery on orders over R1,500</p>
+            <p className="font-medium">Free delivery on orders over R1,000</p>
             <p className="text-muted-foreground">Standard delivery: 5-7 business days</p>
           </div>
         </div>

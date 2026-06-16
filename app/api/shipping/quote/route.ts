@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
       success: true,
       quotes: adjustedQuotes,
       freeShipping,
-      freeShippingThreshold: 1500,
+      freeShippingThreshold: 1000,
     })
   } catch (error) {
     console.error('[Shipping Quote API] Error:', error)

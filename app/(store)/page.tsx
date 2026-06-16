@@ -153,7 +153,7 @@ export default async function HomePage() {
               </div>
               <div>
                 <p className="font-medium text-base">Free Delivery</p>
-                <p className="text-sm text-muted-foreground">On orders over R1,500</p>
+                <p className="text-sm text-muted-foreground">On orders over R1,000</p>
               </div>
             </div>
             <div className="flex items-center gap-3">

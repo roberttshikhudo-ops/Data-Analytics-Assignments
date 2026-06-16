@@ -7,7 +7,7 @@ import { Card, CardContent } from '@/components/ui/card'
 
 export const metadata: Metadata = {
   title: 'Winter Sale - 15% Off Seeds & Fertilizers',
-  description: 'Get 15% off all seeds and fertilizers this winter. Limited time offer. Use code WINTER15 at checkout. Free delivery on orders over R1,500.',
+  description: 'Get 15% off all seeds and fertilizers this winter. Limited time offer. Use code WINTER15 at checkout. Free delivery on orders over R1,000.',
 }
 
 // This is a template landing page for ad campaigns
@@ -105,7 +105,7 @@ export default function WinterSaleLandingPage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             <div className="flex items-center justify-center gap-3 text-sm">
               <Truck className="h-5 w-5 text-primary shrink-0" />
-              <span>Free Delivery over R1,500</span>
+              <span>Free Delivery over R1,000</span>
             </div>
             <div className="flex items-center justify-center gap-3 text-sm">
               <Shield className="h-5 w-5 text-primary shrink-0" />
@@ -151,7 +151,7 @@ export default function WinterSaleLandingPage() {
                 </div>
                 <h3 className="text-xl font-semibold mb-2">Fast Delivery</h3>
                 <p className="text-muted-foreground">
-                  Get your orders delivered within 5-7 business days. Free shipping on all orders above R1,500.
+                  Get your orders delivered within 5-7 business days. Free shipping on all orders above R1,000.
                 </p>
               </CardContent>
             </Card>

@@ -40,7 +40,7 @@ export function SiteHeader() {
       {/* Top bar */}
       <div className="hidden md:block bg-primary text-primary-foreground">
         <div className="container flex h-9 items-center justify-between text-sm">
-          <p>Free delivery on orders over R1,500 | Nationwide shipping</p>
+          <p>Free delivery on orders over R1,000 | Nationwide shipping</p>
           <div className="flex items-center gap-4">
             <Link href="/contact" className="hover:underline">Contact Us</Link>
             <span>|</span>

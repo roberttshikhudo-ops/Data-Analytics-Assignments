@@ -195,7 +195,7 @@ function getDefaultQuotes(): FastwayQuote[] {
     {
       name: 'Standard Delivery',
       type: 'ROAD',
-      price: 150,
+      price: 80,
       eta: '3-5 business days',
       description: 'Standard road freight delivery',
     },
@@ -211,7 +211,7 @@ function getDefaultQuotes(): FastwayQuote[] {
 
 // Check if order qualifies for free shipping
 export function qualifiesForFreeShipping(orderTotal: number): boolean {
-  return orderTotal >= 1500
+  return orderTotal >= 1000
 }
 
 // Calculate final shipping cost

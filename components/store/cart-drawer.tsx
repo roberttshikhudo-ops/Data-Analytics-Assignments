@@ -144,7 +144,7 @@ export function CartDrawer() {
               </div>
 
               <p className="text-xs text-center text-muted-foreground">
-                Free delivery on orders over R1,500
+                Free delivery on orders over R1,000
               </p>
             </div>
           </>
