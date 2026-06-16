@@ -10,14 +10,86 @@ import { createClient } from '@/lib/supabase/server'
 
 async function getFeaturedProducts() {
   const supabase = await createClient()
-  const { data } = await supabase
-    .from('products')
-    .select('*, category:categories(*)')
-    .eq('is_active', true)
-    .eq('is_featured', true)
-    .limit(8)
-  
-  return data || []
+  const select = '*, category:categories(*)'
+
+  // Seasonal curation: surface the products in highest demand during winter -
+  // cozy bedding, warmers, gardening tools, and Protek pest/Terminex control.
+  const [bedding, warmers, gardening, pestControl] = await Promise.all([
+    supabase
+      .from('products')
+      .select(select)
+      .eq('is_active', true)
+      .or(
+        'name.ilike.%comforter%,name.ilike.%blanket%,name.ilike.%throw%,name.ilike.%quilt%,name.ilike.%bedspread%,name.ilike.%duvet%,name.ilike.%fleece%,name.ilike.%corduroy%'
+      )
+      .limit(16),
+    supabase
+      .from('products')
+      .select(select)
+      .eq('is_active', true)
+      .or('name.ilike.%heater%,name.ilike.%warmer%,name.ilike.%heating%')
+      .limit(6),
+    supabase
+      .from('products')
+      .select(select)
+      .eq('is_active', true)
+      .or(
+        'name.ilike.%spade%,name.ilike.%garden fork%,name.ilike.%rake%,name.ilike.%shovel%,name.ilike.%hoe%,name.ilike.%secateur%,name.ilike.%pruner%,name.ilike.%garden tool%'
+      )
+      .limit(6),
+    supabase
+      .from('products')
+      .select(select)
+      .eq('is_active', true)
+      .or(
+        'name.ilike.%terminex%,name.ilike.%knox%,name.ilike.%kill-all%,name.ilike.%spray-kill%,name.ilike.%scatterkill%'
+      )
+      .limit(6),
+  ])
+
+  // Prefer items that are on sale / flagged featured first within each group.
+  const rank = (arr: any[]) =>
+    [...(arr || [])].sort((a, b) => {
+      const score = (p: any) => (p.compare_at_price ? 2 : 0) + (p.is_featured ? 1 : 0)
+      return score(b) - score(a)
+    })
+
+  const beddingR = rank(bedding.data || [])
+  const warmersR = rank(warmers.data || [])
+  const gardeningR = rank(gardening.data || [])
+  const pestR = rank(pestControl.data || [])
+
+  // Balanced winter mix across the four groups.
+  const selection: any[] = []
+  const seen = new Set<string>()
+  const take = (arr: any[], n: number) => {
+    for (const p of arr) {
+      if (n <= 0) break
+      if (!seen.has(p.id)) {
+        seen.add(p.id)
+        selection.push(p)
+        n--
+      }
+    }
+  }
+
+  take(beddingR, 4)
+  take(warmersR, 2)
+  take(gardeningR, 1)
+  take(pestR, 1)
+
+  // Fill any remaining slots from the combined winter pool.
+  if (selection.length < 8) {
+    for (const p of [...beddingR, ...warmersR, ...gardeningR, ...pestR]) {
+      if (selection.length >= 8) break
+      if (!seen.has(p.id)) {
+        seen.add(p.id)
+        selection.push(p)
+      }
+    }
+  }
+
+  return selection.slice(0, 8)
 }
 
 async function getCategories() {
@@ -143,8 +215,8 @@ export default async function HomePage() {
         <div className="container">
           <div className="flex items-end justify-between mb-8">
             <div>
-              <h2 className="text-3xl md:text-4xl font-bold">Featured Products</h2>
-              <p className="text-lg text-muted-foreground mt-2">Top picks from our collection</p>
+              <h2 className="text-3xl md:text-4xl font-bold">Winter Essentials</h2>
+              <p className="text-lg text-muted-foreground mt-2">Stay warm and ready this season</p>
             </div>
             <Button variant="ghost" asChild className="hidden sm:flex">
               <Link href="/shop?featured=true">
