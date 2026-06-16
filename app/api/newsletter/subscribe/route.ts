@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
+import { sendWelcomeEmail } from "@/lib/emails/welcome"
 
 const WELCOME_CODE = "WELCOME10"
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -29,6 +30,12 @@ export async function POST(request: NextRequest) {
     }
 
     const alreadySubscribed = error?.code === "23505"
+
+    // Send the welcome email with the discount code to genuinely new subscribers.
+    // sendWelcomeEmail never throws, so a mail failure won't break signup.
+    if (!alreadySubscribed) {
+      await sendWelcomeEmail(normalized)
+    }
 
     return NextResponse.json({
       success: true,
