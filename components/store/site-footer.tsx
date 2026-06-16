@@ -32,6 +32,7 @@ const footerLinks = {
   company: [
     { name: 'About Us', href: '/about' },
     { name: 'Our Stores', href: '/about#locations' },
+    { name: 'Refer a Friend', href: '/refer' },
   ],
   legal: [
     { name: 'Privacy Policy', href: '/privacy-policy' },
