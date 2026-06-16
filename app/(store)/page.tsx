@@ -169,8 +169,8 @@ export default async function HomePage() {
           <div className="container">
             <div className="flex items-end justify-between mb-8">
               <div>
-                <h2 className="text-3xl md:text-4xl font-bold">Special Deals</h2>
-                <p className="text-lg text-muted-foreground mt-2">Save on these great products</p>
+                <h2 className="text-3xl md:text-4xl font-bold">Winter Specials</h2>
+                <p className="text-lg text-muted-foreground mt-2">Stay warm and save on these great products</p>
               </div>
               <Button variant="ghost" asChild className="hidden sm:flex">
                 <Link href="/deals">
