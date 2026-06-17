@@ -9,8 +9,8 @@ import { Badge } from '@/components/ui/badge'
 import type { Product } from '@/lib/types'
 
 export const metadata: Metadata = {
-  title: 'Deals & Special Offers',
-  description: 'Shop the best deals on agricultural supplies. Save big on seeds, fertilizers, equipment, and more at Agri Hub SA.',
+  title: 'Winter Specials',
+  description: 'Shop our Winter Specials at Agri Hub SA. Save big on cozy bedding, comforters, blankets, and farm essentials to get you through the cold season.',
 }
 
 const promotions = [
@@ -35,7 +35,7 @@ const promotions = [
   {
     id: 3,
     title: 'Free Delivery',
-    description: 'Free nationwide delivery on all orders over R1,500. No code needed.',
+    description: 'Free nationwide delivery on all orders over R1,000. No code needed.',
     discount: 'FREE SHIPPING',
     code: null,
     validUntil: 'Ongoing',
@@ -112,11 +112,11 @@ export default async function DealsPage() {
               Limited Time Offers
             </Badge>
             <h1 className="text-4xl font-bold tracking-tight md:text-5xl">
-              Deals & Special Offers
+              Winter Specials
             </h1>
             <p className="mt-4 text-lg opacity-90">
-              Save big on quality agricultural supplies. Check out our latest promotions 
-              and discounted products below.
+              Stay warm and save big this season. Check out our latest promotions on cozy 
+              bedding, comforters, blankets, and farm essentials below.
             </p>
           </div>
         </div>

@@ -44,7 +44,7 @@ export default function TermsPage() {
           <section>
             <h2 className="text-xl font-semibold mb-3">4. Delivery</h2>
             <p className="text-muted-foreground">
-              Free delivery is available on orders over R1,500. Delivery times vary based on location. 
+              Free delivery is available on orders over R1,000. Delivery times vary based on location. 
               We deliver nationwide across South Africa. Please see our Delivery Policy for more details.
             </p>
           </section>

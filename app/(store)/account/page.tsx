@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Package, Heart, MapPin } from "lucide-react"
 import Link from "next/link"
 import { formatPrice } from "@/lib/utils"
+import { ReferCallout } from "@/components/marketing/refer-callout"
 
 async function getAccountData() {
   const supabase = await createClient()
@@ -69,6 +70,9 @@ export default async function AccountPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Refer a friend */}
+      <ReferCallout />
 
       {/* Quick Stats */}
       <div className="grid gap-4 sm:grid-cols-3">

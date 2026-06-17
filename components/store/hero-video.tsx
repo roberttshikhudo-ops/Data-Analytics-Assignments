@@ -147,8 +147,8 @@ export function HeroVideo({ seedImages = [] }: { seedImages?: string[] }) {
               isLoaded ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
             )}
           >
-            Powering South Africa&apos;s farms, homes, and businesses with seamless 
-            digital ordering and nationwide delivery.
+            Everything your farm, home, and business needs &mdash; quality products,
+            unbeatable prices, and fast delivery to your door, anywhere in South Africa.
           </p>
 
           {/* CTA Buttons */}
@@ -213,7 +213,7 @@ export function HeroVideo({ seedImages = [] }: { seedImages?: string[] }) {
           <div className="grid grid-cols-3 gap-4 max-w-3xl mx-auto">
             <div className="flex items-center gap-3 text-white/80">
               <Truck className="h-6 w-6 text-primary shrink-0" />
-              <span className="text-sm hidden md:block">Free Delivery Over R1,500</span>
+              <span className="text-sm hidden md:block">Free Delivery Over R1,000</span>
             </div>
             <div className="flex items-center gap-3 text-white/80">
               <ShieldCheck className="h-6 w-6 text-primary shrink-0" />

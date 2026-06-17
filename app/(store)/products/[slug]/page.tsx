@@ -27,9 +27,23 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
     return { title: 'Product Not Found' }
   }
 
+  const description =
+    product.short_description ||
+    `Buy ${product.name} at Agri Hub SA. Free delivery on orders over R1,000.`
+
   return {
     title: product.name,
-    description: product.short_description || `Buy ${product.name} at Agri Hub SA`,
+    description,
+    openGraph: {
+      title: `${product.name} | Agri Hub SA`,
+      description,
+      type: 'website',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${product.name} | Agri Hub SA`,
+      description,
+    },
   }
 }
 

@@ -29,8 +29,8 @@ export default function SettingsPage() {
 
   // Shipping Settings
   const [shippingSettings, setShippingSettings] = useState({
-    freeShippingThreshold: "1500",
-    standardShippingRate: "150",
+    freeShippingThreshold: "1000",
+    standardShippingRate: "80",
     expressShippingRate: "300",
     enableLocalPickup: true,
     pickupAddress: "123 Farm Road, Pretoria, Gauteng",

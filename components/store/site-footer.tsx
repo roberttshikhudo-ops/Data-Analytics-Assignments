@@ -1,9 +1,8 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { Facebook, Instagram, Linkedin, Youtube, Phone, MapPin } from 'lucide-react'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
 import { EmailLink } from '@/components/store/email-link'
+import { NewsletterForm } from '@/components/store/newsletter-form'
 
 // Social media links - Update these with your actual account URLs
 const socialLinks = {
@@ -33,6 +32,7 @@ const footerLinks = {
   company: [
     { name: 'About Us', href: '/about' },
     { name: 'Our Stores', href: '/about#locations' },
+    { name: 'Refer a Friend', href: '/refer' },
   ],
   legal: [
     { name: 'Privacy Policy', href: '/privacy-policy' },
@@ -48,21 +48,12 @@ export function SiteFooter() {
         <div className="container py-12">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div>
-              <h3 className="text-2xl font-semibold text-primary">Stay Updated</h3>
+              <h3 className="text-2xl font-semibold text-primary">Get 10% Off Your First Order</h3>
               <p className="text-base text-secondary-foreground/80 mt-2">
                 Subscribe for farming tips, new products, and exclusive deals.
               </p>
             </div>
-            <form className="flex w-full max-w-md gap-2">
-              <Input
-                type="email"
-                placeholder="Enter your email"
-                className="bg-secondary-foreground/10 border-secondary-foreground/20 text-secondary-foreground placeholder:text-secondary-foreground/50"
-              />
-              <Button className="bg-primary hover:bg-primary/90 text-primary-foreground" type="submit">
-                Subscribe
-              </Button>
-            </form>
+            <NewsletterForm source="footer" />
           </div>
         </div>
       </div>

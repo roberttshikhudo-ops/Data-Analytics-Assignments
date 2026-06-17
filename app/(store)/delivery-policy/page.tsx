@@ -19,7 +19,7 @@ export default function DeliveryPolicyPage() {
               <Truck className="h-8 w-8 text-primary" />
               <div>
                 <p className="font-semibold">Free Delivery</p>
-                <p className="text-sm text-muted-foreground">Orders over R1,500</p>
+                <p className="text-sm text-muted-foreground">Orders over R1,000</p>
               </div>
             </CardContent>
           </Card>
@@ -50,22 +50,22 @@ export default function DeliveryPolicyPage() {
                   <tr className="border-b">
                     <td className="py-3">Gauteng (Major cities)</td>
                     <td className="py-3">2-3 business days</td>
-                    <td className="py-3">R75 / Free over R1,500</td>
+                    <td className="py-3">R80 / Free over R1,000</td>
                   </tr>
                   <tr className="border-b">
                     <td className="py-3">Limpopo (Vhembe District)</td>
                     <td className="py-3">3-5 business days</td>
-                    <td className="py-3">R100 / Free over R1,500</td>
+                    <td className="py-3">R80 / Free over R1,000</td>
                   </tr>
                   <tr className="border-b">
                     <td className="py-3">Other Provinces</td>
                     <td className="py-3">5-7 business days</td>
-                    <td className="py-3">R120 / Free over R1,500</td>
+                    <td className="py-3">R80 / Free over R1,000</td>
                   </tr>
                   <tr className="border-b">
                     <td className="py-3">Remote Areas</td>
                     <td className="py-3">7-10 business days</td>
-                    <td className="py-3">R150 / Free over R2,000</td>
+                    <td className="py-3">R80 / Free over R1,000</td>
                   </tr>
                 </tbody>
               </table>

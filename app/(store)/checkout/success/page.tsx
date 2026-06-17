@@ -2,6 +2,7 @@ import Link from "next/link"
 import { CheckCircle, Package, Mail, ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import { ReferCallout } from "@/components/marketing/refer-callout"
 
 interface SuccessPageProps {
   searchParams: Promise<{ order?: string }>
@@ -70,6 +71,8 @@ export default async function CheckoutSuccessPage({ searchParams }: SuccessPageP
             </div>
           </CardContent>
         </Card>
+
+        <ReferCallout title="Enjoyed shopping with us? Earn your friends 10% off." className="mt-8" />
 
         <div className="mt-8 text-center">
           <p className="text-sm text-muted-foreground">

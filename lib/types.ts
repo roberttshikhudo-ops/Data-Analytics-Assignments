@@ -211,8 +211,8 @@ export const SHIPPING_RATES = {
   standard: {
     name: 'Standard Delivery',
     description: '5-7 business days nationwide',
-    price: 150,
-    freeThreshold: 1500, // Free shipping over R1500
+    price: 80,
+    freeThreshold: 1000, // Free shipping over R1000
   },
   express: {
     name: 'Express Delivery',

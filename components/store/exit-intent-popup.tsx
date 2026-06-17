@@ -86,19 +86,27 @@ export function ExitIntentPopup() {
     setIsSubmitting(true)
 
     try {
-      // Simulate API call - replace with actual newsletter signup
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      const res = await fetch('/api/newsletter/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, source: 'exit-intent' }),
+      })
+      const data = await res.json()
 
-      // Mark as subscribed
+      if (!res.ok) {
+        toast.error(data.error || 'Something went wrong. Please try again.')
+        return
+      }
+
+      // Mark as subscribed so the popup doesn't keep showing
       localStorage.setItem('newsletter-subscribed', 'true')
       setIsSubscribed(true)
-
-      toast.success('Welcome! Check your email for your discount code.')
+      toast.success(data.message || 'Welcome! Use your discount code at checkout.')
 
       // Close after showing success
       setTimeout(() => {
         setIsOpen(false)
-      }, 3000)
+      }, 5000)
     } catch {
       toast.error('Something went wrong. Please try again.')
     } finally {
