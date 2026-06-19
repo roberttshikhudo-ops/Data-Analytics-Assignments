@@ -65,10 +65,25 @@ const SERIES: SeriesDef[] = [
   },
 ]
 
-function mimeFromExt(filePath: string): string {
-  const ext = filePath.toLowerCase().split(".").pop()
-  if (ext === "png") return "image/png"
-  if (ext === "webp") return "image/webp"
+// Detects the real image format from the file's magic bytes. This is more
+// reliable than trusting the file extension, because some assets are mislabeled
+// (e.g. agri-hub-logo.png is actually JPEG data). @react-pdf/renderer silently
+// drops images whose declared MIME type doesn't match the actual bytes, so the
+// correct type is essential for the logo to render.
+function mimeFromBuffer(buf: Buffer): string {
+  if (buf.length >= 8 && buf.toString("hex", 0, 8) === "89504e470d0a1a0a") {
+    return "image/png"
+  }
+  if (buf.length >= 3 && buf[0] === 0xff && buf[1] === 0xd8 && buf[2] === 0xff) {
+    return "image/jpeg"
+  }
+  if (
+    buf.length >= 12 &&
+    buf.toString("ascii", 0, 4) === "RIFF" &&
+    buf.toString("ascii", 8, 12) === "WEBP"
+  ) {
+    return "image/webp"
+  }
   return "image/jpeg"
 }
 
@@ -88,7 +103,7 @@ async function imageToDataUri(
       const res = await fetch(cleanPath)
       if (res.ok) {
         const buf = Buffer.from(await res.arrayBuffer())
-        return `data:${mimeFromExt(cleanPath)};base64,${buf.toString("base64")}`
+        return `data:${mimeFromBuffer(buf)};base64,${buf.toString("base64")}`
       }
     } catch {
       return null
@@ -99,7 +114,7 @@ async function imageToDataUri(
   try {
     const filePath = path.join(process.cwd(), "public", cleanPath)
     const buf = await readFile(filePath)
-    return `data:${mimeFromExt(cleanPath)};base64,${buf.toString("base64")}`
+    return `data:${mimeFromBuffer(buf)};base64,${buf.toString("base64")}`
   } catch {
     // fall through to HTTP fetch
   }
@@ -109,7 +124,7 @@ async function imageToDataUri(
     const res = await fetch(absolute)
     if (res.ok) {
       const buf = Buffer.from(await res.arrayBuffer())
-      return `data:${mimeFromExt(cleanPath)};base64,${buf.toString("base64")}`
+      return `data:${mimeFromBuffer(buf)};base64,${buf.toString("base64")}`
     }
   } catch {
     return null
