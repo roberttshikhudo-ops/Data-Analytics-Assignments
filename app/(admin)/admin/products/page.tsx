@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Plus, Image } from "lucide-react"
 import { ProductsTable } from "@/components/admin/products-table"
 import { CatalogueDownloadButton } from "@/components/admin/catalogue-download-button"
+import { CatalogueDownloadButtonTwo } from "@/components/admin/catalogue-download-button-2"
 
 async function getProducts() {
   const supabase = await createClient()
@@ -45,6 +46,7 @@ export default async function ProductsPage() {
         </div>
         <div className="flex gap-2">
           <CatalogueDownloadButton />
+          <CatalogueDownloadButtonTwo />
           <Link href="/admin/products/images">
             <Button variant="outline">
               <Image className="mr-2 h-4 w-4" />
