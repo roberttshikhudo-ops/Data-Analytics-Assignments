@@ -130,10 +130,16 @@ export async function GET(request: Request) {
 
   const bedding = (products || []).filter((p: any) => {
     const name = (p.name || "").toLowerCase()
+    const description = (p.short_description || "").toLowerCase()
     const inHomeLiving = p.categories?.slug === "home-living"
-    const nameMatch = BEDDING_KEYWORDS.some((k) => name.includes(k))
+    // Match bedding keywords in the product name OR its short description, so
+    // sets named without a keyword in the title (e.g. "Moffy 001, 7pcs, Super
+    // King Size") are still included.
+    const keywordMatch = BEDDING_KEYWORDS.some(
+      (k) => name.includes(k) || description.includes(k),
+    )
     const excluded = EXCLUDE_KEYWORDS.some((k) => name.includes(k))
-    return inHomeLiving && nameMatch && !excluded
+    return inHomeLiving && keywordMatch && !excluded
   })
 
   const catalogueProducts: CatalogueProduct[] = await Promise.all(
