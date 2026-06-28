@@ -6,6 +6,7 @@ import { ProductsTable } from "@/components/admin/products-table"
 import { CatalogueDownloadButton } from "@/components/admin/catalogue-download-button"
 import { CatalogueDownloadButtonTwo } from "@/components/admin/catalogue-download-button-2"
 import { CatalogueDownloadButtonThree } from "@/components/admin/catalogue-download-button-3"
+import { CatalogueDownloadButtonThreeC } from "@/components/admin/catalogue-download-button-3c"
 import { CatalogueDownloadButtonFour } from "@/components/admin/catalogue-download-button-4"
 
 async function getProducts() {
@@ -50,6 +51,7 @@ export default async function ProductsPage() {
           <CatalogueDownloadButton />
           <CatalogueDownloadButtonTwo />
           <CatalogueDownloadButtonThree />
+          <CatalogueDownloadButtonThreeC />
           <CatalogueDownloadButtonFour />
           <Link href="/admin/products/images">
             <Button variant="outline">
