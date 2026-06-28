@@ -4,6 +4,7 @@ import { readFile } from "node:fs/promises"
 import path from "node:path"
 import { renderToBuffer, type DocumentProps } from "@react-pdf/renderer"
 import { createElement, type ReactElement } from "react"
+import sharp from "sharp"
 import {
   BeddingCatalogueFour,
   type CatalogueFamily,
@@ -173,20 +174,53 @@ function mimeFromBuffer(buf: Buffer): string {
   return "image/jpeg"
 }
 
+// Downscales and re-encodes an image so the catalogue stays email-friendly.
+// Product cards render at roughly 250px wide, so a 520px-wide JPEG keeps the
+// print crisp while shrinking each embedded image from megabytes to ~30-60KB.
+// The logo is kept as PNG (with transparency) at a small size.
+async function compressImage(
+  buf: Buffer,
+  variant: "product" | "logo",
+): Promise<{ data: Buffer; mime: string }> {
+  try {
+    if (variant === "logo") {
+      const data = await sharp(buf)
+        .resize({ width: 360, withoutEnlargement: true })
+        .png({ compressionLevel: 9, palette: true })
+        .toBuffer()
+      return { data, mime: "image/png" }
+    }
+
+    const data = await sharp(buf)
+      .resize({ width: 520, withoutEnlargement: true })
+      .jpeg({ quality: 78, mozjpeg: true })
+      .toBuffer()
+    return { data, mime: "image/jpeg" }
+  } catch {
+    // If sharp fails for any reason, fall back to the original bytes.
+    return { data: buf, mime: mimeFromBuffer(buf) }
+  }
+}
+
 async function imageToDataUri(
   imageUrl: string | null,
   origin: string,
+  variant: "product" | "logo" = "product",
 ): Promise<string | null> {
   if (!imageUrl) return null
 
   const cleanPath = imageUrl.split("?")[0]
 
+  const encode = async (buf: Buffer) => {
+    const { data, mime } = await compressImage(buf, variant)
+    return `data:${mime};base64,${data.toString("base64")}`
+  }
+
   if (cleanPath.startsWith("http")) {
     try {
       const res = await fetch(cleanPath)
       if (res.ok) {
-        const buf = Buffer.from(await res.arrayBuffer())
-        return `data:${mimeFromBuffer(buf)};base64,${buf.toString("base64")}`
+        return await encode(Buffer.from(await res.arrayBuffer()))
       }
     } catch {
       return null
@@ -197,7 +231,7 @@ async function imageToDataUri(
   try {
     const filePath = path.join(process.cwd(), "public", cleanPath)
     const buf = await readFile(filePath)
-    return `data:${mimeFromBuffer(buf)};base64,${buf.toString("base64")}`
+    return await encode(buf)
   } catch {
     // fall through to HTTP fetch
   }
@@ -206,8 +240,7 @@ async function imageToDataUri(
     const absolute = `${origin}${cleanPath.startsWith("/") ? "" : "/"}${cleanPath}`
     const res = await fetch(absolute)
     if (res.ok) {
-      const buf = Buffer.from(await res.arrayBuffer())
-      return `data:${mimeFromBuffer(buf)};base64,${buf.toString("base64")}`
+      return await encode(Buffer.from(await res.arrayBuffer()))
     }
   } catch {
     return null
@@ -296,7 +329,7 @@ export async function GET(request: Request) {
     day: "numeric",
   })
 
-  const logoDataUri = await imageToDataUri("/agri-hub-logo.png", origin)
+  const logoDataUri = await imageToDataUri("/agri-hub-logo.png", origin, "logo")
 
   const buffer = await renderToBuffer(
     createElement(BeddingCatalogueFour, {
