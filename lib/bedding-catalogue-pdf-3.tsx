@@ -298,7 +298,7 @@ export function BeddingCatalogueThree({
         <View style={styles.footer} fixed>
           <Text style={styles.footerCta}>To Order, Contact Us Today</Text>
           <Text style={styles.footerContact}>
-            Tel: {business.phone} / {business.altPhone}  |  Email: {business.email}
+            Tel/WhatsApp: {business.phone} / {business.altPhone}  |  Email: {business.email}
           </Text>
           <Text style={styles.footerContact}>Web: {business.website}</Text>
           <Text style={styles.footerContact}>{business.address}</Text>

@@ -25,10 +25,20 @@ const BUSINESS_INFO = {
   tagline: "Your Agricultural, Hardware and Lifestyle Innovation Partner",
   phone: "083 306 1529",
   altPhone: "060 839 1874",
-  email: "info@agrihubsa.co.za",
+  email: "robert.tshikhudo@gmail.com",
   website: "www.agrihubsa.co.za",
   address: "The Parks, Riversands, Midrand, Johannesburg, SA",
 }
+
+// Products explicitly excluded from Catalogue 3 (matched by exact name,
+// case-insensitive).
+const EXCLUDED_PRODUCTS = new Set(
+  [
+    "Quilted Weekender Travel Bag",
+    "1Ply Fleece Blanket 001 - Navy Plaid",
+    "5pcs Combo Bedding Set",
+  ].map((n) => n.toLowerCase()),
+)
 
 // Banking details — kept in sync with the invoice (lib/invoice.ts).
 const BANKING_INFO = {
@@ -190,7 +200,9 @@ export async function GET(request: Request) {
   }
 
   const homeLiving = (products || []).filter(
-    (p: any) => p.categories?.slug === "home-living",
+    (p: any) =>
+      p.categories?.slug === "home-living" &&
+      !EXCLUDED_PRODUCTS.has((p.name || "").toLowerCase()),
   )
 
   // Build the groups in the exact requested order. Each product is assigned to
