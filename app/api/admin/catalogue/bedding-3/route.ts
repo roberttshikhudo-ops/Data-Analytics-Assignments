@@ -62,10 +62,10 @@ const SERIES: SeriesDef[] = [
     match: (n) => n.includes("generic reversible"),
   },
 
-  // 3. Corduroy comforters only (corduroy fleece throws are grouped under Throws).
+  // 3. All corduroy products — comforters and corduroy fleece blankets alike.
   {
-    title: "Corduroy Comforters",
-    match: (n) => n.includes("corduroy") && n.includes("comforter"),
+    title: "Corduroy",
+    match: (n) => n.includes("corduroy"),
   },
 
   // 4. Everything else in the comforter / quilt / bedspread family.
@@ -89,13 +89,11 @@ const SERIES: SeriesDef[] = [
       n.includes("sheet set"),
   },
 
-  // 6. Throws and fleece throw blankets.
+  // 6. Throws and fleece throw blankets (corduroy fleece is grouped under Corduroy).
   {
     title: "Throws & Fleece Blankets",
     match: (n) =>
-      n.includes("throw") ||
-      (n.includes("corduroy") && n.includes("fleece")) ||
-      (n.includes("fleece") && n.includes("blanket")),
+      n.includes("throw") || (n.includes("fleece") && n.includes("blanket")),
   },
 
   // 7. Winter mink / 2-ply blankets ("etc.").
