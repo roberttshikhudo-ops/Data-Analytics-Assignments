@@ -206,18 +206,21 @@ export const SA_PROVINCES = [
 
 export type SAProvince = typeof SA_PROVINCES[number]
 
-// Shipping rates for South Africa
+// Shipping rates for South Africa.
+// Aligned to Fastway Couriers SA national satchel pricing (incl. VAT and the
+// 5% fuel adjustment effective April 2026): A4 national satchel ≈ R99,
+// A2 national satchel ≈ R120. Express reflects Fastway's priority service.
 export const SHIPPING_RATES = {
   standard: {
-    name: 'Standard Delivery',
-    description: '5-7 business days nationwide',
-    price: 80,
+    name: 'Standard Delivery (Fastway)',
+    description: '2-4 business days nationwide via Fastway Couriers',
+    price: 99,
     freeThreshold: 1000, // Free shipping over R1000
   },
   express: {
-    name: 'Express Delivery',
-    description: '2-3 business days (major cities)',
-    price: 250,
+    name: 'Express Delivery (Fastway)',
+    description: '1-2 business days to major centres via Fastway Couriers',
+    price: 160,
     freeThreshold: null,
   },
   pickup: {

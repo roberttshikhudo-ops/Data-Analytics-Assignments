@@ -159,8 +159,13 @@ export async function POST(request: NextRequest) {
         try {
           const customerAddress: ShippingAddress = {
             name: `${fullOrder.shipping_first_name || fullOrder.billing_first_name} ${fullOrder.shipping_last_name || fullOrder.billing_last_name}`,
-            street: fullOrder.shipping_address || fullOrder.billing_address || "",
-            suburb: fullOrder.shipping_suburb || fullOrder.billing_suburb || "",
+            street: fullOrder.shipping_address_line1 || fullOrder.billing_address_line1 || "",
+            suburb:
+              fullOrder.shipping_address_line2 ||
+              fullOrder.shipping_city ||
+              fullOrder.billing_address_line2 ||
+              fullOrder.billing_city ||
+              "",
             city: fullOrder.shipping_city || fullOrder.billing_city || "",
             postalCode: fullOrder.shipping_postal_code || fullOrder.billing_postal_code || "",
             province: fullOrder.shipping_province || fullOrder.billing_province || "",
@@ -174,11 +179,13 @@ export async function POST(request: NextRequest) {
             quantity: item.quantity || 1,
           }))
 
+          const serviceType = fullOrder.shipping_method === "express" ? "EXPRESS" : "ROAD"
+
           const shipment = await createShipment(
             AGRIHUB_WAREHOUSE,
             customerAddress,
             items,
-            "ROAD"
+            serviceType
           )
 
           if (shipment) {

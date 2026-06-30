@@ -193,18 +193,18 @@ export async function trackShipment(trackingNumber: string): Promise<any> {
 function getDefaultQuotes(): FastwayQuote[] {
   return [
     {
-      name: 'Standard Delivery',
+      name: 'Standard Delivery (Fastway)',
       type: 'ROAD',
-      price: 80,
-      eta: '3-5 business days',
-      description: 'Standard road freight delivery',
+      price: 99,
+      eta: '2-4 business days',
+      description: 'Nationwide delivery via Fastway Couriers',
     },
     {
-      name: 'Express Delivery',
+      name: 'Express Delivery (Fastway)',
       type: 'EXPRESS',
-      price: 250,
+      price: 160,
       eta: '1-2 business days',
-      description: 'Fast express delivery',
+      description: 'Priority delivery to major centres via Fastway Couriers',
     },
   ]
 }
