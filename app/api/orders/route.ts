@@ -1,6 +1,16 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import { createClient as createServerClient } from "@/lib/supabase/server"
+import { SHIPPING_RATES, type ShippingMethod } from "@/lib/types"
+
+// Calculate shipping the SAME way the checkout/cart does, so the stored order
+// total always matches the amount the customer is charged via PayFast.
+function calculateShipping(method: ShippingMethod, subtotal: number): number {
+  if (method === "pickup") return 0
+  const rate = method === "express" ? SHIPPING_RATES.express : SHIPPING_RATES.standard
+  if (rate.freeThreshold && subtotal >= rate.freeThreshold) return 0
+  return rate.price
+}
 
 // Lazy initialization to avoid build-time errors
 function getSupabaseAdmin() {
@@ -20,6 +30,7 @@ export async function POST(request: NextRequest) {
       billingAddress,
       email,
       paymentMethod,
+      shippingMethod,
       couponCode,
       notes,
       subtotal,
@@ -27,6 +38,12 @@ export async function POST(request: NextRequest) {
       discount,
       total,
     } = body
+
+    // Normalize the selected shipping method (defaults to standard delivery).
+    const selectedShippingMethod: ShippingMethod =
+      shippingMethod === "express" || shippingMethod === "pickup"
+        ? shippingMethod
+        : "standard"
 
     // Validate required fields
     if (!items || items.length === 0) {
@@ -136,8 +153,9 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Calculate shipping (free over R1,500)
-    const calculatedShipping = calculatedSubtotal >= 1500 ? 0 : 150
+    // Calculate shipping using the shared SHIPPING_RATES so the server total
+    // always matches what the customer was shown and charged.
+    const calculatedShipping = calculateShipping(selectedShippingMethod, calculatedSubtotal)
     const calculatedTotal = calculatedSubtotal - appliedDiscount + calculatedShipping
 
     // Create order
@@ -151,6 +169,7 @@ export async function POST(request: NextRequest) {
         payment_method: paymentMethod,
         subtotal: calculatedSubtotal,
         shipping_cost: calculatedShipping,
+        shipping_method: selectedShippingMethod,
         discount_amount: appliedDiscount,
         total: calculatedTotal,
         coupon_code: couponCode || null,
