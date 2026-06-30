@@ -169,7 +169,6 @@ export async function POST(request: NextRequest) {
         payment_method: paymentMethod,
         subtotal: calculatedSubtotal,
         shipping_cost: calculatedShipping,
-        shipping_method: selectedShippingMethod,
         discount_amount: appliedDiscount,
         total: calculatedTotal,
         coupon_code: couponCode || null,
