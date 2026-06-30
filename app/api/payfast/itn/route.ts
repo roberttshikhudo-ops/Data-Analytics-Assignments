@@ -2,6 +2,31 @@ import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import { validatePayFastITN, getPaymentStatus } from "@/lib/payfast"
 import { createShipment, AGRIHUB_WAREHOUSE, ShippingAddress } from "@/lib/fastway"
+import {
+  sendOrderConfirmationEmail,
+  sendOrderTrackingEmail,
+  type OrderEmailData,
+} from "@/lib/emails/order"
+
+const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://agrihubsa.co.za"
+
+// Resolves the customer's email for an order. Guest checkouts store the address
+// in guest_email; registered users have their email in Supabase auth.
+async function resolveCustomerEmail(
+  supabaseAdmin: ReturnType<typeof getSupabaseAdmin>,
+  order: any,
+): Promise<string> {
+  if (order?.guest_email) return order.guest_email
+  if (order?.user_id) {
+    try {
+      const { data } = await supabaseAdmin.auth.admin.getUserById(order.user_id)
+      return data?.user?.email || ""
+    } catch {
+      return ""
+    }
+  }
+  return ""
+}
 
 // Lazy initialization to avoid build-time errors
 function getSupabaseAdmin() {
@@ -105,6 +130,30 @@ export async function POST(request: NextRequest) {
         }
       }
 
+      // Resolve customer contact details for emails + shipment.
+      const customerEmail = await resolveCustomerEmail(supabaseAdmin, fullOrder)
+      const customerName =
+        [fullOrder?.shipping_first_name, fullOrder?.shipping_last_name]
+          .filter(Boolean)
+          .join(" ") || null
+
+      const emailData: OrderEmailData = {
+        orderNumber: orderNumber || fullOrder?.order_number || "",
+        customerName,
+        items: (fullOrder?.order_items || []).map((it: any) => ({
+          name: it.product?.name || it.product_name || "Product",
+          quantity: it.quantity || 1,
+          total: Number(it.total_price ?? (it.unit_price || 0) * (it.quantity || 1)),
+        })),
+        subtotal: Number(fullOrder?.subtotal || 0),
+        shipping: Number(fullOrder?.shipping_cost || 0),
+        discount: Number(fullOrder?.discount_amount || 0),
+        total: Number(fullOrder?.total ?? amountGross),
+      }
+
+      // Send the order confirmation email (never blocks the ITN).
+      await sendOrderConfirmationEmail(customerEmail, emailData)
+
       // Auto-create Fastway shipment if shipping method is delivery
       if (fullOrder && fullOrder.shipping_method !== "pickup") {
         try {
@@ -116,7 +165,7 @@ export async function POST(request: NextRequest) {
             postalCode: fullOrder.shipping_postal_code || fullOrder.billing_postal_code || "",
             province: fullOrder.shipping_province || fullOrder.billing_province || "",
             phone: fullOrder.shipping_phone || fullOrder.billing_phone || "",
-            email: fullOrder.email || "",
+            email: customerEmail,
           }
 
           const items = (fullOrder.order_items || []).map((item: any) => ({
@@ -133,11 +182,14 @@ export async function POST(request: NextRequest) {
           )
 
           if (shipment) {
+            const trackingUrl = `${SITE_URL}/track?trackingNumber=${encodeURIComponent(shipment.trackingNumber)}`
+
             // Update order with tracking info
             await supabaseAdmin
               .from("orders")
               .update({
                 tracking_number: shipment.trackingNumber,
+                tracking_url: trackingUrl,
                 shipping_label_url: shipment.labelUrl,
                 courier_service: "fastway",
                 status: "shipped",
@@ -145,6 +197,13 @@ export async function POST(request: NextRequest) {
               .eq("id", orderId)
 
             console.log(`[v0] Fastway shipment created for order ${orderNumber}: ${shipment.trackingNumber}`)
+
+            // Send the tracking email (never blocks the ITN).
+            await sendOrderTrackingEmail(customerEmail, {
+              ...emailData,
+              trackingNumber: shipment.trackingNumber,
+              trackingUrl,
+            })
           } else {
             console.log(`[v0] Could not auto-create shipment for order ${orderNumber}, manual creation required`)
           }
