@@ -73,11 +73,12 @@ const SERIES: SeriesDef[] = [
     match: (n) => n.includes("throw flee-") || n.includes("throw flee ("),
   },
 
-  // Corduroy fleece throws (R180).
+  // Corduroy fleece throws (R180). Corduroy comforters (e.g. the
+  // "5pcs Corduroy Comforter" sets) are explicitly excluded.
   {
     title: "Corduroy Fleece Throws",
     subtitle: "Ribbed corduroy fleece - 180cm x 200cm",
-    match: (n) => n.includes("corduroy"),
+    match: (n) => n.includes("corduroy") && !n.includes("comforter"),
   },
 
   // Premium plain fleece throws — "Fleece Throw 180cm X 200cm" (R255).
@@ -99,13 +100,6 @@ const SERIES: SeriesDef[] = [
     title: "Reversible Fleece Throws",
     subtitle: "Two-tone reversible fleece - 200cm x 230cm",
     match: (n) => n.includes("throw fleece 200cm"),
-  },
-
-  // Large / premium fleece blankets (R420 - R450).
-  {
-    title: "Large Fleece Blankets",
-    subtitle: "Extra-large fleece blankets - up to 200cm x 230cm",
-    match: (n) => n.includes("fleece blanket"),
   },
 
   // Soft throw blankets — everything else that is a throw.

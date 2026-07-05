@@ -201,7 +201,7 @@ export function ThrowsCatalogue({
   const totalProducts = groups.reduce((sum, g) => sum + g.products.length, 0)
 
   return (
-    <Document title={`${business.name} - Throws and Flees Catalogue`} author={business.name}>
+    <Document title={`${business.name} - Throws and Fleece Catalogue`} author={business.name}>
       <Page size="A4" style={styles.page}>
         {/* Repeated on every page: logo in top-left and top-right corners. */}
         <View style={styles.pageHeader} fixed>
@@ -216,7 +216,7 @@ export function ThrowsCatalogue({
         <View style={styles.cover}>
           <Text style={styles.brand}>{business.name}</Text>
           <Text style={styles.tagline}>{business.tagline}</Text>
-          <Text style={styles.title}>Throws and Flees</Text>
+          <Text style={styles.title}>Throws and Fleece</Text>
           <Text style={styles.subtitle}>
             Cosy Faux-Fur, Fleece and Corduroy Throws for Every Home
           </Text>
