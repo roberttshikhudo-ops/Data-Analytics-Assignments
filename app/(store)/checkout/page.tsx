@@ -203,6 +203,7 @@ export default function CheckoutPage() {
               },
           email: form.email,
           paymentMethod: form.paymentMethod,
+          shippingMethod: form.shippingMethod,
           couponCode: couponDiscount > 0 ? couponCode : null,
           notes: form.notes,
           subtotal,
@@ -226,7 +227,9 @@ export default function CheckoutPage() {
           body: JSON.stringify({
             orderId: orderData.orderId,
             orderNumber: orderData.orderNumber,
-            amount: total,
+            // Use the server-calculated total so the amount charged always
+            // matches the stored order total (prevents ITN amount mismatches).
+            amount: orderData.total ?? total,
             email: form.email,
             firstName: form.firstName,
             lastName: form.lastName,

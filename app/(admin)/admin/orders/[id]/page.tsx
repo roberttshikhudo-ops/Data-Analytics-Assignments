@@ -7,6 +7,7 @@ import { ArrowLeft, Package, Truck, MapPin, CreditCard, User } from "lucide-reac
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { OrderStatusUpdater } from "@/components/admin/order-status-updater"
+import { CreateShipmentButton } from "@/components/admin/create-shipment-button"
 
 async function getOrder(id: string) {
   const supabase = await createClient()
@@ -154,6 +155,13 @@ export default async function OrderDetailPage({
             currentStatus={order.status}
             currentPaymentStatus={order.payment_status}
           />
+
+          {/* Create shipment (only for paid delivery orders without tracking yet) */}
+          {!order.tracking_number &&
+            order.shipping_method !== "pickup" &&
+            order.payment_status === "paid" && (
+              <CreateShipmentButton orderId={order.id} />
+            )}
 
           {/* Customer Info */}
           <Card>

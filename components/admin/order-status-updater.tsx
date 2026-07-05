@@ -38,25 +38,36 @@ export function OrderStatusUpdater({
   const handleUpdate = async () => {
     setIsLoading(true)
 
-    const updates: Record<string, any> = {
-      status,
-      payment_status: paymentStatus,
-    }
+    try {
+      // Route through the server so confirmation/tracking emails are sent
+      // automatically when the payment is marked paid or a tracking number
+      // is added.
+      const res = await fetch("/api/admin/orders/update-status", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          orderId,
+          status,
+          paymentStatus,
+          trackingNumber: trackingNumber || undefined,
+          trackingUrl: trackingUrl || undefined,
+        }),
+      })
 
-    if (trackingNumber) {
-      updates.tracking_number = trackingNumber
+      if (!res.ok) {
+        // Fall back to a direct update so the admin is never blocked.
+        const updates: Record<string, any> = {
+          status,
+          payment_status: paymentStatus,
+        }
+        if (trackingNumber) updates.tracking_number = trackingNumber
+        if (trackingUrl) updates.tracking_url = trackingUrl
+        await supabase.from("orders").update(updates).eq("id", orderId)
+      }
+    } finally {
+      setIsLoading(false)
+      router.refresh()
     }
-    if (trackingUrl) {
-      updates.tracking_url = trackingUrl
-    }
-
-    await supabase
-      .from("orders")
-      .update(updates)
-      .eq("id", orderId)
-
-    setIsLoading(false)
-    router.refresh()
   }
 
   return (
