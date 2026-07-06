@@ -21,6 +21,9 @@ export function ProductGallery({ product }: ProductGalleryProps) {
             fill
             className="object-cover"
             sizes="(max-width: 768px) 100vw, 50vw"
+            quality={75}
+            placeholder="blur"
+            blurDataURL="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMCAxMCI+PHJlY3Qgd2lkdGg9IjEwIiBoZWlnaHQ9IjEwIiBmaWxsPSIjZWFlN2UxIi8+PC9zdmc+"
             priority
           />
         ) : (

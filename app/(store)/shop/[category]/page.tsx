@@ -149,8 +149,8 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
           <Suspense fallback={<ProductGridSkeleton />}>
             {products.length > 0 ? (
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
-                {products.map((product) => (
-                  <ProductCard key={product.id} product={product as Product} />
+                {products.map((product, index) => (
+                  <ProductCard key={product.id} product={product as Product} priority={index < 6} />
                 ))}
               </div>
             ) : (

@@ -186,8 +186,8 @@ export default async function DealsPage() {
               </Button>
             </div>
             <div className="grid gap-6 grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-              {saleProducts.map((product) => (
-                <ProductCard key={product.id} product={product} />
+              {saleProducts.map((product, index) => (
+                <ProductCard key={product.id} product={product} priority={index < 4} />
               ))}
             </div>
             <div className="mt-8 text-center sm:hidden">
