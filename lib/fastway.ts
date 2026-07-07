@@ -139,11 +139,18 @@ export async function createShipment(
     )
 
     if (!response.ok) {
-      console.error('[Fastway] Create shipment error:', response.status)
+      const errText = await response.text()
+      console.error('[Fastway] Create shipment HTTP error:', response.status, errText)
       return null
     }
 
     const data = await response.json()
+
+    // Surface Fastway's own error payload (e.g. invalid key / unknown endpoint)
+    if (data && data.error) {
+      console.error('[Fastway] Create shipment API error:', data.error)
+      return null
+    }
 
     if (data.result && data.result.consignment_id) {
       return {
