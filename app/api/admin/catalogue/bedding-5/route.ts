@@ -136,9 +136,11 @@ function mimeFromBuffer(buf: Buffer): string {
 }
 
 // Downscales and re-encodes an image so the catalogue stays email-friendly.
-// Product cards render at roughly 250px wide, so a 520px-wide JPEG keeps the
-// print crisp while shrinking each embedded image to ~30-60KB. The logo is
-// kept as a small PNG.
+// Product cards render at roughly 250px wide, so a 480px-wide JPEG stays at
+// ~1.9x the display size (crisp on print/retina) while shrinking each embedded
+// image to ~25-40KB. Quality 72 with mozjpeg is visually indistinguishable
+// from 78 for these fabric photos but ~25% smaller. The logo is kept as a
+// small PNG.
 async function compressImage(
   buf: Buffer,
   variant: "product" | "logo",
@@ -153,8 +155,8 @@ async function compressImage(
     }
 
     const data = await sharp(buf)
-      .resize({ width: 520, withoutEnlargement: true })
-      .jpeg({ quality: 78, mozjpeg: true })
+      .resize({ width: 480, withoutEnlargement: true })
+      .jpeg({ quality: 72, mozjpeg: true })
       .toBuffer()
     return { data, mime: "image/jpeg" }
   } catch {
