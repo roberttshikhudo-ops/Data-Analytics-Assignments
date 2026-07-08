@@ -41,8 +41,8 @@ const BANKING_INFO = {
 
 // The exact series order, listed start to finish. Each product is assigned to
 // the FIRST series it matches, so ordering matters and a product never appears
-// twice. Catalogue 5 applies NO exclusions and uses a catch-all "Other Bedding"
-// group so every active Home & Living item is included and classified.
+// twice. Products that match no series (and the excluded travel bag) are left
+// out, so only genuine bedding is classified and shown.
 interface SeriesDef {
   title: string
   match: (name: string, description: string) => boolean
@@ -113,12 +113,6 @@ const SERIES: SeriesDef[] = [
   {
     title: "Other Blankets",
     match: (n) => n.includes("blanket"),
-  },
-
-  // 9. Catch-all so nothing is dropped. Always matches.
-  {
-    title: "Other Bedding",
-    match: () => true,
   },
 ]
 
@@ -231,10 +225,14 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Failed to load products" }, { status: 500 })
   }
 
-  // Catalogue 5: every active Home & Living bedding item, NO exclusions.
-  const homeLiving = (products || []).filter(
-    (p: any) => p.categories?.slug === "home-living",
-  )
+  // Catalogue 5: active Home & Living bedding. Non-bedding items (e.g. the
+  // Quilted Weekender Travel Bag) are explicitly excluded.
+  const EXCLUDED = ["quilted weekender travel bag"]
+  const homeLiving = (products || []).filter((p: any) => {
+    if (p.categories?.slug !== "home-living") return false
+    const name = (p.name || "").toLowerCase()
+    return !EXCLUDED.some((ex) => name.includes(ex))
+  })
 
   // Assign each product to the first series it matches. The final catch-all
   // series guarantees nothing is dropped.
