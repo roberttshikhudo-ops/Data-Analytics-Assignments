@@ -213,7 +213,12 @@ async function imageToDataUri(
 }
 
 export async function GET(request: Request) {
-  const origin = new URL(request.url).origin
+  const url = new URL(request.url)
+  const origin = url.origin
+
+  // When `series=fleece`, reproduce Catalogue 5 but include ONLY the new
+  // "5pcs Comforter Set with white fleece inside" series.
+  const fleeceOnly = url.searchParams.get("series") === "fleece"
 
   const { data: products, error } = await supabaseAdmin
     .from("products")
@@ -234,21 +239,13 @@ export async function GET(request: Request) {
     return !EXCLUDED.some((ex) => name.includes(ex))
   })
 
-  // Assign each product to the first series it matches. The final catch-all
-  // series guarantees nothing is dropped.
-  const assigned = new Set<any>()
   const groups: CatalogueSeriesGroup[] = []
 
-  for (const series of SERIES) {
-    const matched = homeLiving.filter((p: any) => {
-      if (assigned.has(p)) return false
-      const name = (p.name || "").toLowerCase()
-      const description = (p.short_description || "").toLowerCase()
-      return series.match(name, description)
-    })
-
-    if (matched.length === 0) continue
-    matched.forEach((p: any) => assigned.add(p))
+  if (fleeceOnly) {
+    // Single-series edition: only the fleece comforter sets.
+    const matched = homeLiving.filter((p: any) =>
+      (p.name || "").toLowerCase().includes("comforter set with white fleece inside"),
+    )
 
     const seriesProducts: CatalogueProduct[] = await Promise.all(
       matched.map(async (p: any) => ({
@@ -260,7 +257,36 @@ export async function GET(request: Request) {
       })),
     )
 
-    groups.push({ title: series.title, products: seriesProducts })
+    if (seriesProducts.length > 0) {
+      groups.push({ title: "5pcs Comforter Set with White Fleece Inside", products: seriesProducts })
+    }
+  } else {
+    // Full catalogue: assign each product to the first series it matches.
+    const assigned = new Set<any>()
+
+    for (const series of SERIES) {
+      const matched = homeLiving.filter((p: any) => {
+        if (assigned.has(p)) return false
+        const name = (p.name || "").toLowerCase()
+        const description = (p.short_description || "").toLowerCase()
+        return series.match(name, description)
+      })
+
+      if (matched.length === 0) continue
+      matched.forEach((p: any) => assigned.add(p))
+
+      const seriesProducts: CatalogueProduct[] = await Promise.all(
+        matched.map(async (p: any) => ({
+          name: p.name,
+          price: p.price,
+          compareAtPrice: p.compare_at_price,
+          description: p.short_description ?? null,
+          imageDataUri: await imageToDataUri(p.image_url, origin),
+        })),
+      )
+
+      groups.push({ title: series.title, products: seriesProducts })
+    }
   }
 
   const generatedDate = new Date().toLocaleDateString("en-ZA", {
@@ -281,10 +307,14 @@ export async function GET(request: Request) {
     }) as ReactElement<DocumentProps>,
   )
 
+  const filename = fleeceOnly
+    ? "Agri-Hub-SA-Fleece-Comforter-Catalogue.pdf"
+    : "Agri-Hub-SA-Bedding-Catalogue-5.pdf"
+
   return new NextResponse(buffer as any, {
     headers: {
       "Content-Type": "application/pdf",
-      "Content-Disposition": 'attachment; filename="Agri-Hub-SA-Bedding-Catalogue-5.pdf"',
+      "Content-Disposition": `attachment; filename="${filename}"`,
       "Cache-Control": "no-store",
     },
   })
