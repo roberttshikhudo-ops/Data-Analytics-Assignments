@@ -8,7 +8,10 @@ import { CatalogueDownloadButtonTwo } from "@/components/admin/catalogue-downloa
 import { CatalogueDownloadButtonThree } from "@/components/admin/catalogue-download-button-3"
 import { CatalogueDownloadButtonThreeC } from "@/components/admin/catalogue-download-button-3c"
 import { CatalogueDownloadButtonFour } from "@/components/admin/catalogue-download-button-4"
+import { CatalogueDownloadButtonFive } from "@/components/admin/catalogue-download-button-5"
+import { CatalogueDownloadButtonFleece } from "@/components/admin/catalogue-download-button-fleece"
 import { CatalogueDownloadButtonThrows } from "@/components/admin/catalogue-download-button-throws"
+import { CatalogueDownloadButtonBlankets } from "@/components/admin/catalogue-download-button-blankets"
 
 async function getProducts() {
   const supabase = await createClient()
@@ -54,7 +57,10 @@ export default async function ProductsPage() {
           <CatalogueDownloadButtonThree />
           <CatalogueDownloadButtonThreeC />
           <CatalogueDownloadButtonFour />
+          <CatalogueDownloadButtonFive />
+          <CatalogueDownloadButtonFleece />
           <CatalogueDownloadButtonThrows />
+          <CatalogueDownloadButtonBlankets />
           <Link href="/admin/products/images">
             <Button variant="outline">
               <Image className="mr-2 h-4 w-4" />

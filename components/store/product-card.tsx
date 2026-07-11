@@ -12,11 +12,18 @@ import { useWishlist } from '@/hooks/use-wishlist'
 import { formatPrice, calculateDiscount, cn } from '@/lib/utils'
 import type { Product } from '@/lib/types'
 
+// Tiny neutral blur placeholder so a color paints instantly while the
+// optimized image streams in — avoids blank/grey boxes on first visit.
+const BLUR_DATA_URL =
+  'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMCAxMCI+PHJlY3Qgd2lkdGg9IjEwIiBoZWlnaHQ9IjEwIiBmaWxsPSIjZWFlN2UxIi8+PC9zdmc+'
+
 interface ProductCardProps {
   product: Product
+  /** Eagerly load this image (use for the first row of above-the-fold cards). */
+  priority?: boolean
 }
 
-export function ProductCard({ product }: ProductCardProps) {
+export function ProductCard({ product, priority = false }: ProductCardProps) {
   const { addItem } = useCart()
   const { isInWishlist, isLoading: wishlistLoading, toggleWishlist } = useWishlist(product.id)
   const discount = calculateDiscount(product.price, product.compare_at_price)
@@ -49,6 +56,11 @@ export function ProductCard({ product }: ProductCardProps) {
               fill
               className="object-cover transition-transform group-hover:scale-105"
               sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+              quality={70}
+              placeholder="blur"
+              blurDataURL={BLUR_DATA_URL}
+              priority={priority}
+              loading={priority ? 'eager' : 'lazy'}
             />
           ) : (
             <div className="h-full w-full flex items-center justify-center text-muted-foreground bg-gradient-to-br from-primary/5 to-accent/5">
