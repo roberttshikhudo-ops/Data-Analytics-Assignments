@@ -10,6 +10,8 @@ const nextConfig = {
     minimumCacheTTL: 60 * 60 * 24 * 31,
     // Allow optimization of the external image hosts used by product data.
     remotePatterns: [
+      // All Vercel Blob stores (product images are uploaded here).
+      { protocol: "https", hostname: "*.public.blob.vercel-storage.com" },
       { protocol: "https", hostname: "hebbkx1anhila5yf.public.blob.vercel-storage.com" },
       { protocol: "https", hostname: "images.unsplash.com" },
       { protocol: "https", hostname: "www.agrinet.co.za" },
