@@ -32,7 +32,7 @@ export default function PosterPage() {
       <div
         id="poster"
         className="flex flex-col overflow-hidden bg-white font-sans"
-        style={{ width: 1080, height: 1600 }}
+        style={{ width: 1080, height: 1820 }}
       >
         {/* ===== Header ===== */}
         <header className="flex items-center gap-6 px-12 pb-7 pt-9" style={{ backgroundColor: GREEN }}>
@@ -111,13 +111,13 @@ export default function PosterPage() {
         </section>
 
         {/* ===== Footer: To Order, Contact Us Today ===== */}
-        <footer className="px-12 pb-8 pt-6 text-white" style={{ backgroundColor: GREEN }}>
+        <footer className="px-12 pb-7 pt-5 text-white" style={{ backgroundColor: GREEN }}>
           <p className="text-center text-[32px] font-extrabold tracking-wide">To Order, Contact Us Today</p>
           <p className="mt-1 text-center text-[17px] text-white/80">
             Shop securely online or message us — delivered to your door anywhere in South Africa.
           </p>
 
-          <div className="mt-5 grid grid-cols-3 gap-4 text-[17px]">
+          <div className="mt-4 grid grid-cols-3 gap-4 text-[17px]">
             <div className="flex flex-col gap-1">
               <span className="text-[13px] font-bold uppercase tracking-wider" style={{ color: GOLD }}>
                 Call / WhatsApp
