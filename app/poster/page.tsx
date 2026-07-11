@@ -1,47 +1,29 @@
-import Image from "next/image"
-
 export const metadata = {
   title: "Agri Hub SA — Bedding Poster",
   robots: { index: false, follow: false },
 }
 
-const products = [
-  {
-    name: "7pcs King Size Comforter Set",
-    variant: "Molly Range",
-    price: "735",
-    img: "/poster/molly-green.jpg",
-  },
-  {
-    name: "7pcs King Size Comforter Set",
-    variant: "Molly Range",
-    price: "735",
-    img: "/poster/molly-pink.jpg",
-  },
-  {
-    name: "1PLY Little Sheep Blanket",
-    variant: "Luxury Mink",
-    price: "795",
-    img: "/poster/sheep-grey.jpg",
-  },
-  {
-    name: "1PLY Little Sheep Blanket",
-    variant: "Luxury Mink",
-    price: "795",
-    img: "/poster/sheep-blush.jpg",
-  },
-  {
-    name: "Good Quality 1PLY Blanket",
-    variant: "8 Colours",
-    price: "540",
-    img: "/poster/blanket-navy.jpg",
-  },
-  {
-    name: "3pcs Corduroy Mattress Protector",
-    variant: "6 Colours",
-    price: "350",
-    img: "/poster/protector-charcoal.jpg",
-  },
+const GREEN = "#2f5117"
+const NAVY = "#12324f"
+const GOLD = "#c8a24a"
+
+type Product = {
+  name: string
+  price: number
+  img: string
+  tag: string
+}
+
+const products: Product[] = [
+  { name: "Moffy 003 — 7pcs Super King", price: 545, img: "/products/home-living/moffy-003.jpg", tag: "Comforter Set" },
+  { name: "MOMO-002 Super King Quilt Set", price: 550, img: "/poster2/2-momo.webp", tag: "Quilt Set" },
+  { name: "RARA-006 Super King Quilt Set", price: 495, img: "/poster2/3-rara.webp", tag: "Quilt Set" },
+  { name: "5pcs Flower Reversible Comforter P5", price: 495, img: "/poster2/4-flower.webp", tag: "Comforter" },
+  { name: "5pcs Generic Reversible — Grey", price: 295, img: "/poster2/5-generic-grey.jpg", tag: "Comforter" },
+  { name: "5pcs Corduroy Comforter 001 — Charcoal", price: 450, img: "/poster2/6-corduroy.webp", tag: "Comforter" },
+  { name: "5pcs Geometric Comforter — Coffee Brown", price: 435, img: "/poster2/7-geometric.jpg", tag: "Comforter" },
+  { name: "9pcs Comforter Set — Coral", price: 530, img: "/products/comforter-9pcs/img-03.png", tag: "Comforter Set" },
+  { name: "Gen. Throw Fleece — Grey (180 x 200cm)", price: 195, img: "/products/throw-fleece/grey.png", tag: "Throw & Fleece" },
 ]
 
 export default function PosterPage() {
@@ -49,74 +31,112 @@ export default function PosterPage() {
     <main className="flex min-h-screen items-center justify-center bg-neutral-200 p-6">
       <div
         id="poster"
-        className="relative flex flex-col overflow-hidden bg-[#f7f5ef]"
-        style={{ width: 1080, height: 1350 }}
+        className="flex flex-col overflow-hidden bg-white font-sans"
+        style={{ width: 1080, height: 1820 }}
       >
-        {/* Header */}
-        <header className="flex flex-col items-center bg-[#2f5117] px-12 pb-6 pt-8 text-center">
-          <div className="flex items-center gap-4">
-            <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-full bg-white">
-              <Image
-                src="/agri-hub-logo.png"
-                alt="Agri Hub SA logo"
-                width={80}
-                height={80}
-                className="h-full w-full object-contain"
-              />
-            </div>
-            <span className="text-5xl font-extrabold tracking-tight text-white">AGRI HUB SA</span>
+        {/* ===== Header ===== */}
+        <header className="flex items-center gap-6 px-12 pb-7 pt-9" style={{ backgroundColor: GREEN }}>
+          <div className="flex h-[104px] w-[104px] shrink-0 items-center justify-center overflow-hidden rounded-full bg-white p-2">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/agri-hub-logo.png" alt="Agri Hub SA logo" className="h-full w-full object-contain" />
           </div>
-          <h1 className="mt-6 text-6xl font-black leading-none text-white text-balance">
-            WINTER BEDDING SALE
-          </h1>
-          <p className="mt-4 text-2xl font-medium text-[#d7e8c4] text-pretty">
-            Premium blankets, comforter sets &amp; mattress protectors — delivered nationwide
-          </p>
+          <div className="flex-1 text-white">
+            <h1 className="text-[46px] font-extrabold leading-none tracking-tight">AGRI HUB SA</h1>
+            <p className="mt-2 text-[19px] leading-snug text-white/85">
+              Your Agricultural, Hardware &amp; Lifestyle Innovation Partner
+            </p>
+          </div>
+          <div className="shrink-0 rounded-lg px-5 py-3 text-center" style={{ backgroundColor: GOLD }}>
+            <p className="text-[15px] font-bold uppercase leading-tight tracking-wide" style={{ color: GREEN }}>
+              Shop Online
+            </p>
+            <p className="text-[13px] font-semibold leading-tight" style={{ color: GREEN }}>
+              agrihubsa.co.za
+            </p>
+          </div>
         </header>
 
-        {/* Accent strip */}
-        <div className="flex items-center justify-center bg-[#e0a800] py-3">
-          <p className="text-2xl font-extrabold uppercase tracking-widest text-[#2f5117]">
-            Quality You Can Feel • Prices You&apos;ll Love
-          </p>
-        </div>
+        {/* ===== Hero band ===== */}
+        <section className="flex items-center justify-between px-12 py-5" style={{ backgroundColor: NAVY }}>
+          <div className="text-white">
+            <h2 className="text-[40px] font-extrabold leading-none">Premium Bedding Range</h2>
+            <p className="mt-2 text-[20px] font-medium text-white/85">
+              Order online &bull; We deliver{" "}
+              <span className="font-bold" style={{ color: GOLD }}>
+                nationwide
+              </span>
+            </p>
+          </div>
+          <div className="text-right">
+            <p className="text-[15px] font-semibold uppercase tracking-widest text-white/70">Delivery</p>
+            <p className="text-[30px] font-extrabold leading-tight" style={{ color: GOLD }}>
+              Across SA
+            </p>
+          </div>
+        </section>
 
-        {/* Product grid */}
-        <section className="grid flex-1 grid-cols-3 gap-5 px-10 py-5">
-          {products.map((p, i) => (
-            <div
-              key={i}
-              className="flex flex-col overflow-hidden rounded-2xl bg-white shadow-md ring-1 ring-black/5"
+        {/* ===== Category strip ===== */}
+        <section className="px-12 py-4 text-center" style={{ backgroundColor: "#f3f0e7" }}>
+          <p className="text-[19px] font-semibold" style={{ color: GREEN }}>
+            Comforters &nbsp;&bull;&nbsp; Quilt Sets &nbsp;&bull;&nbsp; Throws &amp; Fleece &nbsp;&bull;&nbsp; Blankets
+            <span className="font-normal text-neutral-600"> — available in a range of colours</span>
+          </p>
+        </section>
+
+        {/* ===== Product grid ===== */}
+        <section className="grid flex-1 grid-cols-3 gap-6 px-10 py-7">
+          {products.map((p) => (
+            <article
+              key={p.name}
+              className="flex flex-col overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm"
             >
-              <div className="relative aspect-[5/4] w-full overflow-hidden">
-                <Image src={p.img || "/placeholder.svg"} alt={p.name} fill className="object-cover" sizes="360px" />
-                <span className="absolute right-3 top-3 rounded-full bg-[#2f5117] px-4 py-1.5 text-xl font-extrabold text-white shadow">
-                  R{p.price}
+              <div className="relative h-[268px] w-full overflow-hidden bg-neutral-100">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={p.img || "/placeholder.svg"} alt={p.name} className="h-full w-full object-cover" />
+                <span
+                  className="absolute left-0 top-3 rounded-r-md px-3 py-1 text-[12px] font-bold uppercase tracking-wide text-white"
+                  style={{ backgroundColor: GREEN }}
+                >
+                  {p.tag}
                 </span>
               </div>
-              <div className="flex flex-1 flex-col justify-between px-4 py-4">
-                <p className="text-xl font-bold leading-tight text-neutral-900 text-pretty">{p.name}</p>
-                <p className="mt-1 text-lg font-medium text-[#2f5117]">{p.variant}</p>
+              <div className="flex flex-1 flex-col justify-between px-4 py-3">
+                <h3 className="text-[17px] font-semibold leading-tight text-neutral-800">{p.name}</h3>
+                <p className="mt-2 text-[28px] font-extrabold leading-none" style={{ color: GREEN }}>
+                  R{p.price}
+                </p>
               </div>
-            </div>
+            </article>
           ))}
         </section>
 
-        {/* Footer contact band */}
-        <footer className="bg-[#2f5117] px-12 py-8 text-white">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-3xl font-black">Shop Online Today</p>
-              <p className="mt-1 text-4xl font-extrabold text-[#e0a800]">agrihubsa.co.za</p>
+        {/* ===== Footer: To Order, Contact Us Today ===== */}
+        <footer className="px-12 pb-7 pt-5 text-white" style={{ backgroundColor: GREEN }}>
+          <p className="text-center text-[32px] font-extrabold tracking-wide">To Order, Contact Us Today</p>
+          <p className="mt-1 text-center text-[17px] text-white/80">
+            Shop securely online or message us — delivered to your door anywhere in South Africa.
+          </p>
+
+          <div className="mt-4 grid grid-cols-3 gap-4 text-[17px]">
+            <div className="flex flex-col gap-1">
+              <span className="text-[13px] font-bold uppercase tracking-wider" style={{ color: GOLD }}>
+                Call / WhatsApp
+              </span>
+              <span className="font-semibold">083 306 1529</span>
+              <span className="font-semibold">060 839 1874</span>
             </div>
-            <div className="text-right">
-              <div className="flex items-center justify-end gap-3">
-                <svg className="h-9 w-9 text-[#25D366]" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
-                </svg>
-                <p className="text-3xl font-extrabold">079 109 9490</p>
-              </div>
-              <p className="mt-1 text-2xl font-semibold text-[#d7e8c4]">Call / WhatsApp • 083 306 1529</p>
+            <div className="flex flex-col gap-1">
+              <span className="text-[13px] font-bold uppercase tracking-wider" style={{ color: GOLD }}>
+                Online
+              </span>
+              <span className="font-semibold">www.agrihubsa.co.za</span>
+              <span className="font-semibold">robert.tshikhudo@gmail.com</span>
+            </div>
+            <div className="flex flex-col gap-1">
+              <span className="text-[13px] font-bold uppercase tracking-wider" style={{ color: GOLD }}>
+                Visit Us
+              </span>
+              <span className="font-semibold leading-snug">The Parks, Riversands, Midrand, Johannesburg, SA</span>
             </div>
           </div>
         </footer>
