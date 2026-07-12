@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Plus, Image } from "lucide-react"
+import { Plus, Image, DollarSign } from "lucide-react"
 import { ProductsTable } from "@/components/admin/products-table"
 import { CatalogueDownloadButton } from "@/components/admin/catalogue-download-button"
 import { CatalogueDownloadButtonTwo } from "@/components/admin/catalogue-download-button-2"
@@ -63,6 +63,12 @@ export default async function ProductsPage() {
           <CatalogueDownloadButtonThrows />
           <CatalogueDownloadButtonBlankets />
           <PosterDownloadButton />
+          <Link href="/admin/products/costs">
+            <Button variant="outline">
+              <DollarSign className="mr-2 h-4 w-4" />
+              Set Cost Prices
+            </Button>
+          </Link>
           <Link href="/admin/products/images">
             <Button variant="outline">
               <Image className="mr-2 h-4 w-4" />
