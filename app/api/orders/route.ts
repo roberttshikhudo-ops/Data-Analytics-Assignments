@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
     const productIds = items.map((item: { productId: string }) => item.productId)
     const { data: products, error: productsError } = await supabaseAdmin
       .from("products")
-      .select("id, name, price, sku, stock_quantity")
+      .select("id, name, price, cost_price, sku, stock_quantity")
       .in("id", productIds)
       .eq("is_active", true)
 
@@ -110,6 +110,7 @@ export async function POST(request: NextRequest) {
         product_image_url: item.imageUrl || null,
         quantity: item.quantity,
         unit_price: product.price,
+        unit_cost: product.cost_price || 0,
         total_price: itemTotal,
       })
     }

@@ -26,6 +26,7 @@ async function getOrder(id: string) {
         product_image_url,
         quantity,
         unit_price,
+        unit_cost,
         total_price
       ),
       order_payments(
@@ -167,6 +168,36 @@ export default async function OrderDetailPage({
                   <span>Total</span>
                   <span>{formatPrice(Number(order.total))}</span>
                 </div>
+
+                {(() => {
+                  const costOfGoods = (order.order_items || []).reduce(
+                    (sum: number, it: any) =>
+                      sum + Number(it.unit_cost || 0) * Number(it.quantity || 0),
+                    0,
+                  )
+                  const profit = Number(order.subtotal) - costOfGoods
+                  const margin =
+                    Number(order.subtotal) > 0
+                      ? (profit / Number(order.subtotal)) * 100
+                      : 0
+                  return (
+                    <div className="mt-2 space-y-2 rounded-md bg-muted/50 p-3">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Cost of goods</span>
+                        <span>{formatPrice(costOfGoods)}</span>
+                      </div>
+                      <div className="flex justify-between text-sm font-semibold text-primary">
+                        <span>Profit {margin > 0 && `(${margin.toFixed(0)}%)`}</span>
+                        <span>{formatPrice(profit)}</span>
+                      </div>
+                      {costOfGoods === 0 && (
+                        <p className="text-xs text-muted-foreground text-pretty">
+                          Set cost prices on your products to see accurate profit.
+                        </p>
+                      )}
+                    </div>
+                  )
+                })()}
               </div>
             </CardContent>
           </Card>

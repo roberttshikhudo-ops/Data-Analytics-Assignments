@@ -148,7 +148,22 @@ export async function createManualOrder(input: ManualOrderInput) {
 
   if (orderErr) throw new Error(`Failed to create order: ${orderErr.message}`)
 
-  // 5. Insert order items
+  // 5. Look up cost prices for catalogue items so we can snapshot profit.
+  const productIds = input.items
+    .map((it) => it.product_id)
+    .filter((id): id is string => Boolean(id))
+  const costMap = new Map<string, number>()
+  if (productIds.length > 0) {
+    const { data: costRows } = await admin
+      .from("products")
+      .select("id, cost_price")
+      .in("id", productIds)
+    for (const row of costRows || []) {
+      costMap.set(row.id, Number(row.cost_price) || 0)
+    }
+  }
+
+  // Insert order items with a per-unit cost snapshot
   const itemsPayload = input.items.map((it) => ({
     order_id: order.id,
     product_id: it.product_id,
@@ -157,6 +172,7 @@ export async function createManualOrder(input: ManualOrderInput) {
     product_image_url: it.product_image_url,
     quantity: it.quantity,
     unit_price: it.unit_price,
+    unit_cost: it.product_id ? costMap.get(it.product_id) || 0 : 0,
     total_price: it.unit_price * it.quantity,
   }))
 
