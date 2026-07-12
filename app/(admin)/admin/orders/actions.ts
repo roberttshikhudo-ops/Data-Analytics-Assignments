@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache"
 import { createClient, createAdminClient } from "@/lib/supabase/server"
+import { sendOrderReceivedEmail, sendOrderStatusEmail } from "@/lib/emails/order"
 
 /**
  * Ensures the current session belongs to an admin before any mutation.
@@ -176,6 +177,28 @@ export async function createManualOrder(input: ManualOrderInput) {
     if (payErr) throw new Error(`Failed to record payment: ${payErr.message}`)
   }
 
+  // 7. Email the customer that we've received their order (if they have an
+  // email). Non-blocking: a mail failure must not fail order creation.
+  if (customer.email) {
+    try {
+      await sendOrderReceivedEmail(customer.email, {
+        orderNumber: order.order_number,
+        customerName: customer.name || null,
+        items: input.items.map((it) => ({
+          name: it.product_name,
+          quantity: it.quantity,
+          total: it.unit_price * it.quantity,
+        })),
+        subtotal,
+        shipping: input.shippingCost || 0,
+        discount: input.discountAmount || 0,
+        total,
+      })
+    } catch (mailErr) {
+      console.error("[v0] Manual order received email failed:", mailErr)
+    }
+  }
+
   revalidatePath("/admin/orders")
   revalidatePath("/admin/deliveries")
   return { orderId: order.id, orderNumber: order.order_number }
@@ -235,10 +258,54 @@ export async function updateDelivery(input: {
     updated_at: new Date().toISOString(),
   }
   // Stamp delivered_at when marked delivered; clear otherwise
-  patch.delivered_at = input.delivery_status === "delivered" ? new Date().toISOString() : null
+  const becameDelivered = input.delivery_status === "delivered"
+  patch.delivered_at = becameDelivered ? new Date().toISOString() : null
+
+  // Read prior delivery status so we only email on the transition to delivered.
+  const { data: prior } = await admin
+    .from("orders")
+    .select("delivery_status")
+    .eq("id", input.orderId)
+    .single()
 
   const { error } = await admin.from("orders").update(patch).eq("id", input.orderId)
   if (error) throw new Error(error.message)
+
+  // Notify the customer that their order has been delivered (non-blocking).
+  if (becameDelivered && prior?.delivery_status !== "delivered") {
+    try {
+      const { data: order } = await admin
+        .from("orders")
+        .select(
+          "order_number, guest_email, subtotal, shipping_cost, discount_amount, total, order_items(product_name, quantity, total_price), customers(name, email)",
+        )
+        .eq("id", input.orderId)
+        .single()
+
+      const email = (order as any)?.customers?.email || (order as any)?.guest_email
+      if (order && email) {
+        await sendOrderStatusEmail(
+          email,
+          {
+            orderNumber: order.order_number,
+            customerName: (order as any)?.customers?.name || null,
+            items: ((order as any).order_items || []).map((it: any) => ({
+              name: it.product_name,
+              quantity: it.quantity,
+              total: Number(it.total_price || 0),
+            })),
+            subtotal: Number(order.subtotal || 0),
+            shipping: Number(order.shipping_cost || 0),
+            discount: Number(order.discount_amount || 0),
+            total: Number(order.total || 0),
+          },
+          "delivered",
+        )
+      }
+    } catch (mailErr) {
+      console.error("[v0] Delivery email failed:", mailErr)
+    }
+  }
 
   revalidatePath(`/admin/orders/${input.orderId}`)
   revalidatePath("/admin/orders")

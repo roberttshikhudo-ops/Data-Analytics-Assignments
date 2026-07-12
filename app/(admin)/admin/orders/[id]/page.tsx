@@ -10,6 +10,7 @@ import { OrderStatusUpdater } from "@/components/admin/order-status-updater"
 import { CreateShipmentButton } from "@/components/admin/create-shipment-button"
 import { OrderPaymentsPanel } from "@/components/admin/order-payments-panel"
 import { OrderDeliveryPanel } from "@/components/admin/order-delivery-panel"
+import { OrderWhatsAppButton } from "@/components/admin/order-whatsapp-button"
 
 async function getOrder(id: string) {
   const supabase = await createClient()
@@ -197,6 +198,29 @@ export default async function OrderDetailPage({
             deliveryArea={order.delivery_area}
             expectedDeliveryDate={order.expected_delivery_date}
             deliveryNotes={order.delivery_notes}
+          />
+
+          {/* Notify customer via WhatsApp */}
+          <OrderWhatsAppButton
+            orderNumber={order.order_number}
+            phone={order.customers?.phone || order.shipping_phone || null}
+            customerName={
+              order.customers?.name ||
+              [order.shipping_first_name, order.shipping_last_name]
+                .filter(Boolean)
+                .join(" ") ||
+              null
+            }
+            status={order.status}
+            deliveryStatus={order.delivery_status}
+            total={Number(order.total)}
+            balance={
+              Number(order.total) -
+              (order.order_payments || []).reduce(
+                (sum: number, p: any) => sum + Number(p.amount || 0),
+                0,
+              )
+            }
           />
 
           {/* Create shipment (only for paid delivery orders without tracking yet) */}

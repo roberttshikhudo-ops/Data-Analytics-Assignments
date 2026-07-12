@@ -120,6 +120,137 @@ export async function sendOrderTrackingEmail(
   }
 }
 
+/**
+ * Sends an "order received" email as soon as an order is placed (before
+ * payment). Confirms we have the order and are processing it. Never throws.
+ */
+export async function sendOrderReceivedEmail(
+  to: string,
+  data: OrderEmailData,
+): Promise<boolean> {
+  const apiKey = process.env.RESEND_API_KEY
+  if (!apiKey) {
+    console.error("[v0] RESEND_API_KEY is not set - skipping order received email")
+    return false
+  }
+  if (!to) {
+    console.error("[v0] No recipient email - skipping order received email")
+    return false
+  }
+
+  try {
+    const resend = new Resend(apiKey)
+    const { error } = await resend.emails.send({
+      from: FROM_EMAIL,
+      to: [to],
+      subject: `We received your order - ${data.orderNumber}`,
+      html: buildReceivedHtml(data),
+    })
+    if (error) {
+      console.error("[v0] Order received email send error:", error)
+      return false
+    }
+    console.log(`[v0] Order received email sent for ${data.orderNumber}`)
+    return true
+  } catch (err) {
+    console.error("[v0] Order received email exception:", err)
+    return false
+  }
+}
+
+export type OrderStatusKey =
+  | "pending"
+  | "processing"
+  | "shipped"
+  | "delivered"
+  | "cancelled"
+  | "refunded"
+
+const STATUS_COPY: Record<OrderStatusKey, { title: string; subtitle: string; message: string }> = {
+  pending: {
+    title: "Order Received",
+    subtitle: "We&rsquo;ve got your order",
+    message:
+      "Thank you for your order! We&rsquo;ve received it and it&rsquo;s awaiting confirmation. We&rsquo;ll keep you posted as it progresses.",
+  },
+  processing: {
+    title: "Order Being Prepared",
+    subtitle: "We&rsquo;re getting your order ready",
+    message:
+      "Good news &ndash; your order is now being prepared for delivery. We&rsquo;ll let you know as soon as it&rsquo;s on its way.",
+  },
+  shipped: {
+    title: "Order On Its Way",
+    subtitle: "Your order has been dispatched",
+    message:
+      "Your order is on its way to you! If a tracking number is available, you&rsquo;ll receive it in a separate email.",
+  },
+  delivered: {
+    title: "Order Delivered",
+    subtitle: "Your order has arrived",
+    message:
+      "Your order has been marked as delivered. We hope you love it! Thank you for shopping with Agri Hub SA.",
+  },
+  cancelled: {
+    title: "Order Cancelled",
+    subtitle: "Your order has been cancelled",
+    message:
+      "Your order has been cancelled. If this wasn&rsquo;t expected or you have any questions, please contact us and we&rsquo;ll be happy to help.",
+  },
+  refunded: {
+    title: "Order Refunded",
+    subtitle: "Your refund has been processed",
+    message:
+      "A refund has been processed for your order. Please allow a few business days for it to reflect in your account.",
+  },
+}
+
+/**
+ * Sends a status-update email whenever an order&rsquo;s status changes. Never
+ * throws, so a mail failure can never block the fulfillment flow.
+ */
+export async function sendOrderStatusEmail(
+  to: string,
+  data: OrderEmailData,
+  status: string,
+): Promise<boolean> {
+  const apiKey = process.env.RESEND_API_KEY
+  if (!apiKey) {
+    console.error("[v0] RESEND_API_KEY is not set - skipping status email")
+    return false
+  }
+  if (!to) {
+    console.error("[v0] No recipient email - skipping status email")
+    return false
+  }
+
+  const key = (String(status).toLowerCase() as OrderStatusKey)
+  const copy = STATUS_COPY[key]
+  if (!copy) {
+    console.log(`[v0] No status email template for status "${status}" - skipping`)
+    return false
+  }
+
+  try {
+    const resend = new Resend(apiKey)
+    const { error } = await resend.emails.send({
+      from: FROM_EMAIL,
+      to: [to],
+      subject: `${copy.title} - ${data.orderNumber}`,
+      html: buildStatusHtml(data, copy),
+    })
+    if (error) {
+      console.error("[v0] Status email send error:", error)
+      return false
+    }
+    console.log(`[v0] Order status (${status}) email sent for ${data.orderNumber}`)
+    return true
+  } catch (err) {
+    console.error("[v0] Status email exception:", err)
+    return false
+  }
+}
+
 function itemRows(items: OrderEmailItem[]): string {
   return items
     .map(
@@ -215,6 +346,68 @@ function buildConfirmationHtml(data: OrderEmailData): string {
       Questions about your order? Just reply to this email or contact us at info@agrihubsa.co.za.
     </p>`
   return shell("Order Confirmed", "Thank you for shopping with Agri Hub SA", body)
+}
+
+function buildReceivedHtml(data: OrderEmailData): string {
+  const greeting = data.customerName ? `Hi ${escapeHtml(data.customerName)},` : "Hi there,"
+  const body = `
+    <p style="margin:0 0 16px; font-size:16px;">${greeting}</p>
+    <p style="margin:0 0 24px; font-size:16px; line-height:1.6;">
+      Thank you for your order! We&rsquo;ve received it and our team is on it. This email confirms the details below &ndash;
+      we&rsquo;ll notify you again as your order status changes.
+    </p>
+
+    <div style="border:1px solid #e5e7eb; border-radius:10px; padding:20px; margin-bottom:24px;">
+      <p style="margin:0 0 4px; font-size:13px; text-transform:uppercase; letter-spacing:1px; color:#15803d;">Order number</p>
+      <p style="margin:0; font-size:20px; font-weight:bold; color:#166534;">${escapeHtml(data.orderNumber)}</p>
+    </div>
+
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse; margin-bottom:16px;">
+      ${itemRows(data.items)}
+    </table>
+
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse; margin-bottom:24px;">
+      ${totalsBlock(data)}
+    </table>
+
+    <div style="text-align:center; margin-bottom:8px;">
+      <a href="${BASE_URL}/track" style="display:inline-block; background:#166534; color:#ffffff; text-decoration:none; padding:14px 32px; border-radius:8px; font-size:16px; font-weight:bold;">
+        Track Your Order
+      </a>
+    </div>
+    <p style="margin:16px 0 0; font-size:14px; line-height:1.6; color:#6b7280;">
+      Questions about your order? Just reply to this email or contact us at info@agrihubsa.co.za.
+    </p>`
+  return shell("Order Received", "Thank you for shopping with Agri Hub SA", body)
+}
+
+function buildStatusHtml(
+  data: OrderEmailData,
+  copy: { title: string; subtitle: string; message: string },
+): string {
+  const greeting = data.customerName ? `Hi ${escapeHtml(data.customerName)},` : "Hi there,"
+  const body = `
+    <p style="margin:0 0 16px; font-size:16px;">${greeting}</p>
+    <p style="margin:0 0 24px; font-size:16px; line-height:1.6;">${copy.message}</p>
+
+    <div style="border:1px solid #e5e7eb; border-radius:10px; padding:20px; margin-bottom:24px;">
+      <p style="margin:0 0 4px; font-size:13px; text-transform:uppercase; letter-spacing:1px; color:#15803d;">Order number</p>
+      <p style="margin:0; font-size:20px; font-weight:bold; color:#166534;">${escapeHtml(data.orderNumber)}</p>
+    </div>
+
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse; margin-bottom:24px;">
+      ${totalsBlock(data)}
+    </table>
+
+    <div style="text-align:center; margin-bottom:8px;">
+      <a href="${BASE_URL}/track" style="display:inline-block; background:#166534; color:#ffffff; text-decoration:none; padding:14px 32px; border-radius:8px; font-size:16px; font-weight:bold;">
+        Track Your Order
+      </a>
+    </div>
+    <p style="margin:16px 0 0; font-size:14px; line-height:1.6; color:#6b7280;">
+      Questions? Just reply to this email or contact us at info@agrihubsa.co.za.
+    </p>`
+  return shell(copy.title, copy.subtitle, body)
 }
 
 function buildTrackingHtml(data: OrderEmailData): string {

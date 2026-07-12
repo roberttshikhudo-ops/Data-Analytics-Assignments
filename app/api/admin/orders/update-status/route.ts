@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js"
 import {
   sendOrderConfirmationEmail,
   sendOrderTrackingEmail,
+  sendOrderStatusEmail,
   type OrderEmailData,
 } from "@/lib/emails/order"
 
@@ -14,6 +15,7 @@ const supabaseAdmin = createClient(
 const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://agrihubsa.co.za"
 
 async function resolveCustomerEmail(order: any): Promise<string> {
+  if (order?.customers?.email) return order.customers.email
   if (order?.guest_email) return order.guest_email
   if (order?.user_id) {
     try {
@@ -30,6 +32,7 @@ function buildEmailData(order: any): OrderEmailData {
   return {
     orderNumber: order?.order_number || "",
     customerName:
+      order?.customers?.name ||
       [order?.shipping_first_name, order?.shipping_last_name]
         .filter(Boolean)
         .join(" ") || null,
@@ -57,7 +60,7 @@ export async function POST(request: NextRequest) {
     // Fetch current order so we can detect what actually changed.
     const { data: existing, error: fetchError } = await supabaseAdmin
       .from("orders")
-      .select("*, order_items(*, product:products(name))")
+      .select("*, order_items(*, product:products(name)), customers(name, email, phone)")
       .eq("id", orderId)
       .single()
 
@@ -112,11 +115,21 @@ export async function POST(request: NextRequest) {
       })
     }
 
+    // Notify the customer whenever the order status itself changes. Skip
+    // "shipped" if we already sent the richer tracking email above.
+    const statusChanged = Boolean(status) && status !== existing.status
+    const skipForTracking = status === "shipped" && isNewTracking
+    let statusEmailSent = false
+    if (statusChanged && !skipForTracking) {
+      statusEmailSent = await sendOrderStatusEmail(customerEmail, emailData, status)
+    }
+
     return NextResponse.json({
       success: true,
       emailsSent: {
         confirmation: becamePaid && Boolean(customerEmail),
         tracking: Boolean(isNewTracking) && Boolean(customerEmail),
+        status: statusEmailSent,
       },
     })
   } catch (error) {
