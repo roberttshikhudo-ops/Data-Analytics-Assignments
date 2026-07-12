@@ -8,8 +8,11 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { formatPrice } from "@/lib/utils"
 import { format } from "date-fns"
+import Link from "next/link"
+import { ClipboardList } from "lucide-react"
 
 interface Customer {
   id: string
@@ -72,6 +75,12 @@ export default async function CustomersPage() {
             View and manage customer accounts ({customers.length} total)
           </p>
         </div>
+        <Link href="/admin/customers/records">
+          <Button variant="outline">
+            <ClipboardList className="mr-2 h-4 w-4" />
+            Client Records
+          </Button>
+        </Link>
       </div>
 
       <div className="border rounded-lg">

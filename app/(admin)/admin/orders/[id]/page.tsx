@@ -8,6 +8,8 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { OrderStatusUpdater } from "@/components/admin/order-status-updater"
 import { CreateShipmentButton } from "@/components/admin/create-shipment-button"
+import { OrderPaymentsPanel } from "@/components/admin/order-payments-panel"
+import { OrderDeliveryPanel } from "@/components/admin/order-delivery-panel"
 
 async function getOrder(id: string) {
   const supabase = await createClient()
@@ -24,6 +26,25 @@ async function getOrder(id: string) {
         quantity,
         unit_price,
         total_price
+      ),
+      order_payments(
+        id,
+        amount,
+        method,
+        reference,
+        paid_at,
+        notes
+      ),
+      customers(
+        id,
+        name,
+        phone,
+        email,
+        address_line1,
+        address_line2,
+        city,
+        province,
+        postal_code
       )
     `)
     .eq("id", id)
@@ -71,6 +92,9 @@ export default async function OrderDetailPage({
           </p>
         </div>
         <div className="flex-1" />
+        <Badge variant="outline" className="text-sm capitalize">
+          {order.source === "manual" ? "Manual order" : "Website"}
+        </Badge>
         <Badge variant={statusColors[order.status]} className="text-sm">
           {order.status}
         </Badge>
@@ -156,6 +180,25 @@ export default async function OrderDetailPage({
             currentPaymentStatus={order.payment_status}
           />
 
+          {/* Payments (credit / partial tracking) */}
+          <OrderPaymentsPanel
+            orderId={order.id}
+            total={Number(order.total)}
+            payments={[...(order.order_payments || [])].sort(
+              (a: any, b: any) =>
+                new Date(a.paid_at).getTime() - new Date(b.paid_at).getTime(),
+            )}
+          />
+
+          {/* Delivery planning */}
+          <OrderDeliveryPanel
+            orderId={order.id}
+            deliveryStatus={order.delivery_status}
+            deliveryArea={order.delivery_area}
+            expectedDeliveryDate={order.expected_delivery_date}
+            deliveryNotes={order.delivery_notes}
+          />
+
           {/* Create shipment (only for paid delivery orders without tracking yet) */}
           {!order.tracking_number &&
             order.shipping_method !== "pickup" &&
@@ -172,7 +215,18 @@ export default async function OrderDetailPage({
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {order.user_id ? (
+              {order.customers ? (
+                <div className="text-sm">
+                  <p className="font-medium">{order.customers.name}</p>
+                  {order.customers.phone && <p>{order.customers.phone}</p>}
+                  {order.customers.email && (
+                    <p className="text-muted-foreground">{order.customers.email}</p>
+                  )}
+                  <Badge variant="outline" className="mt-2">
+                    Saved customer
+                  </Badge>
+                </div>
+              ) : order.user_id ? (
                 <p className="text-muted-foreground">Registered User</p>
               ) : (
                 <div>
