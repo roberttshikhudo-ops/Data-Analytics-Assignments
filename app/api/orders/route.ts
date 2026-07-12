@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import { createClient as createServerClient } from "@/lib/supabase/server"
 import { SHIPPING_RATES, type ShippingMethod } from "@/lib/types"
-import { sendOrderReceivedEmail } from "@/lib/emails/order"
 
 // Calculate shipping the SAME way the checkout/cart does, so the stored order
 // total always matches the amount the customer is charged via PayFast.
@@ -225,30 +224,6 @@ export async function POST(request: NextRequest) {
         { error: "Failed to create order items" },
         { status: 500 }
       )
-    }
-
-    // Notify the customer that we've received their order (non-blocking:
-    // a mail failure must never fail the order placement itself).
-    try {
-      const customerName =
-        [shippingAddress.firstName, shippingAddress.lastName]
-          .filter(Boolean)
-          .join(" ") || null
-      await sendOrderReceivedEmail(email, {
-        orderNumber: order.order_number,
-        customerName,
-        items: orderItems.map((it) => ({
-          name: it.product_name,
-          quantity: it.quantity,
-          total: it.total_price,
-        })),
-        subtotal: calculatedSubtotal,
-        shipping: calculatedShipping,
-        discount: appliedDiscount,
-        total: calculatedTotal,
-      })
-    } catch (mailErr) {
-      console.error("[v0] Order received email failed:", mailErr)
     }
 
     return NextResponse.json({

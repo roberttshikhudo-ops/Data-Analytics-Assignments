@@ -3,7 +3,6 @@ import { createClient } from "@supabase/supabase-js"
 import {
   sendOrderConfirmationEmail,
   sendOrderTrackingEmail,
-  sendOrderStatusEmail,
   type OrderEmailData,
 } from "@/lib/emails/order"
 
@@ -115,21 +114,11 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    // Notify the customer whenever the order status itself changes. Skip
-    // "shipped" if we already sent the richer tracking email above.
-    const statusChanged = Boolean(status) && status !== existing.status
-    const skipForTracking = status === "shipped" && isNewTracking
-    let statusEmailSent = false
-    if (statusChanged && !skipForTracking) {
-      statusEmailSent = await sendOrderStatusEmail(customerEmail, emailData, status)
-    }
-
     return NextResponse.json({
       success: true,
       emailsSent: {
         confirmation: becamePaid && Boolean(customerEmail),
         tracking: Boolean(isNewTracking) && Boolean(customerEmail),
-        status: statusEmailSent,
       },
     })
   } catch (error) {
