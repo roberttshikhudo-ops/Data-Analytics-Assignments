@@ -30,7 +30,17 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { formatPrice } from "@/lib/utils"
-import { MoreHorizontal, Eye, Search, Truck, Package, CheckCircle, XCircle } from "lucide-react"
+import { buildOrderStatusMessage, buildWaLink } from "@/lib/whatsapp"
+import {
+  MoreHorizontal,
+  Eye,
+  Search,
+  Truck,
+  Package,
+  CheckCircle,
+  XCircle,
+  MessageCircle,
+} from "lucide-react"
 
 interface OrderItem {
   id: string
@@ -60,6 +70,7 @@ interface Order {
   shipping_last_name: string | null
   shipping_city: string | null
   shipping_province: string | null
+  shipping_phone: string | null
   tracking_number: string | null
   created_at: string
   order_items: OrderItem[]
@@ -289,6 +300,30 @@ export function OrdersTable({ orders }: OrdersTableProps) {
                               View Details
                             </Link>
                           </DropdownMenuItem>
+                          {order.shipping_phone && (
+                            <DropdownMenuItem asChild>
+                              <a
+                                href={buildWaLink(
+                                  order.shipping_phone,
+                                  buildOrderStatusMessage({
+                                    orderNumber: order.order_number,
+                                    customerName:
+                                      `${order.shipping_first_name ?? ""} ${order.shipping_last_name ?? ""}`.trim() ||
+                                      null,
+                                    status: order.status,
+                                    deliveryStatus: order.delivery_status || "pending",
+                                    total: Number(order.total),
+                                    balance,
+                                  }),
+                                )}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                <MessageCircle className="mr-2 h-4 w-4 text-[#128C7E]" />
+                                Notify via WhatsApp
+                              </a>
+                            </DropdownMenuItem>
+                          )}
                           <DropdownMenuSeparator />
                           <DropdownMenuItem onClick={() => updateOrderStatus(order.id, "processing")}>
                             <Package className="mr-2 h-4 w-4" />

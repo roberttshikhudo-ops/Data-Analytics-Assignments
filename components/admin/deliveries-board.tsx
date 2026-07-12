@@ -17,7 +17,8 @@ import {
 } from "@/components/ui/select"
 import { formatPrice } from "@/lib/utils"
 import { updateDelivery } from "@/app/(admin)/admin/orders/actions"
-import { MapPin, Phone, Package, CheckCircle, Search, Eye } from "lucide-react"
+import { buildOrderStatusMessage, buildWaLink } from "@/lib/whatsapp"
+import { MapPin, Phone, Package, CheckCircle, Search, Eye, MessageCircle } from "lucide-react"
 
 interface DeliveryOrder {
   id: string
@@ -242,6 +243,35 @@ export function DeliveriesBoard({ orders }: { orders: DeliveryOrder[] }) {
                         )}
                       </div>
                       <div className="flex gap-2">
+                        {o.shipping_phone &&
+                          (() => {
+                            const waHref = buildWaLink(
+                              o.shipping_phone,
+                              buildOrderStatusMessage({
+                                orderNumber: o.order_number,
+                                customerName:
+                                  `${o.shipping_first_name ?? ""} ${o.shipping_last_name ?? ""}`.trim() ||
+                                  null,
+                                status: "processing",
+                                deliveryStatus: o.delivery_status,
+                                total: Number(o.total),
+                                balance,
+                              }),
+                            )
+                            return (
+                              <Button
+                                asChild
+                                variant="outline"
+                                size="sm"
+                                className="border-[#25D366] text-[#128C7E] hover:bg-[#25D366]/10 hover:text-[#128C7E]"
+                              >
+                                <a href={waHref} target="_blank" rel="noopener noreferrer">
+                                  <MessageCircle className="mr-1 h-4 w-4" />
+                                  WhatsApp
+                                </a>
+                              </Button>
+                            )
+                          })()}
                         <Link href={`/admin/orders/${o.id}`}>
                           <Button variant="outline" size="sm">
                             <Eye className="mr-1 h-4 w-4" />

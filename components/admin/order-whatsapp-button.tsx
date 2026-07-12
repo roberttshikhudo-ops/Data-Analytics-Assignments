@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { buildOrderStatusMessage, buildWaLink } from "@/lib/whatsapp"
 
 interface OrderWhatsAppButtonProps {
   orderNumber: string
@@ -22,28 +23,6 @@ interface OrderWhatsAppButtonProps {
   balance: number
 }
 
-const STATUS_MESSAGE: Record<string, string> = {
-  pending: "we have received your order and it is being confirmed",
-  processing: "your order is now being prepared",
-  shipped: "your order is on its way",
-  delivered: "your order has been delivered",
-  cancelled: "your order has been cancelled",
-  refunded: "your order has been refunded",
-}
-
-/** Converts a local SA number (0XX...) to international format for wa.me. */
-function toWaNumber(phone: string): string {
-  const digits = phone.replace(/[^\d+]/g, "")
-  if (digits.startsWith("+")) return digits.slice(1)
-  if (digits.startsWith("27")) return digits
-  if (digits.startsWith("0")) return `27${digits.slice(1)}`
-  return digits
-}
-
-function formatRand(amount: number): string {
-  return `R${(Number(amount) || 0).toFixed(2)}`
-}
-
 export function OrderWhatsAppButton({
   orderNumber,
   phone,
@@ -53,28 +32,18 @@ export function OrderWhatsAppButton({
   total,
   balance,
 }: OrderWhatsAppButtonProps) {
-  const statusLine =
-    deliveryStatus === "delivered"
-      ? STATUS_MESSAGE.delivered
-      : STATUS_MESSAGE[status] || `your order status is now ${status}`
-
-  const defaultMessage = [
-    `Hi ${customerName || "there"},`,
-    ``,
-    `This is Agri Hub SA. An update on your order ${orderNumber}: ${statusLine}.`,
-    ``,
-    `Order total: ${formatRand(total)}`,
-    balance > 0 ? `Balance outstanding: ${formatRand(balance)}` : `Payment: fully paid. Thank you!`,
-    ``,
-    `Reply here if you have any questions. Thank you for shopping with us!`,
-  ].join("\n")
+  const defaultMessage = buildOrderStatusMessage({
+    orderNumber,
+    customerName,
+    status,
+    deliveryStatus,
+    total,
+    balance,
+  })
 
   const [message, setMessage] = useState(defaultMessage)
 
-  const waNumber = phone ? toWaNumber(phone) : ""
-  const href = waNumber
-    ? `https://wa.me/${waNumber}?text=${encodeURIComponent(message)}`
-    : ""
+  const href = buildWaLink(phone, message)
 
   return (
     <Card>
