@@ -140,10 +140,7 @@ export default async function ProformaPage({
                 From
               </h2>
               <p className="font-medium">{BUSINESS_INFO.name}</p>
-              <p className="text-sm text-muted-foreground">{BUSINESS_INFO.address}</p>
-              <p className="text-sm text-muted-foreground">
-                {BUSINESS_INFO.city}, {BUSINESS_INFO.province} {BUSINESS_INFO.postalCode}
-              </p>
+              <p className="text-sm text-muted-foreground">{BUSINESS_INFO.fullAddress}</p>
               <p className="text-sm text-muted-foreground">{BUSINESS_INFO.phone}</p>
               <p className="text-sm text-muted-foreground">{BUSINESS_INFO.email}</p>
             </div>

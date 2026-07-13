@@ -4,11 +4,12 @@ import { createClient } from '@supabase/supabase-js'
 export const BUSINESS_INFO = {
   name: 'Agri Hub SA',
   tagline: 'Your Agricultural, Hardware and Lifestyle Innovation Partner',
-  address: 'The Parks Lifestyle Apartments, Block 38 Unit 2F',
+  address: 'The Parks',
   city: 'Midrand',
   province: 'Gauteng',
   postalCode: '1685',
   country: 'South Africa',
+  fullAddress: 'The Parks, Midrand, Johannesburg, 1685, Gauteng, South Africa',
   phone: '083 306 1529',
   altPhone: '083 306 1529',
   email: 'robert.tshikhudo@gmail.com',
