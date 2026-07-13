@@ -63,6 +63,41 @@ export function buildOrderStatusMessage({
   ].join("\n")
 }
 
+export interface ProformaMessageInput {
+  orderNumber: string
+  customerName: string | null
+  total: number
+  link: string
+}
+
+/** Builds the message used when sending a pro forma invoice link to a client. */
+export function buildProformaMessage({
+  orderNumber,
+  customerName,
+  total,
+  link,
+}: ProformaMessageInput): string {
+  return [
+    `Hi ${customerName || "there"},`,
+    ``,
+    `Thank you for your interest in Agri Hub SA. Please find the pro forma invoice for your order ${orderNumber} below.`,
+    ``,
+    `Amount due: ${formatRand(total)}`,
+    ``,
+    `View & save your pro forma invoice here:`,
+    link,
+    ``,
+    `Banking details for payment:`,
+    `Bank: First National Bank (FNB)`,
+    `Account Name: Agri Hub SA`,
+    `Account Number: 63014180606`,
+    `Branch Code: 250655`,
+    `Reference: ${orderNumber}`,
+    ``,
+    `Once payment is made, kindly send proof of payment here. Thank you!`,
+  ].join("\n")
+}
+
 /** Builds a full wa.me link, or "" when there is no usable phone number. */
 export function buildWaLink(phone: string | null | undefined, message: string): string {
   if (!phone) return ""

@@ -11,6 +11,7 @@ import { CreateShipmentButton } from "@/components/admin/create-shipment-button"
 import { OrderPaymentsPanel } from "@/components/admin/order-payments-panel"
 import { OrderDeliveryPanel } from "@/components/admin/order-delivery-panel"
 import { OrderWhatsAppButton } from "@/components/admin/order-whatsapp-button"
+import { OrderProformaButton } from "@/components/admin/order-proforma-button"
 
 async function getOrder(id: string) {
   const supabase = await createClient()
@@ -271,6 +272,21 @@ export default async function OrderDetailPage({
                 0,
               )
             }
+          />
+
+          {/* Send pro forma invoice via WhatsApp */}
+          <OrderProformaButton
+            orderId={order.id}
+            orderNumber={order.order_number}
+            phone={order.customers?.phone || order.shipping_phone || null}
+            customerName={
+              order.customers?.name ||
+              [order.shipping_first_name, order.shipping_last_name]
+                .filter(Boolean)
+                .join(" ") ||
+              null
+            }
+            total={Number(order.total)}
           />
 
           {/* Create shipment (only for paid delivery orders without tracking yet) */}
