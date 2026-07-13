@@ -47,6 +47,7 @@ async function getOrder(orderId: string) {
         total_price,
         products(image_url)
       ),
+      order_payments(amount),
       customers(name, email, phone)
     `,
     )
@@ -77,6 +78,15 @@ export default async function ProformaPage({
 
   const clientPhone = customer?.phone || order.shipping_phone
   const clientEmail = customer?.email || order.guest_email
+
+  const total = Number(order.total)
+  const amountPaid = (order.order_payments || []).reduce(
+    (sum: number, p: any) => sum + Number(p.amount || 0),
+    0,
+  )
+  const balanceDue = total - amountPaid
+  // Only surface paid/balance when a partial payment has actually been made.
+  const isPartiallyPaid = amountPaid > 0 && amountPaid < total
 
   const addressLines = [
     order.shipping_company,
@@ -227,9 +237,21 @@ export default async function ProformaPage({
                 </div>
               )}
               <div className="flex justify-between border-t pt-2 text-base font-bold">
-                <span>Amount Due</span>
-                <span>{formatCurrency(Number(order.total))}</span>
+                <span>Total</span>
+                <span>{formatCurrency(total)}</span>
               </div>
+              {isPartiallyPaid && (
+                <>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Amount Paid</span>
+                    <span>-{formatCurrency(amountPaid)}</span>
+                  </div>
+                  <div className="flex justify-between border-t pt-2 text-base font-bold">
+                    <span>Balance Due</span>
+                    <span>{formatCurrency(balanceDue)}</span>
+                  </div>
+                </>
+              )}
             </div>
           </section>
 
