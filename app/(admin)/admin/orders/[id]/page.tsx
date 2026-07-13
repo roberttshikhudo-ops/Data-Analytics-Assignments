@@ -26,8 +26,8 @@ async function getOrder(id: string) {
         product_image_url,
         quantity,
         unit_price,
-        unit_cost,
-        total_price
+        total_price,
+        order_item_costs(unit_cost)
       ),
       order_payments(
         id,
@@ -171,8 +171,12 @@ export default async function OrderDetailPage({
 
                 {(() => {
                   const costOfGoods = (order.order_items || []).reduce(
-                    (sum: number, it: any) =>
-                      sum + Number(it.unit_cost || 0) * Number(it.quantity || 0),
+                    (sum: number, it: any) => {
+                      const oic = Array.isArray(it.order_item_costs)
+                        ? it.order_item_costs[0]
+                        : it.order_item_costs
+                      return sum + Number(oic?.unit_cost || 0) * Number(it.quantity || 0)
+                    },
                     0,
                   )
                   const profit = Number(order.subtotal) - costOfGoods

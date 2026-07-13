@@ -112,7 +112,14 @@ export function ProductCostEditor({ products, categories }: ProductCostEditorPro
     try {
       const results = await Promise.all(
         entries.map((e) =>
-          supabase.from("products").update({ cost_price: Number(e.value) }).eq("id", e.id),
+          supabase.from("product_costs").upsert(
+            {
+              product_id: e.id,
+              cost_price: Number(e.value),
+              updated_at: new Date().toISOString(),
+            },
+            { onConflict: "product_id" },
+          ),
         ),
       )
       const failed = results.filter((r) => r.error)

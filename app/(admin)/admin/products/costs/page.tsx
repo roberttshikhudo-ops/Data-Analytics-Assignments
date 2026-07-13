@@ -6,10 +6,14 @@ async function getProducts() {
 
   const { data: products } = await supabase
     .from("products")
-    .select("id, name, sku, price, cost_price, category_id, categories(name)")
+    .select("id, name, sku, price, category_id, categories(name), product_costs(cost_price)")
     .order("name")
 
-  return products || []
+  // Flatten the admin-only cost into the shape the editor expects.
+  return (products || []).map((p: any) => {
+    const pc = Array.isArray(p.product_costs) ? p.product_costs[0] : p.product_costs
+    return { ...p, cost_price: pc?.cost_price ?? null }
+  })
 }
 
 async function getCategories() {

@@ -90,7 +90,7 @@ export default function ReportsPage() {
       // Order items in period with cost snapshot, joined to their order
       const { data: orderItems } = await supabase
         .from("order_items")
-        .select("product_id, product_name, quantity, unit_price, unit_cost, orders!inner(created_at, status)")
+        .select("product_id, product_name, quantity, unit_price, order_item_costs(unit_cost), orders!inner(created_at, status)")
         .gte("orders.created_at", startIso)
 
       const itemsInScope =
@@ -108,7 +108,10 @@ export default function ReportsPage() {
       for (const it of itemsInScope as any[]) {
         const qty = Number(it.quantity) || 0
         const price = Number(it.unit_price) || 0
-        const cost = Number(it.unit_cost) || 0
+        const oic = Array.isArray(it.order_item_costs)
+          ? it.order_item_costs[0]
+          : it.order_item_costs
+        const cost = Number(oic?.unit_cost) || 0
         const lineRevenue = price * qty
         const lineProfit = (price - cost) * qty
 

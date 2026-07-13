@@ -155,15 +155,15 @@ export async function createManualOrder(input: ManualOrderInput) {
   const costMap = new Map<string, number>()
   if (productIds.length > 0) {
     const { data: costRows } = await admin
-      .from("products")
-      .select("id, cost_price")
-      .in("id", productIds)
+      .from("product_costs")
+      .select("product_id, cost_price")
+      .in("product_id", productIds)
     for (const row of costRows || []) {
-      costMap.set(row.id, Number(row.cost_price) || 0)
+      costMap.set(row.product_id, Number(row.cost_price) || 0)
     }
   }
 
-  // Insert order items with a per-unit cost snapshot
+  // Insert order items (public row has no cost column)
   const itemsPayload = input.items.map((it) => ({
     order_id: order.id,
     product_id: it.product_id,
@@ -172,12 +172,24 @@ export async function createManualOrder(input: ManualOrderInput) {
     product_image_url: it.product_image_url,
     quantity: it.quantity,
     unit_price: it.unit_price,
-    unit_cost: it.product_id ? costMap.get(it.product_id) || 0 : 0,
     total_price: it.unit_price * it.quantity,
   }))
 
-  const { error: itemsErr } = await admin.from("order_items").insert(itemsPayload)
+  const { data: insertedItems, error: itemsErr } = await admin
+    .from("order_items")
+    .insert(itemsPayload)
+    .select("id, product_id")
   if (itemsErr) throw new Error(`Failed to add items: ${itemsErr.message}`)
+
+  // Snapshot per-unit cost into the admin-only order_item_costs table.
+  const costPayload = (insertedItems || []).map((it) => ({
+    order_item_id: it.id,
+    unit_cost: it.product_id ? costMap.get(it.product_id) || 0 : 0,
+  }))
+  if (costPayload.length > 0) {
+    const { error: costErr } = await admin.from("order_item_costs").insert(costPayload)
+    if (costErr) console.error("[v0] order_item_costs insert error:", costErr.message)
+  }
 
   // 6. Optional initial payment (trigger recomputes payment_status)
   if (input.initialPayment && input.initialPayment.amount > 0) {

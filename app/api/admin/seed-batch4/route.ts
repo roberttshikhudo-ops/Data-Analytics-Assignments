@@ -43,7 +43,6 @@ export async function POST(request: Request) {
       short_description: 'Men\'s knee-length black gumboots, size 9',
       price: 195,
       compare_at_price: 250,
-      cost_price: 120,
       sku: 'WAYNE-GUMBOOT-BLK-9',
       stock_quantity: 15,
       low_stock_threshold: 3,

@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
     const productIds = items.map((item: { productId: string }) => item.productId)
     const { data: products, error: productsError } = await supabaseAdmin
       .from("products")
-      .select("id, name, price, cost_price, sku, stock_quantity")
+      .select("id, name, price, sku, stock_quantity")
       .in("id", productIds)
       .eq("is_active", true)
 
@@ -77,6 +77,16 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       )
     }
+
+    // Cost prices live in the admin-only product_costs table (never exposed to
+    // customers). Fetch them here so we can snapshot profit per order item.
+    const { data: costRows } = await supabaseAdmin
+      .from("product_costs")
+      .select("product_id, cost_price")
+      .in("product_id", productIds)
+    const costByProduct = new Map<string, number>(
+      (costRows || []).map((c) => [c.product_id, Number(c.cost_price) || 0]),
+    )
 
     // Check stock and calculate totals
     let calculatedSubtotal = 0
@@ -110,7 +120,6 @@ export async function POST(request: NextRequest) {
         product_image_url: item.imageUrl || null,
         quantity: item.quantity,
         unit_price: product.price,
-        unit_cost: product.cost_price || 0,
         total_price: itemTotal,
       })
     }
@@ -213,9 +222,10 @@ export async function POST(request: NextRequest) {
       order_id: order.id,
     }))
 
-    const { error: itemsError } = await supabaseAdmin
+    const { data: insertedItems, error: itemsError } = await supabaseAdmin
       .from("order_items")
       .insert(itemsWithOrderId)
+      .select("id, product_id")
 
     if (itemsError) {
       console.error("Order items error:", itemsError)
@@ -225,6 +235,20 @@ export async function POST(request: NextRequest) {
         { error: "Failed to create order items" },
         { status: 500 }
       )
+    }
+
+    // Snapshot the per-unit cost into the admin-only order_item_costs table.
+    const costPayload = (insertedItems || []).map((it) => ({
+      order_item_id: it.id,
+      unit_cost: it.product_id ? costByProduct.get(it.product_id) || 0 : 0,
+    }))
+    if (costPayload.length > 0) {
+      const { error: costErr } = await supabaseAdmin
+        .from("order_item_costs")
+        .insert(costPayload)
+      if (costErr) {
+        console.error("[v0] order_item_costs insert error:", costErr)
+      }
     }
 
     return NextResponse.json({
