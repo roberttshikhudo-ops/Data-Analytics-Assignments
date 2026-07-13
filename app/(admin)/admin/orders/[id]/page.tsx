@@ -27,7 +27,8 @@ async function getOrder(id: string) {
         quantity,
         unit_price,
         total_price,
-        order_item_costs(unit_cost)
+        order_item_costs(unit_cost),
+        products(image_url)
       ),
       order_payments(
         id,
@@ -121,9 +122,23 @@ export default async function OrderDetailPage({
                     className="flex items-center justify-between border-b pb-4 last:border-0 last:pb-0"
                   >
                     <div className="flex items-center gap-4">
-                      <div className="h-16 w-16 rounded-lg bg-muted flex items-center justify-center">
-                        <Package className="h-6 w-6 text-muted-foreground" />
-                      </div>
+                      {(() => {
+                        const product = Array.isArray(item.products)
+                          ? item.products[0]
+                          : item.products
+                        const imageSrc = item.product_image_url || product?.image_url
+                        return imageSrc ? (
+                          <img
+                            src={imageSrc || "/placeholder.svg"}
+                            alt={item.product_name}
+                            className="h-16 w-16 rounded-lg object-cover border"
+                          />
+                        ) : (
+                          <div className="h-16 w-16 rounded-lg bg-muted flex items-center justify-center">
+                            <Package className="h-6 w-6 text-muted-foreground" />
+                          </div>
+                        )
+                      })()}
                       <div>
                         <p className="font-medium">{item.product_name}</p>
                         {item.product_sku && (
