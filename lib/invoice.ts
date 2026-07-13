@@ -67,6 +67,33 @@ export function generateInvoiceNumber(): string {
   return `INV-${year}${random}`
 }
 
+// Generate the next sequential invoice number (INV-YYYYNNNNN) so it matches
+// the format used by manually-created invoices and stays gap-free per year.
+export async function getNextInvoiceNumber(
+  supabaseClient: ReturnType<typeof createClient>
+): Promise<string> {
+  const year = new Date().getFullYear()
+  const prefix = `INV-${year}`
+
+  const { data } = await supabaseClient
+    .from('invoices')
+    .select('invoice_number')
+    .like('invoice_number', `${prefix}%`)
+    .order('invoice_number', { ascending: false })
+    .limit(1)
+
+  let sequence = 1
+  if (data && data.length > 0) {
+    const lastNumber = (data[0] as { invoice_number: string }).invoice_number
+    const lastSequence = parseInt(lastNumber.replace(prefix, ''), 10)
+    if (!isNaN(lastSequence)) {
+      sequence = lastSequence + 1
+    }
+  }
+
+  return `${prefix}${sequence.toString().padStart(5, '0')}`
+}
+
 // Format currency
 export function formatCurrency(amount: number): string {
   return new Intl.NumberFormat('en-ZA', {
@@ -163,10 +190,14 @@ export async function createInvoiceFromOrder(
     items: invoiceItems,
   }
 
+  // Generate a sequential invoice number (the column is NOT NULL with no default)
+  const invoiceNumber = await getNextInvoiceNumber(supabaseClient)
+
   // Insert invoice
   const { data: newInvoice, error: insertError } = await supabaseClient
     .from('invoices')
     .insert({
+      invoice_number: invoiceNumber,
       order_id: invoice.order_id,
       user_id: invoice.user_id,
       invoice_type: invoice.invoice_type,

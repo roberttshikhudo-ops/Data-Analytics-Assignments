@@ -12,6 +12,17 @@ import { OrderPaymentsPanel } from "@/components/admin/order-payments-panel"
 import { OrderDeliveryPanel } from "@/components/admin/order-delivery-panel"
 import { OrderWhatsAppButton } from "@/components/admin/order-whatsapp-button"
 import { OrderProformaButton } from "@/components/admin/order-proforma-button"
+import { OrderInvoiceButton } from "@/components/admin/order-invoice-button"
+
+async function getExistingInvoiceId(id: string): Promise<string | null> {
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from("invoices")
+    .select("id")
+    .eq("order_id", id)
+    .maybeSingle()
+  return data?.id ?? null
+}
 
 async function getOrder(id: string) {
   const supabase = await createClient()
@@ -68,6 +79,8 @@ export default async function OrderDetailPage({
   if (!order) {
     notFound()
   }
+
+  const existingInvoiceId = await getExistingInvoiceId(id)
 
   const statusColors: Record<string, "default" | "secondary" | "destructive"> = {
     pending: "secondary",
@@ -288,6 +301,9 @@ export default async function OrderDetailPage({
             }
             total={Number(order.total)}
           />
+
+          {/* Generate / view the tax invoice for this order */}
+          <OrderInvoiceButton orderId={order.id} existingInvoiceId={existingInvoiceId} />
 
           {/* Create shipment (only for paid delivery orders without tracking yet) */}
           {!order.tracking_number &&
