@@ -85,7 +85,8 @@ export default function InvoiceDetailPage() {
       const response = await fetch(`/api/admin/invoices/${params.id}`)
       if (response.ok) {
         const data = await response.json()
-        setInvoice(data)
+        // The API returns line items under `invoice_items`; normalize to `items`.
+        setInvoice({ ...data, items: data.items ?? data.invoice_items ?? [] })
       } else {
         toast.error("Failed to load invoice")
         router.push("/admin/invoices")
