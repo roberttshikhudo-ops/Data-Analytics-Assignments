@@ -144,8 +144,8 @@ export default async function ProformaPage({
               <p className="text-sm text-muted-foreground">
                 {BUSINESS_INFO.city}, {BUSINESS_INFO.province} {BUSINESS_INFO.postalCode}
               </p>
-              <p className="text-sm text-muted-foreground">083 306 1529</p>
-              <p className="text-sm text-muted-foreground">robert.tshikhudo@gmail.com</p>
+              <p className="text-sm text-muted-foreground">{BUSINESS_INFO.phone}</p>
+              <p className="text-sm text-muted-foreground">{BUSINESS_INFO.email}</p>
             </div>
             <div className="sm:text-right">
               <h2 className="mb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
@@ -284,7 +284,7 @@ export default async function ProformaPage({
           </section>
 
           <footer className="mt-6 border-t pt-4 text-center text-xs text-muted-foreground">
-            {BUSINESS_INFO.name} · 083 306 1529 · robert.tshikhudo@gmail.com
+            {BUSINESS_INFO.name} · {BUSINESS_INFO.phone} · {BUSINESS_INFO.email}
           </footer>
         </article>
       </div>

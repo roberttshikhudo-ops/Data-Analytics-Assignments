@@ -15,8 +15,8 @@ const BUSINESS_INFO = {
   province: "Gauteng",
   postalCode: "1685",
   country: "South Africa",
-  phone: "079 109 9490",
-  email: "info@agrihubsa.co.za",
+  phone: "083 306 1529",
+  email: "robert.tshikhudo@gmail.com",
   website: "www.agrihubsa.co.za",
 }
 

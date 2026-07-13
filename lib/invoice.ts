@@ -9,9 +9,9 @@ export const BUSINESS_INFO = {
   province: 'Gauteng',
   postalCode: '1685',
   country: 'South Africa',
-  phone: '079 109 9490',
+  phone: '083 306 1529',
   altPhone: '083 306 1529',
-  email: 'info@agrihubsa.co.za',
+  email: 'robert.tshikhudo@gmail.com',
   website: 'https://agrihubsa.co.za',
   // Not VAT registered
   vatRegistered: false,
@@ -364,4 +364,4 @@ Or pay via PayFast on our website.`
 export const DEFAULT_TERMS = `1. Payment is due within 7 days of invoice date unless otherwise specified.
 2. Goods remain the property of Agri Hub SA until paid in full.
 3. Returns accepted within 7 days with original packaging.
-4. For queries, contact us at 079 109 9490 or Robert.tshikhudo@gmail.com`
+4. For queries, contact us at 083 306 1529 or robert.tshikhudo@gmail.com`

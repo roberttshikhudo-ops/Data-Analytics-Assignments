@@ -159,8 +159,8 @@ export default function CustomerInvoiceDetailPage() {
                 Gauteng, South Africa
               </p>
               <p className="mt-2 text-muted-foreground text-sm">
-                Phone: 079 109 9490<br />
-                Email: info@agrihubsa.co.za
+                Phone: 083 306 1529<br />
+                Email: robert.tshikhudo@gmail.com
               </p>
             </div>
           </div>

@@ -109,8 +109,8 @@ function generateInvoiceEmailHtml(invoice: any): string {
             South Africa
           </p>
           <p style="margin: 5px 0; color: #666; font-size: 14px;">
-            Phone: 079 109 9490<br>
-            Email: info@agrihubsa.co.za
+            Phone: 083 306 1529<br>
+            Email: robert.tshikhudo@gmail.com
           </p>
         </td>
         <td style="vertical-align: top; width: 50%; text-align: right;">
