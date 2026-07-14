@@ -1,3 +1,6 @@
+import Link from "next/link"
+import { Route } from "lucide-react"
+import { Button } from "@/components/ui/button"
 import { createClient } from "@/lib/supabase/server"
 import { DeliveriesBoard } from "@/components/admin/deliveries-board"
 
@@ -40,11 +43,19 @@ export default async function DeliveriesPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Deliveries</h1>
-        <p className="text-muted-foreground">
-          Plan what to deliver, where, and to whom &mdash; grouped by area
-        </p>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Deliveries</h1>
+          <p className="text-muted-foreground">
+            Plan what to deliver, where, and to whom &mdash; grouped by area
+          </p>
+        </div>
+        <Button asChild variant="outline" className="gap-2 bg-transparent">
+          <Link href="/delivery-plan" target="_blank" rel="noopener noreferrer">
+            <Route className="h-4 w-4" />
+            Delivery Plan (Print)
+          </Link>
+        </Button>
       </div>
 
       <DeliveriesBoard orders={orders} />
