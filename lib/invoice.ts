@@ -159,8 +159,19 @@ export async function createInvoiceFromOrder(
     total_price: item.total_price,
   }))
 
-  // Build client name from order
-  const clientName = `${order.billing_first_name || ''} ${order.billing_last_name || ''}`.trim() || 'Customer'
+  // Build client name from order, falling back to shipping details when
+  // billing details are missing (e.g. manual / phone orders capture shipping only).
+  const clientName =
+    `${order.billing_first_name || ''} ${order.billing_last_name || ''}`.trim() ||
+    `${order.shipping_first_name || ''} ${order.shipping_last_name || ''}`.trim() ||
+    'Customer'
+
+  // Always include the recipient's address on the invoice. Prefer the billing
+  // address, but fall back to the shipping address so the address is never blank.
+  const hasBillingAddress = Boolean(order.billing_address_line1)
+  const clientAddress = hasBillingAddress
+    ? [order.billing_address_line1, order.billing_address_line2].filter(Boolean).join(', ')
+    : [order.shipping_address_line1, order.shipping_address_line2].filter(Boolean).join(', ')
 
   // Create invoice
   const invoice: Invoice = {
@@ -169,13 +180,13 @@ export async function createInvoiceFromOrder(
     invoice_type: 'order',
     client_name: clientName,
     client_email: order.guest_email || null,
-    client_phone: order.billing_phone,
-    client_company: order.billing_company,
-    client_address: [order.billing_address_line1, order.billing_address_line2].filter(Boolean).join(', '),
-    client_city: order.billing_city,
-    client_province: order.billing_province,
-    client_postal_code: order.billing_postal_code,
-    client_country: order.billing_country || 'South Africa',
+    client_phone: order.billing_phone || order.shipping_phone || null,
+    client_company: order.billing_company || order.shipping_company || null,
+    client_address: clientAddress,
+    client_city: hasBillingAddress ? order.billing_city : order.shipping_city,
+    client_province: hasBillingAddress ? order.billing_province : order.shipping_province,
+    client_postal_code: hasBillingAddress ? order.billing_postal_code : order.shipping_postal_code,
+    client_country: (hasBillingAddress ? order.billing_country : order.shipping_country) || 'South Africa',
     invoice_date: new Date().toISOString().split('T')[0],
     due_date: null, // Already paid for order invoices
     status: order.payment_status === 'paid' ? 'paid' : 'draft',
