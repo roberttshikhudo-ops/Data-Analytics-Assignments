@@ -161,9 +161,17 @@ export async function createInvoiceFromOrder(
 
   // Build client name from order, falling back to shipping details when
   // billing details are missing (e.g. manual / phone orders capture shipping only).
+  // As a last resort, derive a readable name from the customer's email so the
+  // invoice avoids the generic "Customer" label.
+  const nameFromEmail = (order.guest_email || '')
+    .split('@')[0]
+    .replace(/[._-]+/g, ' ')
+    .trim()
+    .replace(/\b\w/g, (c: string) => c.toUpperCase())
   const clientName =
     `${order.billing_first_name || ''} ${order.billing_last_name || ''}`.trim() ||
     `${order.shipping_first_name || ''} ${order.shipping_last_name || ''}`.trim() ||
+    nameFromEmail ||
     'Customer'
 
   // Always include the recipient's address on the invoice. Prefer the billing
