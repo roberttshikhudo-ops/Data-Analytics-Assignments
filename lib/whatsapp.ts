@@ -98,6 +98,40 @@ export function buildProformaMessage({
   ].join("\n")
 }
 
+export interface InvoiceMessageInput {
+  invoiceNumber: string
+  customerName: string | null
+  total: number
+  balance?: number
+  link: string
+}
+
+/** Builds the message used when sending a tax invoice link to a client. */
+export function buildInvoiceMessage({
+  invoiceNumber,
+  customerName,
+  total,
+  balance,
+  link,
+}: InvoiceMessageInput): string {
+  const outstanding = typeof balance === "number" ? balance : 0
+  return [
+    `Hi ${customerName || "there"},`,
+    ``,
+    `Thank you for shopping with Agri Hub SA. Please find your tax invoice ${invoiceNumber} below.`,
+    ``,
+    `Invoice total: ${formatRand(total)}`,
+    outstanding > 0
+      ? `Balance outstanding: ${formatRand(outstanding)}`
+      : `Payment: fully paid. Thank you!`,
+    ``,
+    `View & save your invoice here:`,
+    link,
+    ``,
+    `Reply here if you have any questions. Thank you!`,
+  ].join("\n")
+}
+
 /** Builds a full wa.me link, or "" when there is no usable phone number. */
 export function buildWaLink(phone: string | null | undefined, message: string): string {
   if (!phone) return ""

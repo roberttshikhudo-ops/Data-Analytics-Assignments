@@ -22,8 +22,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { ArrowLeft, Download, Mail, Printer } from "lucide-react"
+import { ArrowLeft, Download, Mail, MessageCircle, Printer } from "lucide-react"
 import { toast } from "sonner"
+import { buildInvoiceMessage, buildWaLink } from "@/lib/whatsapp"
 
 interface InvoiceItem {
   id: string
@@ -180,6 +181,40 @@ export default function InvoiceDetailPage() {
     }
   }
 
+  const handleSendWhatsApp = () => {
+    if (!invoice) return
+
+    if (!invoice.client_phone) {
+      toast.error("No client phone number on this invoice")
+      return
+    }
+
+    const origin =
+      process.env.NEXT_PUBLIC_APP_URL ||
+      (typeof window !== "undefined" ? window.location.origin : "")
+    const link = `${origin}/invoice/${invoice.id}`
+
+    const message = buildInvoiceMessage({
+      invoiceNumber: invoice.invoice_number,
+      customerName: invoice.client_name,
+      total: invoice.total,
+      link,
+    })
+
+    const href = buildWaLink(invoice.client_phone, message)
+    if (!href) {
+      toast.error("Could not build a WhatsApp link for this phone number")
+      return
+    }
+
+    window.open(href, "_blank", "noopener,noreferrer")
+
+    // Sending the invoice moves a draft to "sent" so the status stays accurate.
+    if (invoice.status === "draft") {
+      updateStatus("sent")
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -237,6 +272,14 @@ export default function InvoiceDetailPage() {
           <Button variant="outline" onClick={handleDownloadPDF}>
             <Download className="h-4 w-4 mr-2" />
             PDF
+          </Button>
+          <Button
+            onClick={handleSendWhatsApp}
+            disabled={!invoice.client_phone}
+            className="bg-[#25D366] text-white hover:bg-[#1ebe5b]"
+          >
+            <MessageCircle className="h-4 w-4 mr-2" />
+            WhatsApp
           </Button>
           <Button onClick={handleSendEmail} disabled={!invoice.client_email || sending}>
             <Mail className="h-4 w-4 mr-2" />
