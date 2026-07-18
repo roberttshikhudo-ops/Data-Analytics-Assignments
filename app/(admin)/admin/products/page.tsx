@@ -9,6 +9,7 @@ import { CatalogueDownloadButtonFleece } from "@/components/admin/catalogue-down
 import { CatalogueDownloadButtonThrows } from "@/components/admin/catalogue-download-button-throws"
 import { CatalogueDownloadButtonBlankets } from "@/components/admin/catalogue-download-button-blankets"
 import { CatalogueDownloadButtonSheetsCovers } from "@/components/admin/catalogue-download-button-sheets-covers"
+import { CatalogueDownloadButtonKids } from "@/components/admin/catalogue-download-button-kids"
 import { PosterDownloadButton } from "@/components/admin/poster-download-button"
 
 async function getProducts() {
@@ -56,6 +57,7 @@ export default async function ProductsPage() {
           <CatalogueDownloadButtonThrows />
           <CatalogueDownloadButtonBlankets />
           <CatalogueDownloadButtonSheetsCovers />
+          <CatalogueDownloadButtonKids />
           <PosterDownloadButton />
           <Link href="/admin/products/costs">
             <Button variant="outline">
