@@ -102,6 +102,14 @@ const SERIES: SeriesDef[] = [
     match: (n) => n.includes("throw fleece 200cm"),
   },
 
+  // Geometric-pattern sherpa-backed fleece throws — the "Geometric Throw
+  // Fleece" range (R265, 180cm x 200cm).
+  {
+    title: "Geometric Fleece Throws",
+    subtitle: "Geometric-pattern fleece with sherpa backing - 180cm x 200cm",
+    match: (n) => n.includes("geometric throw fleece"),
+  },
+
   // Soft throw blankets — everything else that is a throw.
   {
     title: "Soft Throw Blankets",
