@@ -3,12 +3,8 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Plus, Image, DollarSign } from "lucide-react"
 import { ProductsTable } from "@/components/admin/products-table"
-import { CatalogueDownloadButton } from "@/components/admin/catalogue-download-button"
-import { CatalogueDownloadButtonTwo } from "@/components/admin/catalogue-download-button-2"
-import { CatalogueDownloadButtonThree } from "@/components/admin/catalogue-download-button-3"
-import { CatalogueDownloadButtonThreeC } from "@/components/admin/catalogue-download-button-3c"
-import { CatalogueDownloadButtonFour } from "@/components/admin/catalogue-download-button-4"
 import { CatalogueDownloadButtonFive } from "@/components/admin/catalogue-download-button-5"
+import { CatalogueDownloadButtonSix } from "@/components/admin/catalogue-download-button-6"
 import { CatalogueDownloadButtonFleece } from "@/components/admin/catalogue-download-button-fleece"
 import { CatalogueDownloadButtonThrows } from "@/components/admin/catalogue-download-button-throws"
 import { CatalogueDownloadButtonBlankets } from "@/components/admin/catalogue-download-button-blankets"
@@ -53,12 +49,8 @@ export default async function ProductsPage() {
           <p className="text-muted-foreground">Manage your product catalog</p>
         </div>
         <div className="flex gap-2">
-          <CatalogueDownloadButton />
-          <CatalogueDownloadButtonTwo />
-          <CatalogueDownloadButtonThree />
-          <CatalogueDownloadButtonThreeC />
-          <CatalogueDownloadButtonFour />
           <CatalogueDownloadButtonFive />
+          <CatalogueDownloadButtonSix />
           <CatalogueDownloadButtonFleece />
           <CatalogueDownloadButtonThrows />
           <CatalogueDownloadButtonBlankets />
