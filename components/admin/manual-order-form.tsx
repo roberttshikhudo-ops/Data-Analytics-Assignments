@@ -26,7 +26,7 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { formatPrice } from "@/lib/utils"
 import { createManualOrder } from "@/app/(admin)/admin/orders/actions"
-import { Plus, Trash2, Search, UserPlus, Check, ChevronsUpDown } from "lucide-react"
+import { Plus, Trash2, Search, UserPlus, Check, ChevronsUpDown, ImageIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 interface Product {
@@ -402,8 +402,21 @@ export function ManualOrderForm({
                           key={p.id}
                           value={p.name}
                           onSelect={() => addProduct(p)}
+                          className="gap-2"
                         >
-                          <span className="flex-1">{p.name}</span>
+                          {p.image_url ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={p.image_url || "/placeholder.svg"}
+                              alt={p.name}
+                              className="h-8 w-8 shrink-0 rounded object-cover"
+                            />
+                          ) : (
+                            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded bg-muted">
+                              <ImageIcon className="h-4 w-4 text-muted-foreground" />
+                            </div>
+                          )}
+                          <span className="flex-1 truncate">{p.name}</span>
                           <span className="text-muted-foreground">
                             {formatPrice(Number(p.price))}
                           </span>
@@ -427,6 +440,18 @@ export function ManualOrderForm({
                     key={it.key}
                     className="flex items-center gap-3 rounded-lg border p-3"
                   >
+                    {it.product_image_url ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={it.product_image_url || "/placeholder.svg"}
+                        alt={it.product_name}
+                        className="h-12 w-12 shrink-0 rounded object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded bg-muted">
+                        <ImageIcon className="h-5 w-5 text-muted-foreground" />
+                      </div>
+                    )}
                     <div className="min-w-0 flex-1">
                       <p className="truncate font-medium">{it.product_name}</p>
                       <p className="text-xs text-muted-foreground">
