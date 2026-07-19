@@ -2,10 +2,10 @@
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { FileText, Loader2 } from "lucide-react"
+import { BookOpen, Loader2 } from "lucide-react"
 import { toast } from "sonner"
 
-export function CatalogueDownloadButton() {
+export function CatalogueDownloadButtonSix() {
   const [isLoading, setIsLoading] = useState(false)
 
   async function handleDownload() {
@@ -13,7 +13,7 @@ export function CatalogueDownloadButton() {
     try {
       // Fetch within the current authenticated session (sends cookies), so the
       // request is never treated as an unauthenticated new-tab navigation.
-      const res = await fetch("/api/admin/catalogue/bedding", {
+      const res = await fetch("/api/admin/catalogue/bedding-6", {
         credentials: "include",
       })
 
@@ -25,7 +25,7 @@ export function CatalogueDownloadButton() {
       const url = URL.createObjectURL(blob)
       const link = document.createElement("a")
       link.href = url
-      link.download = "Agri-Hub-SA-Bedding-Catalogue.pdf"
+      link.download = "Agri-Hub-SA-Bedding-Catalogue-6.pdf"
       document.body.appendChild(link)
       link.click()
       link.remove()
@@ -44,9 +44,9 @@ export function CatalogueDownloadButton() {
       {isLoading ? (
         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
       ) : (
-        <FileText className="mr-2 h-4 w-4" />
+        <BookOpen className="mr-2 h-4 w-4" />
       )}
-      {isLoading ? "Generating..." : "Bedding Catalogue"}
+      {isLoading ? "Generating..." : "Bedding Catalogue 6"}
     </Button>
   )
 }

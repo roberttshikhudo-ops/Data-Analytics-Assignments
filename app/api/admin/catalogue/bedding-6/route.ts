@@ -6,10 +6,10 @@ import { renderToBuffer, type DocumentProps } from "@react-pdf/renderer"
 import { createElement, type ReactElement } from "react"
 import sharp from "sharp"
 import {
-  BeddingCatalogueFour,
-  type CatalogueFamily,
+  BeddingCatalogueSix,
+  type CatalogueProduct,
   type CatalogueSeriesGroup,
-} from "@/lib/bedding-catalogue-pdf-4"
+} from "@/lib/bedding-catalogue-pdf-6"
 
 // @react-pdf/renderer and fs require the Node.js runtime, and the PDF must be
 // generated fresh on each request.
@@ -31,16 +31,6 @@ const BUSINESS_INFO = {
   address: "The Parks, Riversands, Midrand, Johannesburg, SA",
 }
 
-// Products explicitly excluded from the bedding catalogue (matched by exact
-// name, case-insensitive). Kept in sync with Catalogue 3.
-const EXCLUDED_PRODUCTS = new Set(
-  [
-    "Quilted Weekender Travel Bag",
-    "1Ply Fleece Blanket 001 - Navy Plaid",
-    "5pcs Combo Bedding Set",
-  ].map((n) => n.toLowerCase()),
-)
-
 // Banking details — kept in sync with the invoice (lib/invoice.ts).
 const BANKING_INFO = {
   bank: "First National Bank (FNB)",
@@ -49,17 +39,37 @@ const BANKING_INFO = {
   branchCode: "250655",
 }
 
-// The exact series order, identical to Catalogue 3. Each product is assigned to
-// the FIRST series it matches, so a product never appears twice.
+// The exact series order, listed start to finish. Each product is assigned to
+// the FIRST series it matches, so ordering matters and a product never appears
+// twice. Products that match no series (and the excluded items) are left out,
+// so only genuine bedding is classified and shown.
+//
+// Edition 6 additions over Edition 5:
+//   - Molly Comforter Sets get their own branded series.
+//   - Mattress Protectors & Covers (corduroy, waterproof and velvet) are
+//     classified as a dedicated series instead of being excluded.
 interface SeriesDef {
   title: string
   match: (name: string, description: string) => boolean
 }
 
 const SERIES: SeriesDef[] = [
+  // 1. Branded comforter / quilt series (matched first so they never fall into
+  //    the generic comforter/quilt groups below).
   { title: "Moffy Comforter Sets", match: (n) => n.includes("moffy") },
+  { title: "Molly Comforter Sets", match: (n) => n.includes("molly") },
   { title: "MoMo Quilt Sets", match: (n) => n.includes("momo") },
   { title: "Rara Quilt Sets", match: (n) => n.includes("rara") },
+
+  // 2. Mattress protectors & covers — corduroy, waterproof and velvet sets.
+  //    Placed before the sheet/comforter groups so the "winter bedsheet"
+  //    velvet protector and corduroy protector are grouped here as covers.
+  {
+    title: "Mattress Protectors & Covers",
+    match: (n) => n.includes("mattress protector") || n.includes("protector"),
+  },
+
+  // 3. Reversible ranges.
   {
     title: "Reversible Flowers Comforters",
     match: (n) => n.includes("flower reversible"),
@@ -68,19 +78,36 @@ const SERIES: SeriesDef[] = [
     title: "Generic Reversible Comforters",
     match: (n) => n.includes("generic reversible"),
   },
+
+  // 4. Geometric comforter range.
   {
-    title: "Corduroy",
-    match: (n) => n.includes("corduroy"),
+    title: "Geometric Comforters",
+    match: (n) => n.includes("geometric comforter"),
   },
+
+  // 5. All corduroy products — comforters and corduroy fleece blankets alike.
   {
-    title: "Other Quilts & Comforters",
+    title: "Corduroy Range",
+    match: (n) => n.includes("corduroy") || n.includes("cordury"),
+  },
+
+  // 6. Everything else in the comforter family (5pcs / 9pcs / kids, etc.).
+  {
+    title: "Comforter Sets",
+    match: (n) => n.includes("comforter"),
+  },
+
+  // 7. Quilt sets and bedspreads.
+  {
+    title: "Quilts & Bedspreads",
     match: (n) =>
-      n.includes("comforter") ||
       n.includes("quilt") ||
       n.includes("bedspread") ||
       n.includes("bed spread") ||
       n.includes("combo bedding"),
   },
+
+  // 8. Flat / fitted sheet sets.
   {
     title: "Bedsheets",
     match: (n) =>
@@ -89,74 +116,43 @@ const SERIES: SeriesDef[] = [
       n.includes("frilled combo sheet") ||
       n.includes("sheet set"),
   },
+
+  // 9. Throws and fleece throw blankets.
   {
     title: "Throws & Fleece Blankets",
     match: (n) =>
       n.includes("throw") || (n.includes("fleece") && n.includes("blanket")),
   },
+
+  // 10. Kids character bedding — the "Agri Hub Kids Bedding" range. Placed
+  //    just before the winter blanket ranges so the fun character sets get
+  //    their own showcase section near the end of the comforter/bedsheet
+  //    lineup. Kids products match only "kids bedding" and none of the series
+  //    above, so their position never risks a mis-assignment.
+  { title: "Kids Character Bedding", match: (n) => n.includes("kids bedding") },
+
+  // 11. Winter mink / 2-ply / patterned winter blankets.
   {
     title: "Winter Blankets",
     match: (n) =>
       n.includes("winter blanket") ||
       n.includes("jia jia") ||
+      n.includes("little sheep") ||
+      n.includes("quality winter blanket") ||
       n.includes("2ply") ||
       n.includes("2 ply") ||
       (n.includes("blanket") && n.includes("winter")),
   },
+
+  // 11. Any remaining blankets not caught above.
+  {
+    title: "Other Blankets",
+    match: (n) => n.includes("blanket"),
+  },
 ]
 
-// Splits a product name into a base "range" name and its colour/design variant
-// label. This lets us present one representative card per range with the full
-// list of available colours, the way advanced retail catalogues do.
-//
-// Handles the common naming patterns in the catalogue, e.g.:
-//   "5pcs Generic Reversible Comforters-Aqua"      -> base + "Aqua"
-//   "4pcs Premium Bed Sheet Set - Beige Blue Floral"-> base + "Beige Blue Floral"
-//   "MOMO-001 Super King Quilt Set"                 -> base + "001"
-//   "Moffy 001, 7pcs, Super King Size"              -> base + "001"
-//   "5pcs Comforter Set 001 - Light Grey"           -> base + "001 - Light Grey"
-//   "5pcs Flower Reversible Comforter P3"           -> base + "P3"
-function extractFamily(rawName: string): { family: string; variant: string } {
-  let working = rawName.trim()
-  const variantParts: string[] = []
-
-  // 1. Colour/design suffix written as " - X" (space-dash-space).
-  const dashSpace = working.match(/^(.*\S)\s-\s(.+)$/)
-  if (dashSpace) {
-    working = dashSpace[1].trim()
-    variantParts.unshift(dashSpace[2].trim())
-  } else {
-    // Colour suffix joined directly by a hyphen, e.g. "...Comforters-Aqua".
-    // Only treat the right side as a colour when it starts with a letter, so
-    // codes like "MOMO-001" are left for the numeric step below.
-    const dash = working.match(/^(.*[A-Za-z])-([A-Za-z][A-Za-z &]+)$/)
-    if (dash) {
-      working = dash[1].trim()
-      variantParts.unshift(dash[2].trim())
-    }
-  }
-
-  // 2. Numeric / code token: "001".."0xx", or "P1".."P9", joined by a space or
-  //    hyphen anywhere in the remaining name.
-  const code = working.match(/[-\s](0\d{2}|P\d+)\b,?/)
-  if (code) {
-    variantParts.unshift(code[1])
-    working = (working.slice(0, code.index) + working.slice((code.index ?? 0) + code[0].length)).trim()
-  }
-
-  // Tidy up the leftover base name: collapse doubled/trailing commas, repeated
-  // spaces and dangling separators introduced by removing the variant.
-  working = working
-    .replace(/\s*,\s*,/g, ",")
-    .replace(/\s+,/g, ",")
-    .replace(/[,\-\s]+$/g, "")
-    .replace(/\s{2,}/g, " ")
-    .trim()
-
-  const variant = variantParts.join(" - ") || working
-  return { family: working, variant }
-}
-
+// Detects the real image format from the file's magic bytes. This is more
+// reliable than trusting the file extension, because some assets are mislabeled.
 function mimeFromBuffer(buf: Buffer): string {
   if (buf.length >= 8 && buf.toString("hex", 0, 8) === "89504e470d0a1a0a") {
     return "image/png"
@@ -175,9 +171,6 @@ function mimeFromBuffer(buf: Buffer): string {
 }
 
 // Downscales and re-encodes an image so the catalogue stays email-friendly.
-// Product cards render at roughly 250px wide, so a 520px-wide JPEG keeps the
-// print crisp while shrinking each embedded image from megabytes to ~30-60KB.
-// The logo is kept as PNG (with transparency) at a small size.
 async function compressImage(
   buf: Buffer,
   variant: "product" | "logo",
@@ -192,8 +185,8 @@ async function compressImage(
     }
 
     const data = await sharp(buf)
-      .resize({ width: 520, withoutEnlargement: true })
-      .jpeg({ quality: 78, mozjpeg: true })
+      .resize({ width: 480, withoutEnlargement: true })
+      .jpeg({ quality: 72, mozjpeg: true })
       .toBuffer()
     return { data, mime: "image/jpeg" }
   } catch {
@@ -202,6 +195,8 @@ async function compressImage(
   }
 }
 
+// Converts a product image into a base64 data URI so it can be embedded in the
+// PDF. Works both locally (filesystem) and on Vercel (HTTP fetch).
 async function imageToDataUri(
   imageUrl: string | null,
   origin: string,
@@ -249,19 +244,13 @@ async function imageToDataUri(
   return null
 }
 
-interface RawProduct {
-  name: string
-  price: number
-  image_url: string | null
-  short_description: string | null
-}
-
 export async function GET(request: Request) {
-  const origin = new URL(request.url).origin
+  const url = new URL(request.url)
+  const origin = url.origin
 
   const { data: products, error } = await supabaseAdmin
     .from("products")
-    .select("name, price, image_url, short_description, categories(slug)")
+    .select("name, price, compare_at_price, image_url, short_description, categories(slug)")
     .eq("is_active", true)
     .order("name", { ascending: true })
 
@@ -269,58 +258,42 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Failed to load products" }, { status: 500 })
   }
 
-  const homeLiving = (products || []).filter(
-    (p: any) =>
-      p.categories?.slug === "home-living" &&
-      !EXCLUDED_PRODUCTS.has((p.name || "").toLowerCase()),
-  )
+  // Catalogue 6: active Home & Living bedding. Non-bedding items (e.g. the
+  // Quilted Weekender Travel Bag) are explicitly excluded.
+  const EXCLUDED = ["quilted weekender travel bag"]
+  const homeLiving = (products || []).filter((p: any) => {
+    if (p.categories?.slug !== "home-living") return false
+    const name = (p.name || "").toLowerCase()
+    return !EXCLUDED.some((ex) => name.includes(ex))
+  })
 
   const groups: CatalogueSeriesGroup[] = []
 
+  // Full catalogue: assign each product to the first series it matches.
+  const assigned = new Set<any>()
+
   for (const series of SERIES) {
-    const matched: RawProduct[] = homeLiving.filter((p: any) => {
+    const matched = homeLiving.filter((p: any) => {
+      if (assigned.has(p)) return false
       const name = (p.name || "").toLowerCase()
       const description = (p.short_description || "").toLowerCase()
       return series.match(name, description)
     })
 
     if (matched.length === 0) continue
+    matched.forEach((p: any) => assigned.add(p))
 
-    // Group matched products into ranges/families keyed by the base name.
-    const familyMap = new Map<
-      string,
-      { name: string; members: { variant: string; product: RawProduct }[] }
-    >()
-
-    for (const product of matched) {
-      const { family, variant } = extractFamily(product.name)
-      const key = family.toLowerCase()
-      if (!familyMap.has(key)) {
-        familyMap.set(key, { name: family, members: [] })
-      }
-      familyMap.get(key)!.members.push({ variant, product })
-    }
-
-    const families: CatalogueFamily[] = await Promise.all(
-      Array.from(familyMap.values()).map(async (fam) => {
-        // Representative product = the first (alphabetical) in the range.
-        const rep = fam.members[0].product
-        const prices = fam.members.map((m) => Number(m.product.price))
-        const minPrice = Math.min(...prices)
-        const priceFrom = prices.some((pr) => pr !== minPrice)
-
-        return {
-          name: fam.name,
-          price: minPrice,
-          priceFrom,
-          imageDataUri: await imageToDataUri(rep.image_url, origin),
-          description: rep.short_description ?? null,
-          variants: fam.members.map((m) => m.variant),
-        }
-      }),
+    const seriesProducts: CatalogueProduct[] = await Promise.all(
+      matched.map(async (p: any) => ({
+        name: p.name,
+        price: p.price,
+        compareAtPrice: p.compare_at_price,
+        description: p.short_description ?? null,
+        imageDataUri: await imageToDataUri(p.image_url, origin),
+      })),
     )
 
-    groups.push({ title: series.title, families })
+    groups.push({ title: series.title, products: seriesProducts })
   }
 
   const generatedDate = new Date().toLocaleDateString("en-ZA", {
@@ -332,7 +305,7 @@ export async function GET(request: Request) {
   const logoDataUri = await imageToDataUri("/agri-hub-logo.png", origin, "logo")
 
   const buffer = await renderToBuffer(
-    createElement(BeddingCatalogueFour, {
+    createElement(BeddingCatalogueSix, {
       groups,
       business: BUSINESS_INFO,
       banking: BANKING_INFO,
@@ -344,7 +317,7 @@ export async function GET(request: Request) {
   return new NextResponse(buffer as any, {
     headers: {
       "Content-Type": "application/pdf",
-      "Content-Disposition": 'attachment; filename="Agri-Hub-SA-Bedding-Catalogue-4.pdf"',
+      "Content-Disposition": `attachment; filename="Agri-Hub-SA-Bedding-Catalogue-6.pdf"`,
       "Cache-Control": "no-store",
     },
   })

@@ -10,13 +10,14 @@ const supabaseAdmin = createClient(
 const BUSINESS_INFO = {
   name: "Agri Hub SA",
   tagline: "Your Agricultural, Hardware and Lifestyle Innovation Partner",
-  address: "The Parks Lifestyle Apartments, Block 38 Unit 2F",
+  address: "The Parks",
   city: "Midrand",
   province: "Gauteng",
   postalCode: "1685",
   country: "South Africa",
-  phone: "079 109 9490",
-  email: "info@agrihubsa.co.za",
+  fullAddress: "The Parks, Midrand, Johannesburg, 1685, Gauteng, South Africa",
+  phone: "083 306 1529",
+  email: "robert.tshikhudo@gmail.com",
   website: "www.agrihubsa.co.za",
 }
 
@@ -271,9 +272,7 @@ function generateInvoiceHTML(invoice: any): string {
     <div class="info-block">
       <p class="info-title">From</p>
       <p class="info-bold">${BUSINESS_INFO.name}</p>
-      <p class="info-text">${BUSINESS_INFO.address}</p>
-      <p class="info-text">${BUSINESS_INFO.city}, ${BUSINESS_INFO.province} ${BUSINESS_INFO.postalCode}</p>
-      <p class="info-text">${BUSINESS_INFO.country}</p>
+      <p class="info-text">${BUSINESS_INFO.fullAddress}</p>
       <p class="info-text">Tel: ${BUSINESS_INFO.phone}</p>
       <p class="info-text">Email: ${BUSINESS_INFO.email}</p>
     </div>

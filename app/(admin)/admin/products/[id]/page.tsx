@@ -9,7 +9,16 @@ async function getProduct(id: string) {
     .select("*")
     .eq("id", id)
     .single()
-  return data
+  if (!data) return data
+
+  // Cost price is stored in the admin-only product_costs table.
+  const { data: cost } = await supabase
+    .from("product_costs")
+    .select("cost_price")
+    .eq("product_id", id)
+    .maybeSingle()
+
+  return { ...data, cost_price: cost?.cost_price ?? null }
 }
 
 async function getCategories() {

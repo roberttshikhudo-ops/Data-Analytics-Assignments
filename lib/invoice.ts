@@ -4,14 +4,15 @@ import { createClient } from '@supabase/supabase-js'
 export const BUSINESS_INFO = {
   name: 'Agri Hub SA',
   tagline: 'Your Agricultural, Hardware and Lifestyle Innovation Partner',
-  address: 'The Parks Lifestyle Apartments, Block 38 Unit 2F',
+  address: 'The Parks',
   city: 'Midrand',
   province: 'Gauteng',
   postalCode: '1685',
   country: 'South Africa',
-  phone: '079 109 9490',
+  fullAddress: 'The Parks, Midrand, Johannesburg, 1685, Gauteng, South Africa',
+  phone: '083 306 1529',
   altPhone: '083 306 1529',
-  email: 'info@agrihubsa.co.za',
+  email: 'robert.tshikhudo@gmail.com',
   website: 'https://agrihubsa.co.za',
   // Not VAT registered
   vatRegistered: false,
@@ -65,6 +66,33 @@ export function generateInvoiceNumber(): string {
   const year = new Date().getFullYear()
   const random = Math.floor(10000 + Math.random() * 90000)
   return `INV-${year}${random}`
+}
+
+// Generate the next sequential invoice number (INV-YYYYNNNNN) so it matches
+// the format used by manually-created invoices and stays gap-free per year.
+export async function getNextInvoiceNumber(
+  supabaseClient: ReturnType<typeof createClient>
+): Promise<string> {
+  const year = new Date().getFullYear()
+  const prefix = `INV-${year}`
+
+  const { data } = await supabaseClient
+    .from('invoices')
+    .select('invoice_number')
+    .like('invoice_number', `${prefix}%`)
+    .order('invoice_number', { ascending: false })
+    .limit(1)
+
+  let sequence = 1
+  if (data && data.length > 0) {
+    const lastNumber = (data[0] as { invoice_number: string }).invoice_number
+    const lastSequence = parseInt(lastNumber.replace(prefix, ''), 10)
+    if (!isNaN(lastSequence)) {
+      sequence = lastSequence + 1
+    }
+  }
+
+  return `${prefix}${sequence.toString().padStart(5, '0')}`
 }
 
 // Format currency
@@ -131,8 +159,27 @@ export async function createInvoiceFromOrder(
     total_price: item.total_price,
   }))
 
-  // Build client name from order
-  const clientName = `${order.billing_first_name || ''} ${order.billing_last_name || ''}`.trim() || 'Customer'
+  // Build client name from order, falling back to shipping details when
+  // billing details are missing (e.g. manual / phone orders capture shipping only).
+  // As a last resort, derive a readable name from the customer's email so the
+  // invoice avoids the generic "Customer" label.
+  const nameFromEmail = (order.guest_email || '')
+    .split('@')[0]
+    .replace(/[._-]+/g, ' ')
+    .trim()
+    .replace(/\b\w/g, (c: string) => c.toUpperCase())
+  const clientName =
+    `${order.billing_first_name || ''} ${order.billing_last_name || ''}`.trim() ||
+    `${order.shipping_first_name || ''} ${order.shipping_last_name || ''}`.trim() ||
+    nameFromEmail ||
+    'Customer'
+
+  // Always include the recipient's address on the invoice. Prefer the billing
+  // address, but fall back to the shipping address so the address is never blank.
+  const hasBillingAddress = Boolean(order.billing_address_line1)
+  const clientAddress = hasBillingAddress
+    ? [order.billing_address_line1, order.billing_address_line2].filter(Boolean).join(', ')
+    : [order.shipping_address_line1, order.shipping_address_line2].filter(Boolean).join(', ')
 
   // Create invoice
   const invoice: Invoice = {
@@ -141,13 +188,13 @@ export async function createInvoiceFromOrder(
     invoice_type: 'order',
     client_name: clientName,
     client_email: order.guest_email || null,
-    client_phone: order.billing_phone,
-    client_company: order.billing_company,
-    client_address: [order.billing_address_line1, order.billing_address_line2].filter(Boolean).join(', '),
-    client_city: order.billing_city,
-    client_province: order.billing_province,
-    client_postal_code: order.billing_postal_code,
-    client_country: order.billing_country || 'South Africa',
+    client_phone: order.billing_phone || order.shipping_phone || null,
+    client_company: order.billing_company || order.shipping_company || null,
+    client_address: clientAddress,
+    client_city: hasBillingAddress ? order.billing_city : order.shipping_city,
+    client_province: hasBillingAddress ? order.billing_province : order.shipping_province,
+    client_postal_code: hasBillingAddress ? order.billing_postal_code : order.shipping_postal_code,
+    client_country: (hasBillingAddress ? order.billing_country : order.shipping_country) || 'South Africa',
     invoice_date: new Date().toISOString().split('T')[0],
     due_date: null, // Already paid for order invoices
     status: order.payment_status === 'paid' ? 'paid' : 'draft',
@@ -163,10 +210,14 @@ export async function createInvoiceFromOrder(
     items: invoiceItems,
   }
 
+  // Generate a sequential invoice number (the column is NOT NULL with no default)
+  const invoiceNumber = await getNextInvoiceNumber(supabaseClient)
+
   // Insert invoice
   const { data: newInvoice, error: insertError } = await supabaseClient
     .from('invoices')
     .insert({
+      invoice_number: invoiceNumber,
       order_id: invoice.order_id,
       user_id: invoice.user_id,
       invoice_type: invoice.invoice_type,
@@ -364,4 +415,4 @@ Or pay via PayFast on our website.`
 export const DEFAULT_TERMS = `1. Payment is due within 7 days of invoice date unless otherwise specified.
 2. Goods remain the property of Agri Hub SA until paid in full.
 3. Returns accepted within 7 days with original packaging.
-4. For queries, contact us at 079 109 9490 or Robert.tshikhudo@gmail.com`
+4. For queries, contact us at 083 306 1529 or robert.tshikhudo@gmail.com`

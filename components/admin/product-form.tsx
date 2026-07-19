@@ -110,7 +110,6 @@ export function ProductForm({ categories, product }: ProductFormProps) {
       short_description: formData.short_description || null,
       price: parseFloat(formData.price),
       compare_at_price: formData.compare_at_price ? parseFloat(formData.compare_at_price) : null,
-      cost_price: formData.cost_price ? parseFloat(formData.cost_price) : null,
       sku: formData.sku || null,
       barcode: formData.barcode || null,
       stock_quantity: parseInt(formData.stock_quantity),
@@ -148,6 +147,23 @@ export function ProductForm({ categories, product }: ProductFormProps) {
       toast.error(`Failed to save product: ${error.message}`)
       setIsLoading(false)
       return
+    }
+
+    // Cost price lives in the admin-only product_costs table so customers
+    // can never read it. Upsert it separately from the public products row.
+    const savedProductId = data?.[0]?.id || product?.id
+    if (savedProductId) {
+      const costValue = formData.cost_price ? parseFloat(formData.cost_price) : null
+      const { error: costError } = await supabase
+        .from("product_costs")
+        .upsert(
+          { product_id: savedProductId, cost_price: costValue, updated_at: new Date().toISOString() },
+          { onConflict: "product_id" },
+        )
+      if (costError) {
+        console.error("[v0] Error saving cost price:", costError)
+        toast.error(`Product saved, but cost price failed: ${costError.message}`)
+      }
     }
 
     console.log("[v0] Product saved successfully:", data)

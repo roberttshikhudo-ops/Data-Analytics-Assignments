@@ -6,10 +6,10 @@ import { renderToBuffer, type DocumentProps } from "@react-pdf/renderer"
 import { createElement, type ReactElement } from "react"
 import sharp from "sharp"
 import {
-  ThrowsCatalogue,
-  type ThrowsCatalogueProduct,
-  type ThrowsCatalogueSeriesGroup,
-} from "@/lib/throws-catalogue-pdf"
+  KidsBeddingCatalogue,
+  type KidsBeddingCatalogueProduct,
+  type KidsBeddingCatalogueSeriesGroup,
+} from "@/lib/kids-bedding-catalogue-pdf"
 
 // @react-pdf/renderer and fs require the Node.js runtime, and the PDF must be
 // generated fresh on each request.
@@ -39,19 +39,14 @@ const BANKING_INFO = {
   branchCode: "250655",
 }
 
-// Only throws and fleece products from the Home & Living category are eligible.
-// A product must match this gate before it can be placed in any series.
-function isThrowOrFleece(name: string): boolean {
-  return (
-    name.includes("throw") ||
-    name.includes("fleece") ||
-    name.includes("flee") ||
-    name.includes("corduroy")
-  )
+// Only the "Agri Hub Kids Bedding" range is eligible for this catalogue.
+function isKidsBedding(name: string): boolean {
+  return name.includes("kids bedding")
 }
 
-// Professionalised series. Each product is assigned to the FIRST series it
-// matches, so ordering matters and a product never appears twice.
+// Character series so the kids sets are clearly categorised. Each product is
+// assigned to the FIRST series it matches, so ordering matters and a product
+// never appears twice. A catch-all guarantees nothing is dropped.
 interface SeriesDef {
   title: string
   subtitle?: string
@@ -59,62 +54,35 @@ interface SeriesDef {
 }
 
 const SERIES: SeriesDef[] = [
-  // Premium ribbed faux-fur throws (the "Gen, Throw Fleece" range, R195).
   {
-    title: "Ribbed Faux-Fur Throws",
-    subtitle: "Plush ribbed faux-fur - 180cm x 200cm",
-    match: (n) => n.includes("gen, throw fleece") || n.startsWith("gen,"),
+    title: "Mickey & Minnie Mouse",
+    subtitle: "Disney Mickey and Minnie Mouse character sets",
+    match: (n) => n.includes("mickey") || n.includes("minnie"),
   },
-
-  // Embossed / textured fleece throws (the "Throw Flee" range, R195).
   {
-    title: "Embossed Fleece Throws",
-    subtitle: "Soft embossed fleece - 180cm x 200cm",
-    match: (n) => n.includes("throw flee-") || n.includes("throw flee ("),
+    title: "Spider-Man",
+    subtitle: "Marvel Spider-Man action character sets",
+    match: (n) => n.includes("spider-man") || n.includes("spiderman"),
   },
-
-  // Corduroy fleece throws (R180). Corduroy comforters (e.g. the
-  // "5pcs Corduroy Comforter" sets) are explicitly excluded.
   {
-    title: "Corduroy Fleece Throws",
-    subtitle: "Ribbed corduroy fleece - 180cm x 200cm",
-    match: (n) => n.includes("corduroy") && !n.includes("comforter"),
+    title: "Hello Kitty",
+    subtitle: "Hello Kitty character sets",
+    match: (n) => n.includes("hello kitty"),
   },
-
-  // Premium plain fleece throws — "Fleece Throw 180cm X 200cm" (R255).
   {
-    title: "Premium Fleece Throws",
-    subtitle: "Luxuriously soft fleece - 180cm x 200cm",
-    match: (n) => n.includes("fleece throw 180cm"),
+    title: "Lilo & Stitch",
+    subtitle: "Disney Stitch character sets",
+    match: (n) => n.includes("stitch"),
   },
-
-  // Value fleece throws — "Throw fleece, 180cm X 200cm" (R160).
   {
-    title: "Value Fleece Throws",
-    subtitle: "Everyday cosy fleece - 180cm x 200cm",
-    match: (n) => n.includes("throw fleece, 180cm"),
+    title: "Disney Frozen",
+    subtitle: "Frozen Elsa and Anna character sets",
+    match: (n) => n.includes("frozen"),
   },
-
-  // Reversible / large fleece throws — "Throw Fleece 200cm x 230cm" (R255).
   {
-    title: "Reversible Fleece Throws",
-    subtitle: "Two-tone reversible fleece - 200cm x 230cm",
-    match: (n) => n.includes("throw fleece 200cm"),
-  },
-
-  // Geometric-pattern sherpa-backed fleece throws — the "Geometric Throw
-  // Fleece" range (R265, 180cm x 200cm).
-  {
-    title: "Geometric Fleece Throws",
-    subtitle: "Geometric-pattern fleece with sherpa backing - 180cm x 200cm",
-    match: (n) => n.includes("geometric throw fleece"),
-  },
-
-  // Soft throw blankets — everything else that is a throw.
-  {
-    title: "Soft Throw Blankets",
-    subtitle: "Lightweight, versatile throw blankets",
-    match: (n) => n.includes("soft throw blanket") || n.includes("throw blanket") || n.includes("throw"),
+    title: "More Kids Designs",
+    subtitle: "Additional character bedding",
+    match: () => true,
   },
 ]
 
@@ -224,15 +192,15 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Failed to load products" }, { status: 500 })
   }
 
-  // Only throws & fleece products in the Home & Living category.
+  // Only the Kids Bedding range in the Home & Living category.
   const eligible = (products || []).filter(
     (p: any) =>
-      p.categories?.slug === "home-living" && isThrowOrFleece((p.name || "").toLowerCase()),
+      p.categories?.slug === "home-living" && isKidsBedding((p.name || "").toLowerCase()),
   )
 
-  // Build the groups in the exact requested order. Each product is assigned to
-  // the first series it matches, so it never appears twice.
-  const groups: ThrowsCatalogueSeriesGroup[] = []
+  // Build the groups in the requested order. Each product is assigned to the
+  // first series it matches, so it never appears twice.
+  const groups: KidsBeddingCatalogueSeriesGroup[] = []
 
   for (const series of SERIES) {
     const matched = eligible.filter((p: any) => series.match((p.name || "").toLowerCase()))
@@ -245,7 +213,7 @@ export async function GET(request: Request) {
       if (idx !== -1) eligible.splice(idx, 1)
     }
 
-    const seriesProducts: ThrowsCatalogueProduct[] = await Promise.all(
+    const seriesProducts: KidsBeddingCatalogueProduct[] = await Promise.all(
       matched.map(async (p: any) => ({
         name: p.name,
         price: p.price,
@@ -267,7 +235,7 @@ export async function GET(request: Request) {
   const logoDataUri = await imageToDataUri("/agri-hub-logo.png", origin, "logo")
 
   const buffer = await renderToBuffer(
-    createElement(ThrowsCatalogue, {
+    createElement(KidsBeddingCatalogue, {
       groups,
       business: BUSINESS_INFO,
       banking: BANKING_INFO,
@@ -279,7 +247,7 @@ export async function GET(request: Request) {
   return new NextResponse(buffer as any, {
     headers: {
       "Content-Type": "application/pdf",
-      "Content-Disposition": 'attachment; filename="Agri-Hub-Throws-and-Flees.pdf"',
+      "Content-Disposition": 'attachment; filename="Agri-Hub-Bedding-Catalogue-7-Kids.pdf"',
       "Cache-Control": "no-store",
     },
   })

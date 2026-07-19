@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { BookOpen, Loader2 } from "lucide-react"
 import { toast } from "sonner"
 
-export function CatalogueDownloadButtonThreeC() {
+export function CatalogueDownloadButtonSheetsCovers() {
   const [isLoading, setIsLoading] = useState(false)
 
   async function handleDownload() {
@@ -13,7 +13,7 @@ export function CatalogueDownloadButtonThreeC() {
     try {
       // Fetch within the current authenticated session (sends cookies), so the
       // request is never treated as an unauthenticated new-tab navigation.
-      const res = await fetch("/api/admin/catalogue/bedding-3c", {
+      const res = await fetch("/api/admin/catalogue/sheets-covers", {
         credentials: "include",
       })
 
@@ -25,7 +25,7 @@ export function CatalogueDownloadButtonThreeC() {
       const url = URL.createObjectURL(blob)
       const link = document.createElement("a")
       link.href = url
-      link.download = "Agri-Hub-SA-Bedding-Catalogue-3C.pdf"
+      link.download = "Agri-Hub-Bedsheets-Protectors-Covers.pdf"
       document.body.appendChild(link)
       link.click()
       link.remove()
@@ -46,7 +46,7 @@ export function CatalogueDownloadButtonThreeC() {
       ) : (
         <BookOpen className="mr-2 h-4 w-4" />
       )}
-      {isLoading ? "Generating..." : "Bedding Catalogue 3C"}
+      {isLoading ? "Generating..." : "Agri Hub Bedsheets & Covers"}
     </Button>
   )
 }

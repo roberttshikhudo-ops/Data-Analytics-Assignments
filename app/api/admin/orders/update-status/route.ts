@@ -14,6 +14,7 @@ const supabaseAdmin = createClient(
 const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://agrihubsa.co.za"
 
 async function resolveCustomerEmail(order: any): Promise<string> {
+  if (order?.customers?.email) return order.customers.email
   if (order?.guest_email) return order.guest_email
   if (order?.user_id) {
     try {
@@ -30,6 +31,7 @@ function buildEmailData(order: any): OrderEmailData {
   return {
     orderNumber: order?.order_number || "",
     customerName:
+      order?.customers?.name ||
       [order?.shipping_first_name, order?.shipping_last_name]
         .filter(Boolean)
         .join(" ") || null,
@@ -57,7 +59,7 @@ export async function POST(request: NextRequest) {
     // Fetch current order so we can detect what actually changed.
     const { data: existing, error: fetchError } = await supabaseAdmin
       .from("orders")
-      .select("*, order_items(*, product:products(name))")
+      .select("*, order_items(*, product:products(name)), customers(name, email, phone)")
       .eq("id", orderId)
       .single()
 

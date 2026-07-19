@@ -22,8 +22,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { ArrowLeft, Download, Mail, Printer } from "lucide-react"
+import { ArrowLeft, Download, Mail, MessageCircle, Printer } from "lucide-react"
 import { toast } from "sonner"
+import { buildInvoiceMessage, buildWaLink } from "@/lib/whatsapp"
 
 interface InvoiceItem {
   id: string
@@ -85,7 +86,8 @@ export default function InvoiceDetailPage() {
       const response = await fetch(`/api/admin/invoices/${params.id}`)
       if (response.ok) {
         const data = await response.json()
-        setInvoice(data)
+        // The API returns line items under `invoice_items`; normalize to `items`.
+        setInvoice({ ...data, items: data.items ?? data.invoice_items ?? [] })
       } else {
         toast.error("Failed to load invoice")
         router.push("/admin/invoices")
@@ -179,6 +181,40 @@ export default function InvoiceDetailPage() {
     }
   }
 
+  const handleSendWhatsApp = () => {
+    if (!invoice) return
+
+    if (!invoice.client_phone) {
+      toast.error("No client phone number on this invoice")
+      return
+    }
+
+    const origin =
+      process.env.NEXT_PUBLIC_APP_URL ||
+      (typeof window !== "undefined" ? window.location.origin : "")
+    const link = `${origin}/invoice/${invoice.id}`
+
+    const message = buildInvoiceMessage({
+      invoiceNumber: invoice.invoice_number,
+      customerName: invoice.client_name,
+      total: invoice.total,
+      link,
+    })
+
+    const href = buildWaLink(invoice.client_phone, message)
+    if (!href) {
+      toast.error("Could not build a WhatsApp link for this phone number")
+      return
+    }
+
+    window.open(href, "_blank", "noopener,noreferrer")
+
+    // Sending the invoice moves a draft to "sent" so the status stays accurate.
+    if (invoice.status === "draft") {
+      updateStatus("sent")
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -237,6 +273,14 @@ export default function InvoiceDetailPage() {
             <Download className="h-4 w-4 mr-2" />
             PDF
           </Button>
+          <Button
+            onClick={handleSendWhatsApp}
+            disabled={!invoice.client_phone}
+            className="bg-[#25D366] text-white hover:bg-[#1ebe5b]"
+          >
+            <MessageCircle className="h-4 w-4 mr-2" />
+            WhatsApp
+          </Button>
           <Button onClick={handleSendEmail} disabled={!invoice.client_email || sending}>
             <Mail className="h-4 w-4 mr-2" />
             {sending ? "Sending..." : "Send"}
@@ -259,14 +303,11 @@ export default function InvoiceDetailPage() {
             <div className="text-right">
               <h3 className="text-xl font-bold">Agri Hub SA</h3>
               <p className="text-muted-foreground">
-                The Parks Lifestyle Apartments<br />
-                Block 38 Unit 2F<br />
-                Midrand, Johannesburg, 1685<br />
-                Gauteng, South Africa
+                The Parks, Midrand, Johannesburg, 1685, Gauteng, South Africa
               </p>
               <p className="mt-2 text-muted-foreground">
-                Phone: 079 109 9490<br />
-                Email: info@agrihubsa.co.za
+                Phone: 083 306 1529<br />
+                Email: robert.tshikhudo@gmail.com
               </p>
             </div>
           </div>

@@ -103,14 +103,11 @@ function generateInvoiceEmailHtml(invoice: any): string {
           <h3 style="margin: 0 0 10px 0; color: #666; font-size: 12px; text-transform: uppercase;">From</h3>
           <p style="margin: 0; font-weight: bold; font-size: 16px;">Agri Hub SA</p>
           <p style="margin: 5px 0; color: #666; font-size: 14px;">
-            The Parks Lifestyle Apartments<br>
-            Block 38 Unit 2F<br>
-            Midrand, Johannesburg, 1685<br>
-            South Africa
+            The Parks, Midrand, Johannesburg, 1685, Gauteng, South Africa
           </p>
           <p style="margin: 5px 0; color: #666; font-size: 14px;">
-            Phone: 079 109 9490<br>
-            Email: info@agrihubsa.co.za
+            Phone: 083 306 1529<br>
+            Email: robert.tshikhudo@gmail.com
           </p>
         </td>
         <td style="vertical-align: top; width: 50%; text-align: right;">

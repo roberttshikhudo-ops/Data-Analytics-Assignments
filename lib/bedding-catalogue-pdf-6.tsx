@@ -8,6 +8,11 @@ export interface CatalogueProduct {
   imageDataUri: string | null
 }
 
+export interface CatalogueSeriesGroup {
+  title: string
+  products: CatalogueProduct[]
+}
+
 export interface CatalogueBusinessInfo {
   name: string
   tagline: string
@@ -25,11 +30,6 @@ export interface CatalogueBankingInfo {
   branchCode: string
 }
 
-export interface CatalogueDeliveryInfo {
-  standardFee: string
-  freeThreshold: string
-}
-
 const NAVY = "#1a365d"
 const GREEN = "#059669"
 const GREY = "#64748b"
@@ -40,24 +40,46 @@ const styles = StyleSheet.create({
     fontFamily: "Helvetica",
     fontSize: 10,
     color: "#1a202c",
-    paddingBottom: 70,
+    paddingTop: 58,
+    paddingBottom: 78,
   },
+  // Fixed header repeated on every page: a logo in the top-left and top-right.
+  pageHeader: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 50,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 24,
+    paddingTop: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#e2e8f0",
+    backgroundColor: "#ffffff",
+  },
+  cornerLogo: { width: 40, height: 40, objectFit: "contain" },
+  headerCenter: { alignItems: "center", justifyContent: "center" },
+  headerBrand: { fontSize: 11, fontFamily: "Helvetica-Bold", color: NAVY },
+  headerTag: { fontSize: 7, color: GREEN, marginTop: 1 },
+
   cover: {
     backgroundColor: NAVY,
     color: "#ffffff",
-    paddingVertical: 28,
+    paddingVertical: 24,
     paddingHorizontal: 40,
     textAlign: "center",
+    marginBottom: 4,
   },
-  logo: { width: 70, height: 70, objectFit: "contain", marginBottom: 10, alignSelf: "center" },
   brand: { fontSize: 22, fontFamily: "Helvetica-Bold", letterSpacing: 1 },
   tagline: { fontSize: 9, color: "#9ae6c4", marginTop: 4 },
   title: {
-    fontSize: 26,
+    fontSize: 24,
     fontFamily: "Helvetica-Bold",
     letterSpacing: 3,
     textTransform: "uppercase",
-    marginTop: 16,
+    marginTop: 14,
   },
   subtitle: { fontSize: 10, color: "#cbd5e0", marginTop: 6 },
   metaBar: {
@@ -67,13 +89,34 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     fontSize: 9,
     paddingVertical: 8,
-    gap: 24,
+    gap: 22,
   },
+  metaStrong: { fontFamily: "Helvetica-Bold" },
+
+  seriesHeader: {
+    marginHorizontal: 24,
+    marginTop: 16,
+    marginBottom: 2,
+    paddingBottom: 4,
+    borderBottomWidth: 2,
+    borderBottomColor: NAVY,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-end",
+  },
+  seriesTitle: {
+    fontSize: 13,
+    fontFamily: "Helvetica-Bold",
+    color: NAVY,
+    textTransform: "uppercase",
+    letterSpacing: 1,
+  },
+  seriesCount: { fontSize: 8, color: GREEN, fontFamily: "Helvetica-Bold" },
   grid: {
     flexDirection: "row",
     flexWrap: "wrap",
     paddingHorizontal: 24,
-    paddingTop: 20,
+    paddingTop: 10,
     gap: 14,
   },
   card: {
@@ -96,11 +139,8 @@ const styles = StyleSheet.create({
   cardDesc: { fontSize: 8, color: GREY, marginTop: 3 },
   priceRow: { flexDirection: "row", alignItems: "baseline", marginTop: 6, gap: 6 },
   price: { fontSize: 13, fontFamily: "Helvetica-Bold", color: GREEN },
-  compare: {
-    fontSize: 8,
-    color: "#94a3b8",
-    textDecoration: "line-through",
-  },
+  compare: { fontSize: 8, color: "#94a3b8", textDecoration: "line-through" },
+
   infoPanel: {
     flexDirection: "row",
     marginHorizontal: 24,
@@ -121,7 +161,8 @@ const styles = StyleSheet.create({
   },
   infoLine: { fontSize: 9, color: "#1a202c", marginBottom: 3 },
   infoLabel: { fontFamily: "Helvetica-Bold", color: GREY },
-  deliveryHighlight: { fontSize: 9, color: GREEN, fontFamily: "Helvetica-Bold", marginBottom: 3 },
+  deliveryHighlight: { fontSize: 10, color: GREEN, fontFamily: "Helvetica-Bold", marginBottom: 4 },
+
   footer: {
     position: "absolute",
     bottom: 0,
@@ -129,7 +170,7 @@ const styles = StyleSheet.create({
     right: 0,
     backgroundColor: NAVY,
     color: "#ffffff",
-    paddingVertical: 16,
+    paddingVertical: 14,
     paddingHorizontal: 40,
     textAlign: "center",
   },
@@ -141,64 +182,87 @@ function formatCurrency(amount: number): string {
   return `R${Number(amount).toFixed(2)}`
 }
 
-export function BeddingCatalogue({
-  products,
+export function BeddingCatalogueSix({
+  groups,
   business,
   banking,
-  delivery,
   logoDataUri,
   generatedDate,
 }: {
-  products: CatalogueProduct[]
+  groups: CatalogueSeriesGroup[]
   business: CatalogueBusinessInfo
   banking: CatalogueBankingInfo
-  delivery: CatalogueDeliveryInfo
   logoDataUri: string | null
   generatedDate: string
 }) {
+  const totalProducts = groups.reduce((sum, g) => sum + g.products.length, 0)
+
   return (
-    <Document title={`${business.name} - Bedding Catalogue`} author={business.name}>
+    <Document title={`${business.name} - Bedding Catalogue 6`} author={business.name}>
       <Page size="A4" style={styles.page}>
-        <View style={styles.cover} fixed={false}>
-          {logoDataUri ? <Image style={styles.logo} src={logoDataUri} /> : null}
+        {/* Repeated on every page: logo in top-left and top-right corners. */}
+        <View style={styles.pageHeader} fixed>
+          {logoDataUri ? <Image style={styles.cornerLogo} src={logoDataUri} /> : <View />}
+          <View style={styles.headerCenter}>
+            <Text style={styles.headerBrand}>{business.name}</Text>
+            <Text style={styles.headerTag}>FREE Nationwide Delivery</Text>
+          </View>
+          {logoDataUri ? <Image style={styles.cornerLogo} src={logoDataUri} /> : <View />}
+        </View>
+
+        <View style={styles.cover}>
           <Text style={styles.brand}>{business.name}</Text>
           <Text style={styles.tagline}>{business.tagline}</Text>
           <Text style={styles.title}>Bedding Catalogue</Text>
-          <Text style={styles.subtitle}>Comforters - Bedspreads - Blankets and More</Text>
+          <Text style={styles.subtitle}>
+            Edition 6 - Complete Bedding Range: Molly, Moffy, MoMo &amp; Rara Sets, Comforters, Quilts, Bedsheets,
+            Mattress Protectors &amp; Covers, Throws and Winter Blankets
+          </Text>
         </View>
 
         <View style={styles.metaBar}>
-          <Text>{products.length} Products</Text>
+          <Text>{totalProducts} Products</Text>
+          <Text style={styles.metaStrong}>FREE Delivery Nationwide</Text>
           <Text>Updated {generatedDate}</Text>
           <Text>Prices in ZAR</Text>
         </View>
 
-        <View style={styles.grid}>
-          {products.map((p, i) => {
-            const hasDiscount = p.compareAtPrice && p.compareAtPrice > p.price
-            return (
-              <View style={styles.card} key={i} wrap={false}>
-                <View style={styles.cardImageWrap}>
-                  {p.imageDataUri ? (
-                    <Image style={styles.cardImage} src={p.imageDataUri} />
-                  ) : (
-                    <Text style={styles.noImage}>No image</Text>
-                  )}
-                </View>
-                <View style={styles.cardBody}>
-                  <Text style={styles.cardName}>{p.name}</Text>
-                  {p.description ? <Text style={styles.cardDesc}>{p.description}</Text> : null}
-                  <View style={styles.priceRow}>
-                    <Text style={styles.price}>{formatCurrency(p.price)}</Text>
-                    {hasDiscount ? (
-                      <Text style={styles.compare}>{formatCurrency(p.compareAtPrice as number)}</Text>
-                    ) : null}
+        {groups.map((group, gi) => (
+          <View key={gi}>
+            <View style={styles.seriesHeader} wrap={false}>
+              <Text style={styles.seriesTitle}>{group.title}</Text>
+              <Text style={styles.seriesCount}>
+                {group.products.length} {group.products.length === 1 ? "design" : "designs"}
+              </Text>
+            </View>
+            <View style={styles.grid}>
+              {group.products.map((p, i) => {
+                const hasDiscount = p.compareAtPrice && p.compareAtPrice > p.price
+                return (
+                  <View style={styles.card} key={i} wrap={false}>
+                    <View style={styles.cardImageWrap}>
+                      {p.imageDataUri ? (
+                        <Image style={styles.cardImage} src={p.imageDataUri} />
+                      ) : (
+                        <Text style={styles.noImage}>No image</Text>
+                      )}
+                    </View>
+                    <View style={styles.cardBody}>
+                      <Text style={styles.cardName}>{p.name}</Text>
+                      {p.description ? <Text style={styles.cardDesc}>{p.description}</Text> : null}
+                      <View style={styles.priceRow}>
+                        <Text style={styles.price}>{formatCurrency(p.price)}</Text>
+                        {hasDiscount ? (
+                          <Text style={styles.compare}>{formatCurrency(p.compareAtPrice as number)}</Text>
+                        ) : null}
+                      </View>
+                    </View>
                   </View>
-                </View>
-              </View>
-            )
-          })}
-        </View>
+                )
+              })}
+            </View>
+          </View>
+        ))}
 
         <View style={styles.infoPanel} wrap={false}>
           <View style={[styles.infoCol, styles.infoColDivider]}>
@@ -226,21 +290,18 @@ export function BeddingCatalogue({
           </View>
           <View style={styles.infoCol}>
             <Text style={styles.infoHeading}>Delivery</Text>
-            <Text style={styles.deliveryHighlight}>FREE delivery on orders over {delivery.freeThreshold}</Text>
+            <Text style={styles.deliveryHighlight}>FREE delivery nationwide across South Africa</Text>
             <Text style={styles.infoLine}>
-              <Text style={styles.infoLabel}>Standard delivery: </Text>
-              {delivery.standardFee}
+              No minimum order - we deliver to your door anywhere in South Africa at no extra cost.
             </Text>
-            <Text style={styles.infoLine}>
-              Nationwide delivery across South Africa. Contact us to confirm delivery to your area.
-            </Text>
+            <Text style={styles.infoLine}>Contact us to confirm delivery timelines to your area.</Text>
           </View>
         </View>
 
         <View style={styles.footer} fixed>
           <Text style={styles.footerCta}>To Order, Contact Us Today</Text>
           <Text style={styles.footerContact}>
-            Tel: {business.phone} / {business.altPhone}  |  Email: {business.email}
+            Tel/WhatsApp: {business.phone} / {business.altPhone}  |  Email: {business.email}
           </Text>
           <Text style={styles.footerContact}>Web: {business.website}</Text>
           <Text style={styles.footerContact}>{business.address}</Text>

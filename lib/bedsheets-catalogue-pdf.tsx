@@ -1,6 +1,6 @@
 import { Document, Page, View, Text, Image, StyleSheet } from "@react-pdf/renderer"
 
-export interface CatalogueProduct {
+export interface BedsheetsCatalogueProduct {
   name: string
   price: number
   compareAtPrice: number | null
@@ -8,12 +8,13 @@ export interface CatalogueProduct {
   imageDataUri: string | null
 }
 
-export interface CatalogueSeriesGroup {
+export interface BedsheetsCatalogueSeriesGroup {
   title: string
-  products: CatalogueProduct[]
+  subtitle?: string
+  products: BedsheetsCatalogueProduct[]
 }
 
-export interface CatalogueBusinessInfo {
+export interface BedsheetsCatalogueBusinessInfo {
   name: string
   tagline: string
   phone: string
@@ -23,7 +24,7 @@ export interface CatalogueBusinessInfo {
   address: string
 }
 
-export interface CatalogueBankingInfo {
+export interface BedsheetsCatalogueBankingInfo {
   bank: string
   accountName: string
   accountNumber: string
@@ -43,7 +44,6 @@ const styles = StyleSheet.create({
     paddingTop: 58,
     paddingBottom: 78,
   },
-  // Fixed header repeated on every page: a logo in the top-left and top-right.
   pageHeader: {
     position: "absolute",
     top: 0,
@@ -75,9 +75,9 @@ const styles = StyleSheet.create({
   brand: { fontSize: 22, fontFamily: "Helvetica-Bold", letterSpacing: 1 },
   tagline: { fontSize: 9, color: "#9ae6c4", marginTop: 4 },
   title: {
-    fontSize: 24,
+    fontSize: 20,
     fontFamily: "Helvetica-Bold",
-    letterSpacing: 3,
+    letterSpacing: 2,
     textTransform: "uppercase",
     marginTop: 14,
   },
@@ -104,6 +104,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "flex-end",
   },
+  seriesTitleWrap: { flexDirection: "column" },
   seriesTitle: {
     fontSize: 13,
     fontFamily: "Helvetica-Bold",
@@ -111,6 +112,7 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
     letterSpacing: 1,
   },
+  seriesSubtitle: { fontSize: 8, color: GREY, marginTop: 2 },
   seriesCount: { fontSize: 8, color: GREEN, fontFamily: "Helvetica-Bold" },
   grid: {
     flexDirection: "row",
@@ -182,25 +184,24 @@ function formatCurrency(amount: number): string {
   return `R${Number(amount).toFixed(2)}`
 }
 
-export function BeddingCatalogueThree({
+export function BedsheetsCatalogue({
   groups,
   business,
   banking,
   logoDataUri,
   generatedDate,
 }: {
-  groups: CatalogueSeriesGroup[]
-  business: CatalogueBusinessInfo
-  banking: CatalogueBankingInfo
+  groups: BedsheetsCatalogueSeriesGroup[]
+  business: BedsheetsCatalogueBusinessInfo
+  banking: BedsheetsCatalogueBankingInfo
   logoDataUri: string | null
   generatedDate: string
 }) {
   const totalProducts = groups.reduce((sum, g) => sum + g.products.length, 0)
 
   return (
-    <Document title={`${business.name} - Bedding Catalogue 3`} author={business.name}>
+    <Document title={`${business.name} - Bedsheets, Mattress Protectors & Covers`} author={business.name}>
       <Page size="A4" style={styles.page}>
-        {/* Repeated on every page: logo in top-left and top-right corners. */}
         <View style={styles.pageHeader} fixed>
           {logoDataUri ? <Image style={styles.cornerLogo} src={logoDataUri} /> : <View />}
           <View style={styles.headerCenter}>
@@ -213,8 +214,10 @@ export function BeddingCatalogueThree({
         <View style={styles.cover}>
           <Text style={styles.brand}>{business.name}</Text>
           <Text style={styles.tagline}>{business.tagline}</Text>
-          <Text style={styles.title}>Bedding Catalogue</Text>
-          <Text style={styles.subtitle}>Edition 3 - Comforters, Quilt Sets, Bedsheets, Throws and Winter Blankets</Text>
+          <Text style={styles.title}>Bedsheets, Mattress Protectors &amp; Covers</Text>
+          <Text style={styles.subtitle}>
+            Premium Sheet Sets, Frilled Combos and Protective Mattress Covers for Every Bed
+          </Text>
         </View>
 
         <View style={styles.metaBar}>
@@ -227,7 +230,10 @@ export function BeddingCatalogueThree({
         {groups.map((group, gi) => (
           <View key={gi}>
             <View style={styles.seriesHeader} wrap={false}>
-              <Text style={styles.seriesTitle}>{group.title}</Text>
+              <View style={styles.seriesTitleWrap}>
+                <Text style={styles.seriesTitle}>{group.title}</Text>
+                {group.subtitle ? <Text style={styles.seriesSubtitle}>{group.subtitle}</Text> : null}
+              </View>
               <Text style={styles.seriesCount}>
                 {group.products.length} {group.products.length === 1 ? "design" : "designs"}
               </Text>

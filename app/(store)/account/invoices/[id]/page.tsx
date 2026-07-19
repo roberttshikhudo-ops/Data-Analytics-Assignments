@@ -153,14 +153,11 @@ export default function CustomerInvoiceDetailPage() {
             <div className="text-right">
               <h3 className="text-xl font-bold">Agri Hub SA</h3>
               <p className="text-muted-foreground text-sm">
-                The Parks Lifestyle Apartments<br />
-                Block 38 Unit 2F<br />
-                Midrand, Johannesburg, 1685<br />
-                Gauteng, South Africa
+                The Parks, Midrand, Johannesburg, 1685, Gauteng, South Africa
               </p>
               <p className="mt-2 text-muted-foreground text-sm">
-                Phone: 079 109 9490<br />
-                Email: info@agrihubsa.co.za
+                Phone: 083 306 1529<br />
+                Email: robert.tshikhudo@gmail.com
               </p>
             </div>
           </div>

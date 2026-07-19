@@ -8,6 +8,21 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { OrderStatusUpdater } from "@/components/admin/order-status-updater"
 import { CreateShipmentButton } from "@/components/admin/create-shipment-button"
+import { OrderPaymentsPanel } from "@/components/admin/order-payments-panel"
+import { OrderDeliveryPanel } from "@/components/admin/order-delivery-panel"
+import { OrderWhatsAppButton } from "@/components/admin/order-whatsapp-button"
+import { OrderProformaButton } from "@/components/admin/order-proforma-button"
+import { OrderInvoiceButton } from "@/components/admin/order-invoice-button"
+
+async function getExistingInvoiceId(id: string): Promise<string | null> {
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from("invoices")
+    .select("id")
+    .eq("order_id", id)
+    .maybeSingle()
+  return data?.id ?? null
+}
 
 async function getOrder(id: string) {
   const supabase = await createClient()
@@ -23,7 +38,28 @@ async function getOrder(id: string) {
         product_image_url,
         quantity,
         unit_price,
-        total_price
+        total_price,
+        order_item_costs(unit_cost),
+        products(image_url)
+      ),
+      order_payments(
+        id,
+        amount,
+        method,
+        reference,
+        paid_at,
+        notes
+      ),
+      customers(
+        id,
+        name,
+        phone,
+        email,
+        address_line1,
+        address_line2,
+        city,
+        province,
+        postal_code
       )
     `)
     .eq("id", id)
@@ -43,6 +79,8 @@ export default async function OrderDetailPage({
   if (!order) {
     notFound()
   }
+
+  const existingInvoiceId = await getExistingInvoiceId(id)
 
   const statusColors: Record<string, "default" | "secondary" | "destructive"> = {
     pending: "secondary",
@@ -71,6 +109,9 @@ export default async function OrderDetailPage({
           </p>
         </div>
         <div className="flex-1" />
+        <Badge variant="outline" className="text-sm capitalize">
+          {order.source === "manual" ? "Manual order" : "Website"}
+        </Badge>
         <Badge variant={statusColors[order.status]} className="text-sm">
           {order.status}
         </Badge>
@@ -95,9 +136,23 @@ export default async function OrderDetailPage({
                     className="flex items-center justify-between border-b pb-4 last:border-0 last:pb-0"
                   >
                     <div className="flex items-center gap-4">
-                      <div className="h-16 w-16 rounded-lg bg-muted flex items-center justify-center">
-                        <Package className="h-6 w-6 text-muted-foreground" />
-                      </div>
+                      {(() => {
+                        const product = Array.isArray(item.products)
+                          ? item.products[0]
+                          : item.products
+                        const imageSrc = item.product_image_url || product?.image_url
+                        return imageSrc ? (
+                          <img
+                            src={imageSrc || "/placeholder.svg"}
+                            alt={item.product_name}
+                            className="h-16 w-16 rounded-lg object-cover border"
+                          />
+                        ) : (
+                          <div className="h-16 w-16 rounded-lg bg-muted flex items-center justify-center">
+                            <Package className="h-6 w-6 text-muted-foreground" />
+                          </div>
+                        )
+                      })()}
                       <div>
                         <p className="font-medium">{item.product_name}</p>
                         {item.product_sku && (
@@ -142,6 +197,40 @@ export default async function OrderDetailPage({
                   <span>Total</span>
                   <span>{formatPrice(Number(order.total))}</span>
                 </div>
+
+                {(() => {
+                  const costOfGoods = (order.order_items || []).reduce(
+                    (sum: number, it: any) => {
+                      const oic = Array.isArray(it.order_item_costs)
+                        ? it.order_item_costs[0]
+                        : it.order_item_costs
+                      return sum + Number(oic?.unit_cost || 0) * Number(it.quantity || 0)
+                    },
+                    0,
+                  )
+                  const profit = Number(order.subtotal) - costOfGoods
+                  const margin =
+                    Number(order.subtotal) > 0
+                      ? (profit / Number(order.subtotal)) * 100
+                      : 0
+                  return (
+                    <div className="mt-2 space-y-2 rounded-md bg-muted/50 p-3">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Cost of goods</span>
+                        <span>{formatPrice(costOfGoods)}</span>
+                      </div>
+                      <div className="flex justify-between text-sm font-semibold text-primary">
+                        <span>Profit {margin > 0 && `(${margin.toFixed(0)}%)`}</span>
+                        <span>{formatPrice(profit)}</span>
+                      </div>
+                      {costOfGoods === 0 && (
+                        <p className="text-xs text-muted-foreground text-pretty">
+                          Set cost prices on your products to see accurate profit.
+                        </p>
+                      )}
+                    </div>
+                  )
+                })()}
               </div>
             </CardContent>
           </Card>
@@ -155,6 +244,66 @@ export default async function OrderDetailPage({
             currentStatus={order.status}
             currentPaymentStatus={order.payment_status}
           />
+
+          {/* Payments (credit / partial tracking) */}
+          <OrderPaymentsPanel
+            orderId={order.id}
+            total={Number(order.total)}
+            payments={[...(order.order_payments || [])].sort(
+              (a: any, b: any) =>
+                new Date(a.paid_at).getTime() - new Date(b.paid_at).getTime(),
+            )}
+          />
+
+          {/* Delivery planning */}
+          <OrderDeliveryPanel
+            orderId={order.id}
+            deliveryStatus={order.delivery_status}
+            deliveryArea={order.delivery_area}
+            expectedDeliveryDate={order.expected_delivery_date}
+            deliveryNotes={order.delivery_notes}
+          />
+
+          {/* Notify customer via WhatsApp */}
+          <OrderWhatsAppButton
+            orderNumber={order.order_number}
+            phone={order.customers?.phone || order.shipping_phone || null}
+            customerName={
+              order.customers?.name ||
+              [order.shipping_first_name, order.shipping_last_name]
+                .filter(Boolean)
+                .join(" ") ||
+              null
+            }
+            status={order.status}
+            deliveryStatus={order.delivery_status}
+            total={Number(order.total)}
+            balance={
+              Number(order.total) -
+              (order.order_payments || []).reduce(
+                (sum: number, p: any) => sum + Number(p.amount || 0),
+                0,
+              )
+            }
+          />
+
+          {/* Send pro forma invoice via WhatsApp */}
+          <OrderProformaButton
+            orderId={order.id}
+            orderNumber={order.order_number}
+            phone={order.customers?.phone || order.shipping_phone || null}
+            customerName={
+              order.customers?.name ||
+              [order.shipping_first_name, order.shipping_last_name]
+                .filter(Boolean)
+                .join(" ") ||
+              null
+            }
+            total={Number(order.total)}
+          />
+
+          {/* Generate / view the tax invoice for this order */}
+          <OrderInvoiceButton orderId={order.id} existingInvoiceId={existingInvoiceId} />
 
           {/* Create shipment (only for paid delivery orders without tracking yet) */}
           {!order.tracking_number &&
@@ -172,7 +321,18 @@ export default async function OrderDetailPage({
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {order.user_id ? (
+              {order.customers ? (
+                <div className="text-sm">
+                  <p className="font-medium">{order.customers.name}</p>
+                  {order.customers.phone && <p>{order.customers.phone}</p>}
+                  {order.customers.email && (
+                    <p className="text-muted-foreground">{order.customers.email}</p>
+                  )}
+                  <Badge variant="outline" className="mt-2">
+                    Saved customer
+                  </Badge>
+                </div>
+              ) : order.user_id ? (
                 <p className="text-muted-foreground">Registered User</p>
               ) : (
                 <div>

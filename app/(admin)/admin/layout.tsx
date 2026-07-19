@@ -20,6 +20,9 @@ import {
   FileText,
   LineChart,
   Mail,
+  Truck,
+  PlusCircle,
+  DollarSign,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -27,7 +30,10 @@ import { cn } from "@/lib/utils"
 const navigation = [
   { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
   { name: "Products", href: "/admin/products", icon: Package },
+  { name: "Cost Prices", href: "/admin/products/costs", icon: DollarSign },
   { name: "Orders", href: "/admin/orders", icon: ShoppingCart },
+  { name: "New Order", href: "/admin/orders/new", icon: PlusCircle },
+  { name: "Deliveries", href: "/admin/deliveries", icon: Truck },
   { name: "Invoices", href: "/admin/invoices", icon: FileText },
   { name: "Categories", href: "/admin/categories", icon: Tag },
   { name: "Customers", href: "/admin/customers", icon: Users },

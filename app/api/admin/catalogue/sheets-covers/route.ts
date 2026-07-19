@@ -6,10 +6,10 @@ import { renderToBuffer, type DocumentProps } from "@react-pdf/renderer"
 import { createElement, type ReactElement } from "react"
 import sharp from "sharp"
 import {
-  BeddingCatalogueThree,
-  type CatalogueProduct,
-  type CatalogueSeriesGroup,
-} from "@/lib/bedding-catalogue-pdf-3"
+  BedsheetsCatalogue,
+  type BedsheetsCatalogueProduct,
+  type BedsheetsCatalogueSeriesGroup,
+} from "@/lib/bedsheets-catalogue-pdf"
 
 // @react-pdf/renderer and fs require the Node.js runtime, and the PDF must be
 // generated fresh on each request.
@@ -31,16 +31,6 @@ const BUSINESS_INFO = {
   address: "The Parks, Riversands, Midrand, Johannesburg, SA",
 }
 
-// Products explicitly excluded from the catalogue (matched by exact name,
-// case-insensitive).
-const EXCLUDED_PRODUCTS = new Set(
-  [
-    "Quilted Weekender Travel Bag",
-    "1Ply Fleece Blanket 001 - Navy Plaid",
-    "5pcs Combo Bedding Set",
-  ].map((n) => n.toLowerCase()),
-)
-
 // Banking details — kept in sync with the invoice (lib/invoice.ts).
 const BANKING_INFO = {
   bank: "First National Bank (FNB)",
@@ -49,81 +39,80 @@ const BANKING_INFO = {
   branchCode: "250655",
 }
 
-// The exact series order requested, listed start to finish. Each product is
-// assigned to the FIRST series it matches, so ordering matters and a product
-// never appears twice.
+// Only bedsheets, mattress protectors and covers from Home & Living are eligible.
+// A product must match this gate before it can be placed in any series.
+function isSheetProtectorOrCover(name: string): boolean {
+  return (
+    name.includes("sheet") ||
+    name.includes("bedsheet") ||
+    name.includes("protector") ||
+    name.includes("cover") ||
+    name.includes("fitted")
+  )
+}
+
+// Professionalised series. Each product is assigned to the FIRST series it
+// matches, so ordering matters and a product never appears twice.
 interface SeriesDef {
   title: string
-  match: (name: string, description: string) => boolean
+  subtitle?: string
+  match: (name: string) => boolean
 }
 
 const SERIES: SeriesDef[] = [
-  // 1. Branded comforter / quilt series.
-  { title: "Moffy Comforter Sets", match: (n) => n.includes("moffy") },
-  { title: "MoMo Quilt Sets", match: (n) => n.includes("momo") },
-  { title: "Rara Quilt Sets", match: (n) => n.includes("rara") },
-
-  // 2. Reversible ranges.
+  // 4pcs Premium sheet sets (R195).
   {
-    title: "Reversible Flowers Comforters",
-    match: (n) => n.includes("flower reversible"),
-  },
-  {
-    title: "Generic Reversible Comforters",
-    match: (n) => n.includes("generic reversible"),
+    title: "Premium 4pcs Bed Sheet Sets",
+    subtitle: "4-piece printed sheet sets - fitted, flat & 2 pillowcases",
+    match: (n) => n.includes("premium bed sheet set") || n.includes("4pcs premium bed sheet"),
   },
 
-  // 3. All corduroy products — comforters and corduroy fleece blankets alike.
+  // 5pcs Frilled combo sheets (R185).
   {
-    title: "Corduroy",
-    match: (n) => n.includes("corduroy"),
+    title: "5pcs Frilled Combo Sheets",
+    subtitle: "5-piece frilled combos - King, Queen & Double sizes",
+    match: (n) => n.includes("frilled combo sheet") || n.includes("5pcs frilled"),
   },
 
-  // 4. Everything else in the comforter / quilt / bedspread family.
+  // Corduroy mattress protectors (R350).
   {
-    title: "Other Quilts & Comforters",
-    match: (n) =>
-      n.includes("comforter") ||
-      n.includes("quilt") ||
-      n.includes("bedspread") ||
-      n.includes("bed spread") ||
-      n.includes("combo bedding"),
+    title: "Corduroy Mattress Protectors",
+    subtitle: "3-piece ribbed corduroy protector sets",
+    match: (n) => n.includes("cordury") || (n.includes("corduroy") && n.includes("protector")),
   },
 
-  // 5. Flat / fitted sheet sets.
+  // Waterproof mattress protectors (R265).
   {
-    title: "Bedsheets",
-    match: (n) =>
-      n.includes("bed sheet") ||
-      n.includes("bedsheet") ||
-      n.includes("frilled combo sheet") ||
-      n.includes("sheet set"),
+    title: "Waterproof Mattress Protectors",
+    subtitle: "3-piece quilted waterproof protector sets",
+    match: (n) => n.includes("waterproof") && n.includes("protector"),
   },
 
-  // 6. Throws and fleece throw blankets (corduroy fleece is grouped under Corduroy).
+  // Velvet mattress protectors / winter bedsheets (R255).
   {
-    title: "Throws & Fleece Blankets",
-    match: (n) =>
-      n.includes("throw") || (n.includes("fleece") && n.includes("blanket")),
+    title: "Velvet Mattress Protectors / Winter Bedsheets",
+    subtitle: "3-piece plush velvet protectors that double as winter bedsheets",
+    match: (n) => n.includes("valvet") || (n.includes("velvet") && n.includes("protector")),
   },
 
-  // 7. Winter mink / 2-ply blankets ("etc.").
+  // Any remaining mattress protectors or covers.
   {
-    title: "Winter Blankets",
-    match: (n) =>
-      n.includes("winter blanket") ||
-      n.includes("jia jia") ||
-      n.includes("2ply") ||
-      n.includes("2 ply") ||
-      (n.includes("blanket") && n.includes("winter")),
+    title: "Other Mattress Protectors & Covers",
+    subtitle: "Additional protective covers",
+    match: (n) => n.includes("protector") || n.includes("cover"),
+  },
+
+  // Any remaining sheets.
+  {
+    title: "Other Bed Sheets",
+    subtitle: "Additional sheet sets",
+    match: (n) => n.includes("sheet") || n.includes("bedsheet") || n.includes("fitted"),
   },
 ]
 
-// Detects the real image format from the file's magic bytes. This is more
-// reliable than trusting the file extension, because some assets are mislabeled
-// (e.g. agri-hub-logo.png is actually JPEG data). @react-pdf/renderer silently
-// drops images whose declared MIME type doesn't match the actual bytes, so the
-// correct type is essential for the logo to render.
+// Detects the real image format from the file's magic bytes rather than trusting
+// the extension, because @react-pdf/renderer silently drops images whose declared
+// MIME type doesn't match the actual bytes.
 function mimeFromBuffer(buf: Buffer): string {
   if (buf.length >= 8 && buf.toString("hex", 0, 8) === "89504e470d0a1a0a") {
     return "image/png"
@@ -142,10 +131,6 @@ function mimeFromBuffer(buf: Buffer): string {
 }
 
 // Downscales and re-encodes an image so the catalogue stays email-friendly.
-// Catalogue 3C keeps a card for every colour, so compression is what makes the
-// file small without dropping any variants. Product cards render at roughly
-// 250px wide, so a 520px-wide JPEG keeps the print crisp while shrinking each
-// embedded image from megabytes to ~30-60KB. The logo is kept as a small PNG.
 async function compressImage(
   buf: Buffer,
   variant: "product" | "logo",
@@ -165,14 +150,12 @@ async function compressImage(
       .toBuffer()
     return { data, mime: "image/jpeg" }
   } catch {
-    // If sharp fails for any reason, fall back to the original bytes.
     return { data: buf, mime: mimeFromBuffer(buf) }
   }
 }
 
 // Converts a product image into a base64 data URI so it can be embedded in the
-// PDF. Works both locally (filesystem) and on Vercel (HTTP fetch), since
-// /public assets are not readable via fs in serverless functions.
+// PDF. Works both locally (filesystem) and on Vercel (HTTP fetch).
 async function imageToDataUri(
   imageUrl: string | null,
   origin: string,
@@ -233,26 +216,29 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Failed to load products" }, { status: 500 })
   }
 
-  const homeLiving = (products || []).filter(
+  // Only bedsheets, protectors & covers in the Home & Living category.
+  const eligible = (products || []).filter(
     (p: any) =>
       p.categories?.slug === "home-living" &&
-      !EXCLUDED_PRODUCTS.has((p.name || "").toLowerCase()),
+      isSheetProtectorOrCover((p.name || "").toLowerCase()),
   )
 
   // Build the groups in the exact requested order. Each product is assigned to
   // the first series it matches, so it never appears twice.
-  const groups: CatalogueSeriesGroup[] = []
+  const groups: BedsheetsCatalogueSeriesGroup[] = []
 
   for (const series of SERIES) {
-    const matched = homeLiving.filter((p: any) => {
-      const name = (p.name || "").toLowerCase()
-      const description = (p.short_description || "").toLowerCase()
-      return series.match(name, description)
-    })
+    const matched = eligible.filter((p: any) => series.match((p.name || "").toLowerCase()))
 
     if (matched.length === 0) continue
 
-    const seriesProducts: CatalogueProduct[] = await Promise.all(
+    // Remove assigned products from the pool so later series don't re-match them.
+    for (const m of matched) {
+      const idx = eligible.indexOf(m)
+      if (idx !== -1) eligible.splice(idx, 1)
+    }
+
+    const seriesProducts: BedsheetsCatalogueProduct[] = await Promise.all(
       matched.map(async (p: any) => ({
         name: p.name,
         price: p.price,
@@ -262,7 +248,7 @@ export async function GET(request: Request) {
       })),
     )
 
-    groups.push({ title: series.title, products: seriesProducts })
+    groups.push({ title: series.title, subtitle: series.subtitle, products: seriesProducts })
   }
 
   const generatedDate = new Date().toLocaleDateString("en-ZA", {
@@ -274,7 +260,7 @@ export async function GET(request: Request) {
   const logoDataUri = await imageToDataUri("/agri-hub-logo.png", origin, "logo")
 
   const buffer = await renderToBuffer(
-    createElement(BeddingCatalogueThree, {
+    createElement(BedsheetsCatalogue, {
       groups,
       business: BUSINESS_INFO,
       banking: BANKING_INFO,
@@ -286,7 +272,7 @@ export async function GET(request: Request) {
   return new NextResponse(buffer as any, {
     headers: {
       "Content-Type": "application/pdf",
-      "Content-Disposition": 'attachment; filename="Agri-Hub-SA-Bedding-Catalogue-3C.pdf"',
+      "Content-Disposition": 'attachment; filename="Agri-Hub-Bedsheets-Protectors-Covers.pdf"',
       "Cache-Control": "no-store",
     },
   })

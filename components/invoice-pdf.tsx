@@ -294,9 +294,7 @@ export function InvoicePDF({ invoice }: InvoicePDFProps) {
           <View style={styles.infoBlock}>
             <Text style={styles.infoTitle}>From</Text>
             <Text style={styles.infoBold}>{BUSINESS_INFO.name}</Text>
-            <Text style={styles.infoText}>{BUSINESS_INFO.address}</Text>
-            <Text style={styles.infoText}>{BUSINESS_INFO.city}, {BUSINESS_INFO.province} {BUSINESS_INFO.postalCode}</Text>
-            <Text style={styles.infoText}>{BUSINESS_INFO.country}</Text>
+            <Text style={styles.infoText}>{BUSINESS_INFO.fullAddress}</Text>
             <Text style={styles.infoText}>Tel: {BUSINESS_INFO.phone}</Text>
             <Text style={styles.infoText}>Email: {BUSINESS_INFO.email}</Text>
           </View>

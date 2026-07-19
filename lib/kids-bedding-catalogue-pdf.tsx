@@ -1,27 +1,20 @@
 import { Document, Page, View, Text, Image, StyleSheet } from "@react-pdf/renderer"
 
-export interface CatalogueFamily {
-  // The base/range name with the colour or design variant stripped off.
+export interface KidsBeddingCatalogueProduct {
   name: string
-  // Lowest price in the range (families almost always share one price).
   price: number
-  // True when the range spans more than one price point, so the price is shown
-  // as "from R...".
-  priceFrom: boolean
-  // Representative image for the whole range.
-  imageDataUri: string | null
-  // Short description of the representative product.
+  compareAtPrice: number | null
   description: string | null
-  // Every available colour / design in the range, in catalogue order.
-  variants: string[]
+  imageDataUri: string | null
 }
 
-export interface CatalogueSeriesGroup {
+export interface KidsBeddingCatalogueSeriesGroup {
   title: string
-  families: CatalogueFamily[]
+  subtitle?: string
+  products: KidsBeddingCatalogueProduct[]
 }
 
-export interface CatalogueBusinessInfo {
+export interface KidsBeddingCatalogueBusinessInfo {
   name: string
   tagline: string
   phone: string
@@ -31,7 +24,7 @@ export interface CatalogueBusinessInfo {
   address: string
 }
 
-export interface CatalogueBankingInfo {
+export interface KidsBeddingCatalogueBankingInfo {
   bank: string
   accountName: string
   accountNumber: string
@@ -51,7 +44,6 @@ const styles = StyleSheet.create({
     paddingTop: 58,
     paddingBottom: 78,
   },
-  // Fixed header repeated on every page: a logo in the top-left and top-right.
   pageHeader: {
     position: "absolute",
     top: 0,
@@ -83,9 +75,9 @@ const styles = StyleSheet.create({
   brand: { fontSize: 22, fontFamily: "Helvetica-Bold", letterSpacing: 1 },
   tagline: { fontSize: 9, color: "#9ae6c4", marginTop: 4 },
   title: {
-    fontSize: 24,
+    fontSize: 20,
     fontFamily: "Helvetica-Bold",
-    letterSpacing: 3,
+    letterSpacing: 2,
     textTransform: "uppercase",
     marginTop: 14,
   },
@@ -97,7 +89,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     fontSize: 9,
     paddingVertical: 8,
-    gap: 20,
+    gap: 22,
   },
   metaStrong: { fontFamily: "Helvetica-Bold" },
 
@@ -112,6 +104,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "flex-end",
   },
+  seriesTitleWrap: { flexDirection: "column" },
   seriesTitle: {
     fontSize: 13,
     fontFamily: "Helvetica-Bold",
@@ -119,49 +112,36 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
     letterSpacing: 1,
   },
+  seriesSubtitle: { fontSize: 8, color: GREY, marginTop: 2 },
   seriesCount: { fontSize: 8, color: GREEN, fontFamily: "Helvetica-Bold" },
-
   grid: {
     flexDirection: "row",
     flexWrap: "wrap",
     paddingHorizontal: 24,
     paddingTop: 10,
-    gap: 12,
+    gap: 14,
   },
-  // Horizontal "range" card: representative image on the left, range details
-  // and the full colour list on the right. Two cards per row.
   card: {
-    width: "48%",
-    flexDirection: "row",
+    width: "31%",
     border: `1pt solid #e2e8f0`,
     borderRadius: 8,
     overflow: "hidden",
   },
   cardImageWrap: {
-    width: 96,
-    height: 96,
+    width: "100%",
+    height: 120,
     backgroundColor: LIGHT,
     alignItems: "center",
     justifyContent: "center",
   },
-  cardImage: { width: 96, height: 96, objectFit: "cover" },
+  cardImage: { width: "100%", height: 120, objectFit: "cover" },
   noImage: { fontSize: 8, color: "#94a3b8" },
-  cardBody: { flex: 1, padding: 10 },
+  cardBody: { padding: 10 },
   cardName: { fontSize: 10, fontFamily: "Helvetica-Bold", color: NAVY },
-  priceRow: { flexDirection: "row", alignItems: "baseline", marginTop: 4, gap: 4 },
-  priceFromLabel: { fontSize: 7, color: GREY },
+  cardDesc: { fontSize: 8, color: GREY, marginTop: 3 },
+  priceRow: { flexDirection: "row", alignItems: "baseline", marginTop: 6, gap: 6 },
   price: { fontSize: 13, fontFamily: "Helvetica-Bold", color: GREEN },
-  variantHeading: {
-    fontSize: 7,
-    fontFamily: "Helvetica-Bold",
-    color: GREY,
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
-    marginTop: 6,
-    marginBottom: 2,
-  },
-  variantList: { fontSize: 8, color: "#334155", lineHeight: 1.4 },
-  singleNote: { fontSize: 8, color: GREY, marginTop: 6 },
+  compare: { fontSize: 8, color: "#94a3b8", textDecoration: "line-through" },
 
   infoPanel: {
     flexDirection: "row",
@@ -204,29 +184,24 @@ function formatCurrency(amount: number): string {
   return `R${Number(amount).toFixed(2)}`
 }
 
-export function BeddingCatalogueFour({
+export function KidsBeddingCatalogue({
   groups,
   business,
   banking,
   logoDataUri,
   generatedDate,
 }: {
-  groups: CatalogueSeriesGroup[]
-  business: CatalogueBusinessInfo
-  banking: CatalogueBankingInfo
+  groups: KidsBeddingCatalogueSeriesGroup[]
+  business: KidsBeddingCatalogueBusinessInfo
+  banking: KidsBeddingCatalogueBankingInfo
   logoDataUri: string | null
   generatedDate: string
 }) {
-  const totalRanges = groups.reduce((sum, g) => sum + g.families.length, 0)
-  const totalProducts = groups.reduce(
-    (sum, g) => sum + g.families.reduce((s, f) => s + f.variants.length, 0),
-    0,
-  )
+  const totalProducts = groups.reduce((sum, g) => sum + g.products.length, 0)
 
   return (
-    <Document title={`${business.name} - Bedding Catalogue 4`} author={business.name}>
+    <Document title={`${business.name} - Bedding Catalogue 7 (Kids)`} author={business.name}>
       <Page size="A4" style={styles.page}>
-        {/* Repeated on every page: logo in top-left and top-right corners. */}
         <View style={styles.pageHeader} fixed>
           {logoDataUri ? <Image style={styles.cornerLogo} src={logoDataUri} /> : <View />}
           <View style={styles.headerCenter}>
@@ -239,58 +214,55 @@ export function BeddingCatalogueFour({
         <View style={styles.cover}>
           <Text style={styles.brand}>{business.name}</Text>
           <Text style={styles.tagline}>{business.tagline}</Text>
-          <Text style={styles.title}>Bedding Catalogue</Text>
+          <Text style={styles.title}>Agri Hub Kids Bedding</Text>
           <Text style={styles.subtitle}>
-            Edition 4 - Condensed Range Guide: One Design Per Range With All Available Colours
+            Edition 7 - Fun Character 3-Quarter Bedding Sets Your Little Ones Will Love
           </Text>
         </View>
 
         <View style={styles.metaBar}>
-          <Text>{totalRanges} Ranges</Text>
-          <Text style={styles.metaStrong}>{totalProducts} Designs &amp; Colours</Text>
+          <Text>{totalProducts} Designs</Text>
           <Text style={styles.metaStrong}>FREE Delivery Nationwide</Text>
           <Text>Updated {generatedDate}</Text>
+          <Text>Prices in ZAR</Text>
         </View>
 
         {groups.map((group, gi) => (
           <View key={gi}>
             <View style={styles.seriesHeader} wrap={false}>
-              <Text style={styles.seriesTitle}>{group.title}</Text>
+              <View style={styles.seriesTitleWrap}>
+                <Text style={styles.seriesTitle}>{group.title}</Text>
+                {group.subtitle ? <Text style={styles.seriesSubtitle}>{group.subtitle}</Text> : null}
+              </View>
               <Text style={styles.seriesCount}>
-                {group.families.length} {group.families.length === 1 ? "range" : "ranges"}
+                {group.products.length} {group.products.length === 1 ? "design" : "designs"}
               </Text>
             </View>
             <View style={styles.grid}>
-              {group.families.map((f, i) => (
-                <View style={styles.card} key={i} wrap={false}>
-                  <View style={styles.cardImageWrap}>
-                    {f.imageDataUri ? (
-                      <Image style={styles.cardImage} src={f.imageDataUri} />
-                    ) : (
-                      <Text style={styles.noImage}>No image</Text>
-                    )}
-                  </View>
-                  <View style={styles.cardBody}>
-                    <Text style={styles.cardName}>{f.name}</Text>
-                    <View style={styles.priceRow}>
-                      {f.priceFrom ? <Text style={styles.priceFromLabel}>from</Text> : null}
-                      <Text style={styles.price}>{formatCurrency(f.price)}</Text>
+              {group.products.map((p, i) => {
+                const hasDiscount = p.compareAtPrice && p.compareAtPrice > p.price
+                return (
+                  <View style={styles.card} key={i} wrap={false}>
+                    <View style={styles.cardImageWrap}>
+                      {p.imageDataUri ? (
+                        <Image style={styles.cardImage} src={p.imageDataUri} />
+                      ) : (
+                        <Text style={styles.noImage}>No image</Text>
+                      )}
                     </View>
-                    {f.variants.length > 1 ? (
-                      <>
-                        <Text style={styles.variantHeading}>
-                          Available Colours / Designs ({f.variants.length})
-                        </Text>
-                        <Text style={styles.variantList}>{f.variants.join("  •  ")}</Text>
-                      </>
-                    ) : (
-                      <Text style={styles.singleNote}>
-                        {f.description ?? "Single design"}
-                      </Text>
-                    )}
+                    <View style={styles.cardBody}>
+                      <Text style={styles.cardName}>{p.name}</Text>
+                      {p.description ? <Text style={styles.cardDesc}>{p.description}</Text> : null}
+                      <View style={styles.priceRow}>
+                        <Text style={styles.price}>{formatCurrency(p.price)}</Text>
+                        {hasDiscount ? (
+                          <Text style={styles.compare}>{formatCurrency(p.compareAtPrice as number)}</Text>
+                        ) : null}
+                      </View>
+                    </View>
                   </View>
-                </View>
-              ))}
+                )
+              })}
             </View>
           </View>
         ))}
