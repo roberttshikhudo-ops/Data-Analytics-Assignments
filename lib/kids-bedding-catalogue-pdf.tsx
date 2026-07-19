@@ -200,7 +200,7 @@ export function KidsBeddingCatalogue({
   const totalProducts = groups.reduce((sum, g) => sum + g.products.length, 0)
 
   return (
-    <Document title={`${business.name} - Kids Bedding`} author={business.name}>
+    <Document title={`${business.name} - Bedding Catalogue 7 (Kids)`} author={business.name}>
       <Page size="A4" style={styles.page}>
         <View style={styles.pageHeader} fixed>
           {logoDataUri ? <Image style={styles.cornerLogo} src={logoDataUri} /> : <View />}
@@ -216,7 +216,7 @@ export function KidsBeddingCatalogue({
           <Text style={styles.tagline}>{business.tagline}</Text>
           <Text style={styles.title}>Agri Hub Kids Bedding</Text>
           <Text style={styles.subtitle}>
-            Fun Character 3-Quarter Bedding Sets Your Little Ones Will Love
+            Edition 7 - Fun Character 3-Quarter Bedding Sets Your Little Ones Will Love
           </Text>
         </View>
 

@@ -247,7 +247,7 @@ export async function GET(request: Request) {
   return new NextResponse(buffer as any, {
     headers: {
       "Content-Type": "application/pdf",
-      "Content-Disposition": 'attachment; filename="Agri-Hub-Kids-Bedding-Catalogue.pdf"',
+      "Content-Disposition": 'attachment; filename="Agri-Hub-Bedding-Catalogue-7-Kids.pdf"',
       "Cache-Control": "no-store",
     },
   })

@@ -25,7 +25,7 @@ export function CatalogueDownloadButtonKids() {
       const url = URL.createObjectURL(blob)
       const link = document.createElement("a")
       link.href = url
-      link.download = "Agri-Hub-Kids-Bedding-Catalogue.pdf"
+      link.download = "Agri-Hub-Bedding-Catalogue-7-Kids.pdf"
       document.body.appendChild(link)
       link.click()
       link.remove()
@@ -46,7 +46,7 @@ export function CatalogueDownloadButtonKids() {
       ) : (
         <BookOpen className="mr-2 h-4 w-4" />
       )}
-      {isLoading ? "Generating..." : "Agri Hub Kids Bedding"}
+      {isLoading ? "Generating..." : "Bedding Catalogue 7 (Kids)"}
     </Button>
   )
 }
