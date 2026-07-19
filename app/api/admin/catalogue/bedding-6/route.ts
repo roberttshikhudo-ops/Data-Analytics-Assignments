@@ -54,12 +54,7 @@ interface SeriesDef {
 }
 
 const SERIES: SeriesDef[] = [
-  // 1. Kids character bedding — the "Agri Hub Kids Bedding" range. Matched
-  //    first so these character sets get their own showcase series and never
-  //    fall into a generic comforter/bedsheet group.
-  { title: "Kids Character Bedding", match: (n) => n.includes("kids bedding") },
-
-  // 2. Branded comforter / quilt series (matched first so they never fall into
+  // 1. Branded comforter / quilt series (matched first so they never fall into
   //    the generic comforter/quilt groups below).
   { title: "Moffy Comforter Sets", match: (n) => n.includes("moffy") },
   { title: "Molly Comforter Sets", match: (n) => n.includes("molly") },
@@ -129,7 +124,14 @@ const SERIES: SeriesDef[] = [
       n.includes("throw") || (n.includes("fleece") && n.includes("blanket")),
   },
 
-  // 10. Winter mink / 2-ply / patterned winter blankets.
+  // 10. Kids character bedding — the "Agri Hub Kids Bedding" range. Placed
+  //    just before the winter blanket ranges so the fun character sets get
+  //    their own showcase section near the end of the comforter/bedsheet
+  //    lineup. Kids products match only "kids bedding" and none of the series
+  //    above, so their position never risks a mis-assignment.
+  { title: "Kids Character Bedding", match: (n) => n.includes("kids bedding") },
+
+  // 11. Winter mink / 2-ply / patterned winter blankets.
   {
     title: "Winter Blankets",
     match: (n) =>
