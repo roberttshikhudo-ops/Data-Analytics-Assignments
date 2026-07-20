@@ -22,7 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { ArrowLeft, Download, Mail, MessageCircle, Printer } from "lucide-react"
+import { ArrowLeft, Download, Mail, MessageCircle, Pencil, Printer } from "lucide-react"
 import { toast } from "sonner"
 import { buildInvoiceMessage, buildWaLink } from "@/lib/whatsapp"
 
@@ -265,6 +265,12 @@ export default function InvoiceDetailPage() {
               <SelectItem value="cancelled">Cancelled</SelectItem>
             </SelectContent>
           </Select>
+          <Button variant="outline" asChild>
+            <Link href={`/admin/invoices/${invoice.id}/edit`}>
+              <Pencil className="h-4 w-4 mr-2" />
+              Edit
+            </Link>
+          </Button>
           <Button variant="outline" onClick={handlePrint}>
             <Printer className="h-4 w-4 mr-2" />
             Print
