@@ -56,11 +56,13 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
               fill
               className="object-cover transition-transform group-hover:scale-105"
               sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
-              quality={70}
+              quality={60}
               placeholder="blur"
               blurDataURL={BLUR_DATA_URL}
               priority={priority}
               loading={priority ? 'eager' : 'lazy'}
+              fetchPriority={priority ? 'high' : 'auto'}
+              decoding="async"
             />
           ) : (
             <div className="h-full w-full flex items-center justify-center text-muted-foreground bg-gradient-to-br from-primary/5 to-accent/5">
