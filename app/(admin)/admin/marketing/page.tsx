@@ -110,13 +110,43 @@ function CopyBlock({ text }: { text: string }) {
   const [copied, setCopied] = useState(false)
 
   const handleCopy = async () => {
+    let ok = false
+
+    // Preferred: async Clipboard API (needs a secure, non-blocked context).
     try {
-      await navigator.clipboard.writeText(text)
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(text)
+        ok = true
+      }
+    } catch {
+      ok = false
+    }
+
+    // Fallback: works inside iframes / where the Clipboard API is blocked.
+    if (!ok) {
+      try {
+        const ta = document.createElement("textarea")
+        ta.value = text
+        ta.setAttribute("readonly", "")
+        ta.style.position = "fixed"
+        ta.style.top = "-9999px"
+        ta.style.opacity = "0"
+        document.body.appendChild(ta)
+        ta.focus()
+        ta.select()
+        ok = document.execCommand("copy")
+        ta.remove()
+      } catch {
+        ok = false
+      }
+    }
+
+    if (ok) {
       setCopied(true)
       toast.success("Copied to clipboard")
       setTimeout(() => setCopied(false), 2000)
-    } catch {
-      toast.error("Could not copy - please select and copy manually")
+    } else {
+      toast.error("Could not copy - please select the text and copy manually")
     }
   }
 
