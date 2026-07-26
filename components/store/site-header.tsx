@@ -25,7 +25,7 @@ const categories = [
   { name: 'PPEs', href: '/shop/ppes' },
   { name: 'Electrical', href: '/shop/electrical' },
   { name: 'Plumbing', href: '/shop/plumbing' },
-  { name: 'Home & Living', href: '/shop/home-living' },
+  { name: 'Bedding and Kitchenware', href: '/shop/home-living' },
   { name: 'Animal Health', href: '/shop/animal-health' },
 ]
 
