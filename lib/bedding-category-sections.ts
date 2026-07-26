@@ -8,31 +8,48 @@ type Matcher = (name: string) => boolean
 // order here is significant (branded/specific ranges come before generic
 // "Comforter"/"Blanket" catch-alls).
 const BEDDING_SERIES: { title: string; match: Matcher }[] = [
-  { title: "Moffy Comforter Sets", match: (n) => n.includes("moffy") },
-  { title: "Molly Comforter Sets", match: (n) => n.includes("molly") },
-  { title: "MoMo Quilt Sets", match: (n) => n.includes("momo") },
-  { title: "Rara Quilt Sets", match: (n) => n.includes("rara") },
+  // --- Comforter & quilt ranges, in the exact display order requested ---
+  // 1. All reversible comforters (excluding the flower reversible range, which
+  //    gets its own section further down).
   {
-    title: "Mattress Protectors & Covers",
-    match: (n) => n.includes("mattress protector") || n.includes("protector"),
+    title: "Reversible Comforters",
+    match: (n) => n.includes("reversible") && !n.includes("flower"),
   },
-  {
-    title: "Reversible Flowers Comforters",
-    match: (n) => n.includes("flower reversible"),
-  },
-  {
-    title: "Generic Reversible Comforters",
-    match: (n) => n.includes("generic reversible"),
-  },
+  // 2. Geometric comforters (not geometric throws/blankets).
   {
     title: "Geometric Comforters",
     match: (n) => n.includes("geometric comforter"),
   },
+  // 3. RARA series
+  { title: "RARA Quilt Sets", match: (n) => n.includes("rara") },
+  // 4. MOMO series
+  { title: "MOMO Quilt Sets", match: (n) => n.includes("momo") },
+  // 5. Moffy series
+  { title: "Moffy Comforter Sets", match: (n) => n.includes("moffy") },
+  // 6. Molly series
+  { title: "Molly Comforter Sets", match: (n) => n.includes("molly") },
+  // 7. Flower reversible comforters
   {
-    title: "Corduroy Range",
+    title: "Flower Reversible Comforters",
+    match: (n) => n.includes("flower") && n.includes("reversible"),
+  },
+  // 8. 9pcs comforter sets
+  {
+    title: "9pcs Comforter Sets",
+    match: (n) => n.includes("9pcs comforter") || n.includes("9 pcs comforter"),
+  },
+  // 9. Corduroy comforters
+  {
+    title: "Corduroy Comforters",
     match: (n) => n.includes("corduroy") || n.includes("cordury"),
   },
-  { title: "Comforter Sets", match: (n) => n.includes("comforter") },
+  // 10. Remaining comforter sets (generic catch-all; kids comforters are
+  //     handled by the Kids section at the end).
+  {
+    title: "Comforter Sets",
+    match: (n) => n.includes("comforter") && !n.includes("kids"),
+  },
+  // 11. All other quilt / bedspread sets.
   {
     title: "Quilts & Bedspreads",
     match: (n) =>
@@ -41,20 +58,29 @@ const BEDDING_SERIES: { title: string; match: Matcher }[] = [
       n.includes("bed spread") ||
       n.includes("combo bedding"),
   },
+  // --- Throws & fleece (products sorted within the section so each colour
+  //     series clusters together) ---
+  {
+    title: "Throws & Fleece Blankets",
+    match: (n) =>
+      n.includes("throw") || (n.includes("fleece") && n.includes("blanket")),
+  },
+  // --- Bedsheets ---
   {
     title: "Bedsheets",
     match: (n) =>
       n.includes("bed sheet") ||
       n.includes("bedsheet") ||
       n.includes("frilled combo sheet") ||
-      n.includes("sheet set"),
+      n.includes("sheet set") ||
+      n.includes("combo sheet"),
   },
+  // --- Mattress protectors & covers (placed directly after Bedsheets) ---
   {
-    title: "Throws & Fleece Blankets",
-    match: (n) =>
-      n.includes("throw") || (n.includes("fleece") && n.includes("blanket")),
+    title: "Mattress Protectors & Covers",
+    match: (n) => n.includes("mattress protector") || n.includes("protector"),
   },
-  { title: "Kids Character Bedding", match: (n) => n.includes("kids bedding") },
+  // --- Blankets ---
   {
     title: "Winter Blankets",
     match: (n) =>
@@ -64,9 +90,19 @@ const BEDDING_SERIES: { title: string; match: Matcher }[] = [
       n.includes("quality winter blanket") ||
       n.includes("2ply") ||
       n.includes("2 ply") ||
+      n.includes("1ply") ||
+      n.includes("1 ply") ||
       (n.includes("blanket") && n.includes("winter")),
   },
   { title: "Other Blankets", match: (n) => n.includes("blanket") },
+  // --- Other bedding items ---
+  {
+    title: "Kids Character Bedding",
+    match: (n) =>
+      n.includes("kids bedding") ||
+      n.includes("kids comforter") ||
+      (n.includes("kids") && n.includes("comforter")),
+  },
 ]
 
 // Kitchenware keywords. Checked only after a product fails to match any
@@ -154,9 +190,20 @@ export function groupBeddingCategory(products: Product[]): BeddingCategoryGroups
     }
   }
 
+  // Sort products within each series alphabetically so same-name ranges and
+  // their colour variants cluster together predictably.
+  const byName = (a: Product, b: Product) =>
+    (a.name || "").localeCompare(b.name || "")
+
   const bedding = BEDDING_SERIES.filter((s) => beddingMap.has(s.title)).map(
-    (s) => ({ title: s.title, products: beddingMap.get(s.title) as Product[] }),
+    (s) => ({
+      title: s.title,
+      products: (beddingMap.get(s.title) as Product[]).sort(byName),
+    }),
   )
+
+  kitchenware.sort(byName)
+  general.sort(byName)
 
   return { bedding, kitchenware, general, total: products.length }
 }

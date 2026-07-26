@@ -1,9 +1,10 @@
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { ProductCard, ProductCardSkeleton } from '@/components/store/product-card'
+import { ProductCardSkeleton } from '@/components/store/product-card'
 import { ShopFilters } from '@/components/store/shop-filters'
 import { ShopSort } from '@/components/store/shop-sort'
+import { ProgressiveProducts, type ProductSection } from '@/components/store/progressive-products'
 import type { Product, Category } from '@/lib/types'
 import { Suspense } from 'react'
 import { groupBeddingCategory } from '@/lib/bedding-category-sections'
@@ -117,9 +118,24 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
 
   // The "Bedding and Kitchenware" category (slug home-living) mixes bedding,
   // kitchenware and general goods, so we present it grouped: bedding by series
-  // first, then kitchenware, then everything else. All other categories keep
-  // the standard flat grid.
-  const grouped = slug === 'home-living' ? groupBeddingCategory(products as Product[]) : null
+  // first, then kitchenware, then everything else. All other categories use a
+  // single ungrouped grid. Either way we hand the sections to a progressive
+  // renderer so only a light batch of cards mounts on first paint.
+  let sections: ProductSection[]
+  if (slug === 'home-living') {
+    const grouped = groupBeddingCategory(products as Product[])
+    sections = [
+      ...grouped.bedding.map((s) => ({ title: s.title, products: s.products })),
+      ...(grouped.kitchenware.length > 0
+        ? [{ title: 'Kitchenware', products: grouped.kitchenware }]
+        : []),
+      ...(grouped.general.length > 0
+        ? [{ title: 'General', products: grouped.general }]
+        : []),
+    ]
+  } else {
+    sections = [{ title: null, products: products as Product[] }]
+  }
 
   return (
     <div className="container py-8">
@@ -161,77 +177,12 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
                   Try adjusting your filters
                 </p>
               </div>
-            ) : grouped ? (
-              <GroupedProducts groups={grouped} />
             ) : (
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
-                {products.map((product, index) => (
-                  <ProductCard key={product.id} product={product as Product} priority={index < 6} />
-                ))}
-              </div>
+              <ProgressiveProducts sections={sections} />
             )}
           </Suspense>
         </div>
       </div>
-    </div>
-  )
-}
-
-function GroupedProducts({
-  groups,
-}: {
-  groups: ReturnType<typeof groupBeddingCategory>
-}) {
-  let rendered = 0
-
-  const Section = ({ title, items }: { title: string; items: Product[] }) => {
-    const startIndex = rendered
-    rendered += items.length
-    return (
-      <section aria-labelledby={`section-${title}`} className="scroll-mt-24">
-        <div className="flex items-center gap-3 mb-4">
-          <h2 id={`section-${title}`} className="text-xl font-semibold">
-            {title}
-          </h2>
-          <span className="text-sm text-muted-foreground">
-            {items.length} {items.length === 1 ? 'item' : 'items'}
-          </span>
-          <span className="h-px flex-1 bg-border" aria-hidden="true" />
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
-          {items.map((product, i) => (
-            <ProductCard
-              key={product.id}
-              product={product}
-              priority={startIndex + i < 6}
-            />
-          ))}
-        </div>
-      </section>
-    )
-  }
-
-  return (
-    <div className="space-y-12">
-      {/* Bedding, grouped by series */}
-      {groups.bedding.length > 0 && (
-        <div className="space-y-10">
-          <h2 className="sr-only">Bedding</h2>
-          {groups.bedding.map((s) => (
-            <Section key={s.title} title={s.title} items={s.products} />
-          ))}
-        </div>
-      )}
-
-      {/* Kitchenware */}
-      {groups.kitchenware.length > 0 && (
-        <Section title="Kitchenware" items={groups.kitchenware} />
-      )}
-
-      {/* Everything else */}
-      {groups.general.length > 0 && (
-        <Section title="General" items={groups.general} />
-      )}
     </div>
   )
 }
