@@ -1,13 +1,13 @@
 "use client"
 
 import { useState } from "react"
-import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { toast } from "sonner"
 import { Copy, Check, Download, Megaphone, ImageDown, ListChecks } from "lucide-react"
+import { BeddingFlyerGenerator } from "@/components/admin/bedding-flyer-generator"
 
 // Business details (mirrors lib/invoice.ts BUSINESS constant)
 const BUSINESS = {
@@ -27,41 +27,6 @@ const RANGES = [
   { label: "Throws & Fleece", from: 160 },
   { label: "Mattress Protectors & Covers", from: 255 },
   { label: "Kids Character Bedding", from: 260 },
-]
-
-// Flyer image variants sized for each platform surface.
-const FLYERS: {
-  key: string
-  label: string
-  hint: string
-  src: string
-  download: string
-  aspect: string
-}[] = [
-  {
-    key: "portrait",
-    label: "Portrait",
-    hint: "Best for WhatsApp chats, email & printing",
-    src: "/marketing/bedding-catalogue-6-flyer.png",
-    download: "Agri-Hub-Bedding-Flyer-Portrait.png",
-    aspect: "aspect-[4/5]",
-  },
-  {
-    key: "square",
-    label: "Square (1:1)",
-    hint: "Best for Instagram & Facebook feed posts",
-    src: "/marketing/bedding-catalogue-6-flyer-square.png",
-    download: "Agri-Hub-Bedding-Flyer-Square.png",
-    aspect: "aspect-square",
-  },
-  {
-    key: "story",
-    label: "Story (9:16)",
-    hint: "Best for WhatsApp Status & Instagram Stories",
-    src: "/marketing/bedding-catalogue-6-flyer-story.png",
-    download: "Agri-Hub-Bedding-Flyer-Story.png",
-    aspect: "aspect-[9/16]",
-  },
 ]
 
 const SELLING_POINTS = [
@@ -219,38 +184,11 @@ export default function MarketingPage() {
               <ImageDown className="h-5 w-5" /> Promotional Flyers
             </CardTitle>
             <p className="text-sm text-muted-foreground">
-              Choose the format that fits where you&apos;re posting, then download.
+              Built from your real product photos. Choose a format and download.
             </p>
           </CardHeader>
           <CardContent>
-            <Tabs defaultValue="portrait">
-              <TabsList className="grid w-full grid-cols-3">
-                {FLYERS.map((f) => (
-                  <TabsTrigger key={f.key} value={f.key}>
-                    {f.label}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-              {FLYERS.map((f) => (
-                <TabsContent key={f.key} value={f.key} className="mt-4 space-y-4">
-                  <div className={`mx-auto overflow-hidden rounded-lg border ${f.aspect} w-full max-w-xs`}>
-                    <Image
-                      src={f.src || "/placeholder.svg"}
-                      alt={`Agri Hub SA bedding promotional flyer - ${f.label}`}
-                      width={800}
-                      height={1000}
-                      className="h-full w-full object-cover"
-                    />
-                  </div>
-                  <p className="text-center text-xs text-muted-foreground">{f.hint}</p>
-                  <Button asChild variant="outline" className="w-full gap-2 bg-transparent">
-                    <a href={f.src} download={f.download}>
-                      <Download className="h-4 w-4" /> Download {f.label} flyer
-                    </a>
-                  </Button>
-                </TabsContent>
-              ))}
-            </Tabs>
+            <BeddingFlyerGenerator />
           </CardContent>
         </Card>
 
