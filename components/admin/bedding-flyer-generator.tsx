@@ -33,12 +33,12 @@ const GRID: Item[] = [
   {
     label: "Quilts & Bedspreads",
     price: 390,
-    src: "https://tkhnvcciiwg6evoc.public.blob.vercel-storage.com/optimized/1783318761814-c68ih2.webp",
+    src: "https://tkhnvcciiwg6evoc.public.blob.vercel-storage.com/optimized/1783318761884-fiu6bj.webp",
   },
   {
     label: "Winter Blankets",
     price: 290,
-    src: "https://tkhnvcciiwg6evoc.public.blob.vercel-storage.com/products/little-sheep-blanket-brown-paisley-1783737394939.jpg",
+    src: "https://tkhnvcciiwg6evoc.public.blob.vercel-storage.com/products/little-sheep-blanket-black-white-leopard-1783737396180.jpg",
   },
   {
     label: "Bedsheet Sets",
@@ -48,7 +48,7 @@ const GRID: Item[] = [
   {
     label: "Throws & Fleece",
     price: 160,
-    src: "https://tkhnvcciiwg6evoc.public.blob.vercel-storage.com/optimized/1783318769980-n4wsrb.webp",
+    src: "https://tkhnvcciiwg6evoc.public.blob.vercel-storage.com/optimized/1783318739715-r6vo3y.webp",
   },
   {
     label: "Mattress Protectors",
