@@ -75,6 +75,11 @@ const BEDDING_SERIES: { title: string; match: Matcher }[] = [
       n.includes("sheet set") ||
       n.includes("combo sheet"),
   },
+  // --- Mattress protectors & covers (placed directly after Bedsheets) ---
+  {
+    title: "Mattress Protectors & Covers",
+    match: (n) => n.includes("mattress protector") || n.includes("protector"),
+  },
   // --- Blankets ---
   {
     title: "Winter Blankets",
@@ -91,10 +96,6 @@ const BEDDING_SERIES: { title: string; match: Matcher }[] = [
   },
   { title: "Other Blankets", match: (n) => n.includes("blanket") },
   // --- Other bedding items ---
-  {
-    title: "Mattress Protectors & Covers",
-    match: (n) => n.includes("mattress protector") || n.includes("protector"),
-  },
   {
     title: "Kids Character Bedding",
     match: (n) =>
