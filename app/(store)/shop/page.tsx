@@ -4,7 +4,10 @@ import { ProductCardSkeleton } from '@/components/store/product-card'
 import { ShopFilters } from '@/components/store/shop-filters'
 import { ShopSort } from '@/components/store/shop-sort'
 import { ProgressiveProducts, type ProductSection } from '@/components/store/progressive-products'
-import { groupBeddingCategory } from '@/lib/bedding-category-sections'
+import {
+  CategoryPreviewSections,
+  type CategoryPreviewSection,
+} from '@/components/store/category-preview-sections'
 import { createClient } from '@/lib/supabase/server'
 import type { Product, Category } from '@/lib/types'
 
@@ -116,15 +119,15 @@ async function getCategories() {
 const LEAD_CATEGORY_SLUG = 'home-living'
 
 /**
- * Groups all products by their category for the unfiltered "Shop All" view.
- * Bedding and Kitchenware is placed first (and expanded into its bedding
- * series, then Kitchenware, then General), followed by every other category
- * in display order, and finally anything without an active category.
+ * Groups all products by their category for the unfiltered "Shop All" view,
+ * producing one snippet block per category. Bedding and Kitchenware leads,
+ * followed by every other category in display order, then anything without an
+ * active category. Each block links to its full category page.
  */
 function buildShopSections(
   products: Product[],
   categories: Category[],
-): ProductSection[] {
+): CategoryPreviewSection[] {
   // Bucket products by category id.
   const byCategory = new Map<string, Product[]>()
   const uncategorised: Product[] = []
@@ -145,26 +148,15 @@ function buildShopSections(
     return (a.display_order ?? 0) - (b.display_order ?? 0)
   })
 
-  const sections: ProductSection[] = []
+  const sections: CategoryPreviewSection[] = []
   for (const cat of ordered) {
     const items = byCategory.get(cat.id)
     if (!items || items.length === 0) continue
-
-    if (cat.slug === LEAD_CATEGORY_SLUG) {
-      // Expand bedding into its series, then kitchenware, then general.
-      const grouped = groupBeddingCategory(items)
-      for (const s of grouped.bedding) {
-        sections.push({ title: s.title, products: s.products })
-      }
-      if (grouped.kitchenware.length > 0) {
-        sections.push({ title: 'Kitchenware', products: grouped.kitchenware })
-      }
-      if (grouped.general.length > 0) {
-        sections.push({ title: 'General', products: grouped.general })
-      }
-    } else {
-      sections.push({ title: cat.name, products: items })
-    }
+    sections.push({
+      title: cat.name,
+      href: `/shop/${cat.slug}`,
+      products: items,
+    })
   }
 
   if (uncategorised.length > 0) {
@@ -183,12 +175,13 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
 
   const currentCategory = categories.find(c => c.slug === params.category)
 
-  // When browsing all products (no specific category selected), present them
-  // grouped by category with Bedding and Kitchenware first. When a single
-  // category is selected, keep an ungrouped grid.
-  const sections: ProductSection[] = params.category
-    ? [{ title: null, products }]
+  // When browsing all products (no specific category selected), present a
+  // snippet of every category with its own "Load more". When a single
+  // category is selected, keep an ungrouped progressive grid.
+  const categorySections: CategoryPreviewSection[] = params.category
+    ? []
     : buildShopSections(products, categories)
+  const flatSections: ProductSection[] = [{ title: null, products }]
 
   return (
     <div className="container py-8">
@@ -226,7 +219,11 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
           {/* Products */}
           <Suspense fallback={<ProductGridSkeleton />}>
             {products.length > 0 ? (
-              <ProgressiveProducts sections={sections} />
+              params.category ? (
+                <ProgressiveProducts sections={flatSections} />
+              ) : (
+                <CategoryPreviewSections sections={categorySections} />
+              )
             ) : (
               <div className="text-center py-16">
                 <p className="text-lg font-medium">No products found</p>
