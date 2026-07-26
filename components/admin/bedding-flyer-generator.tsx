@@ -24,9 +24,9 @@ const BUSINESS = {
 type Item = { label: string; price: number; src: string }
 
 const HERO: Item = {
-  label: "7pcs King Comforter Sets",
-  price: 735,
-  src: "https://tkhnvcciiwg6evoc.public.blob.vercel-storage.com/products/king-comforter-molly-004-beige-1783739955047.jpg",
+  label: "Reversible Comforter Sets",
+  price: 295,
+  src: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/IMG-20260108-WA0032%281%29-RR0r56BsTLIh1tY6p7b4UK89ICMstc.jpg",
 }
 
 const GRID: Item[] = [
@@ -221,7 +221,7 @@ async function renderFlyer(
   // ---- Product grid ----
   const rows = Math.ceil(GRID.length / cols)
   const gap = 24
-  const footerH = Math.round(h * 0.11)
+  const footerH = Math.round(h * 0.14)
   const gridBottom = h - footerH - margin
   const gridAvailH = gridBottom - cursorY
   const cellW = (contentW - gap * (cols - 1)) / cols
@@ -256,11 +256,11 @@ async function renderFlyer(
   ctx.fillRect(0, h - footerH, w, footerH)
   ctx.fillStyle = COLORS.white
   ctx.textAlign = "center"
-  ctx.font = "800 30px Arial, sans-serif"
-  ctx.fillText(`WhatsApp ${BUSINESS.whatsapp}  |  ${BUSINESS.website}`, w / 2, h - footerH / 2 - 6)
+  ctx.font = "800 46px Arial, sans-serif"
+  ctx.fillText(`WhatsApp ${BUSINESS.whatsapp}  |  ${BUSINESS.website}`, w / 2, h - footerH / 2 - 8)
   ctx.fillStyle = COLORS.cream
-  ctx.font = "600 22px Arial, sans-serif"
-  ctx.fillText("Nationwide delivery  •  Secure online payment  •  Order today", w / 2, h - footerH / 2 + 28)
+  ctx.font = "600 30px Arial, sans-serif"
+  ctx.fillText("Nationwide delivery  •  Secure online payment  •  Order today", w / 2, h - footerH / 2 + 38)
   ctx.textAlign = "left"
 }
 
