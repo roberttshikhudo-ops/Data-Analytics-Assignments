@@ -29,6 +29,41 @@ const RANGES = [
   { label: "Kids Character Bedding", from: 260 },
 ]
 
+// Flyer image variants sized for each platform surface.
+const FLYERS: {
+  key: string
+  label: string
+  hint: string
+  src: string
+  download: string
+  aspect: string
+}[] = [
+  {
+    key: "portrait",
+    label: "Portrait",
+    hint: "Best for WhatsApp chats, email & printing",
+    src: "/marketing/bedding-catalogue-6-flyer.png",
+    download: "Agri-Hub-Bedding-Flyer-Portrait.png",
+    aspect: "aspect-[4/5]",
+  },
+  {
+    key: "square",
+    label: "Square (1:1)",
+    hint: "Best for Instagram & Facebook feed posts",
+    src: "/marketing/bedding-catalogue-6-flyer-square.png",
+    download: "Agri-Hub-Bedding-Flyer-Square.png",
+    aspect: "aspect-square",
+  },
+  {
+    key: "story",
+    label: "Story (9:16)",
+    hint: "Best for WhatsApp Status & Instagram Stories",
+    src: "/marketing/bedding-catalogue-6-flyer-story.png",
+    download: "Agri-Hub-Bedding-Flyer-Story.png",
+    aspect: "aspect-[9/16]",
+  },
+]
+
 const SELLING_POINTS = [
   "7 bedding ranges in one catalogue - something for every room and budget",
   "Prices from just R160 - affordable quality for the whole home",
@@ -177,28 +212,45 @@ export default function MarketingPage() {
 
       {/* Assets row */}
       <div className="grid gap-6 md:grid-cols-2">
-        {/* Flyer */}
+        {/* Flyer gallery - one image per platform format */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">
-              <ImageDown className="h-5 w-5" /> Promotional Flyer
+              <ImageDown className="h-5 w-5" /> Promotional Flyers
             </CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Choose the format that fits where you&apos;re posting, then download.
+            </p>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="overflow-hidden rounded-lg border">
-              <Image
-                src="/marketing/bedding-catalogue-6-flyer.png"
-                alt="Agri Hub SA bedding promotional flyer"
-                width={800}
-                height={1000}
-                className="h-auto w-full"
-              />
-            </div>
-            <Button asChild variant="outline" className="w-full gap-2 bg-transparent">
-              <a href="/marketing/bedding-catalogue-6-flyer.png" download="Agri-Hub-Bedding-Flyer.png">
-                <Download className="h-4 w-4" /> Download flyer image
-              </a>
-            </Button>
+          <CardContent>
+            <Tabs defaultValue="portrait">
+              <TabsList className="grid w-full grid-cols-3">
+                {FLYERS.map((f) => (
+                  <TabsTrigger key={f.key} value={f.key}>
+                    {f.label}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+              {FLYERS.map((f) => (
+                <TabsContent key={f.key} value={f.key} className="mt-4 space-y-4">
+                  <div className={`mx-auto overflow-hidden rounded-lg border ${f.aspect} w-full max-w-xs`}>
+                    <Image
+                      src={f.src || "/placeholder.svg"}
+                      alt={`Agri Hub SA bedding promotional flyer - ${f.label}`}
+                      width={800}
+                      height={1000}
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
+                  <p className="text-center text-xs text-muted-foreground">{f.hint}</p>
+                  <Button asChild variant="outline" className="w-full gap-2 bg-transparent">
+                    <a href={f.src} download={f.download}>
+                      <Download className="h-4 w-4" /> Download {f.label} flyer
+                    </a>
+                  </Button>
+                </TabsContent>
+              ))}
+            </Tabs>
           </CardContent>
         </Card>
 
