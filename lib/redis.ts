@@ -7,4 +7,6 @@ export const redis = new Redis({
 
 // Cart key helpers
 export const getCartKey = (sessionId: string) => `cart:${sessionId}`
-export const CART_EXPIRY = 60 * 60 * 24 * 7 // 7 days in seconds
+// Keep saved carts alive for 30 days. The expiry is refreshed on every read
+// (sliding expiration) so an actively shopping customer never loses their cart.
+export const CART_EXPIRY = 60 * 60 * 24 * 30 // 30 days in seconds

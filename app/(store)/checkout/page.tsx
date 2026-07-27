@@ -16,6 +16,9 @@ import { formatPrice } from "@/lib/utils"
 import { ArrowLeft, CreditCard, Banknote, Loader2, Truck, MapPin, Zap } from "lucide-react"
 import { SHIPPING_RATES } from "@/lib/types"
 
+// localStorage key for remembering a shopper's checkout details between visits.
+const SAVED_DETAILS_KEY = "checkout_details"
+
 const SA_PROVINCES = [
   "Eastern Cape",
   "Free State",
@@ -88,25 +91,65 @@ export default function CheckoutPage() {
     notes: "",
   })
 
-  // Pre-fill form with user data
+  // Track whether we restored previously-saved details, to show a small notice.
+  const [restoredDetails, setRestoredDetails] = useState(false)
+
+  // Restore saved checkout details on first load so returning shoppers don't
+  // have to re-enter everything (Shein-style faster checkout). We never store
+  // payment card data here — payment is handled by PayFast on their servers.
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(SAVED_DETAILS_KEY)
+      if (!saved) return
+      const parsed = JSON.parse(saved) as Partial<CheckoutForm>
+      const hasAny = Object.values(parsed).some(
+        (v) => typeof v === "string" && v.trim() !== "",
+      )
+      if (!hasAny) return
+      setForm((prev) => ({
+        ...prev,
+        ...parsed,
+        // Order notes are order-specific, so always start them fresh.
+        notes: "",
+      }))
+      setRestoredDetails(true)
+    } catch {
+      // Ignore malformed saved data.
+    }
+  }, [])
+
+  // Pre-fill contact fields from the signed-in user's profile. These overlay
+  // any restored details so a logged-in customer's identity stays correct,
+  // but we fall back to existing values when a profile field is empty.
   useEffect(() => {
     if (user) {
       setForm((prev) => ({
         ...prev,
-        email: user.email || "",
-        firstName: profile?.first_name || "",
-        lastName: profile?.last_name || "",
-        phone: profile?.phone || "",
+        email: user.email || prev.email,
+        firstName: profile?.first_name || prev.firstName,
+        lastName: profile?.last_name || prev.lastName,
+        phone: profile?.phone || prev.phone,
       }))
     }
   }, [user, profile])
 
-  // Redirect if cart is empty (but not while we're redirecting to payment)
+  const clearSavedDetails = () => {
+    try {
+      localStorage.removeItem(SAVED_DETAILS_KEY)
+    } catch {
+      // Ignore storage errors.
+    }
+    setRestoredDetails(false)
+  }
+
+  // Redirect if cart is empty (but wait until the saved cart has finished
+  // loading, and not while we're redirecting to payment). This prevents a
+  // page refresh on checkout from bouncing a shopper who still has items.
   useEffect(() => {
-    if (cart.length === 0 && !isRedirecting) {
+    if (!cartLoading && cart.length === 0 && !isRedirecting) {
       router.push("/cart")
     }
-  }, [cart, router, isRedirecting])
+  }, [cart, cartLoading, router, isRedirecting])
 
   // Calculate shipping based on selected method
   const getShippingCost = () => {
@@ -156,6 +199,15 @@ export default function CheckoutPage() {
         !form.addressLine1 || !form.city || !form.province || !form.postalCode) {
       alert("Please fill in all required fields")
       return
+    }
+
+    // Remember the shopper's contact, address and delivery/payment preferences
+    // so their next checkout is pre-filled. Order-specific notes are excluded.
+    try {
+      const { notes: _notes, ...detailsToSave } = form
+      localStorage.setItem(SAVED_DETAILS_KEY, JSON.stringify(detailsToSave))
+    } catch {
+      // Ignore storage errors (e.g. private mode / quota).
     }
 
     setIsLoading(true)
@@ -334,6 +386,20 @@ export default function CheckoutPage() {
                   <CardTitle>Contact Information</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
+                  {restoredDetails && (
+                    <div className="flex items-center justify-between gap-3 rounded-md bg-primary/5 border border-primary/20 px-3 py-2">
+                      <p className="text-sm text-muted-foreground">
+                        Welcome back! We&apos;ve filled in your saved details for faster checkout.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={clearSavedDetails}
+                        className="text-sm font-medium text-primary underline whitespace-nowrap"
+                      >
+                        Clear
+                      </button>
+                    </div>
+                  )}
                   <div>
                     <Label htmlFor="email">Email Address *</Label>
                     <Input

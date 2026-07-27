@@ -14,7 +14,13 @@ export async function GET(request: NextRequest) {
     
     const cartKey = getCartKey(sessionId)
     const cart = await redis.get<Cart>(cartKey)
-    
+
+    // Sliding expiration: every time an active shopper loads their cart we
+    // reset the 30-day countdown, so a cart in regular use never expires.
+    if (cart && cart.items && cart.items.length > 0) {
+      await redis.expire(cartKey, CART_EXPIRY)
+    }
+
     return NextResponse.json(cart || { items: [], updatedAt: new Date().toISOString() })
   } catch (error) {
     console.error('Cart GET error:', error)
