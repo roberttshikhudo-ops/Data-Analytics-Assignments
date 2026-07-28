@@ -2,6 +2,7 @@ import { headers } from "next/headers"
 import { NextResponse } from "next/server"
 import Stripe from "stripe"
 import { createClient } from "@supabase/supabase-js"
+import { sendOwnerPurchaseAlert } from "@/lib/whatsapp"
 
 // Lazy initialization to avoid build-time errors
 function getStripe() {
@@ -93,6 +94,46 @@ export async function POST(req: Request) {
             await supabase.rpc("increment_coupon_usage", {
               coupon_code: couponCode,
             })
+          }
+
+          // Alert the store owner on WhatsApp about the successful purchase.
+          try {
+            const { data: fullOrder } = await supabase
+              .from("orders")
+              .select(
+                "order_number, total, shipping_first_name, shipping_last_name, billing_first_name, billing_last_name, shipping_phone, billing_phone, shipping_method, shipping_city, order_items(quantity, product_name, product:products(name))",
+              )
+              .eq("id", orderId)
+              .single()
+
+            if (fullOrder) {
+              const customerName =
+                [fullOrder.shipping_first_name, fullOrder.shipping_last_name]
+                  .filter(Boolean)
+                  .join(" ") ||
+                [fullOrder.billing_first_name, fullOrder.billing_last_name]
+                  .filter(Boolean)
+                  .join(" ") ||
+                null
+              const isPickup = fullOrder.shipping_method === "pickup"
+
+              await sendOwnerPurchaseAlert({
+                orderNumber: fullOrder.order_number || "",
+                total: Number(fullOrder.total || 0),
+                customerName,
+                customerPhone:
+                  fullOrder.shipping_phone || fullOrder.billing_phone || null,
+                items: (fullOrder.order_items || []).map((it: any) => ({
+                  name: it.product?.name || it.product_name || "Product",
+                  quantity: it.quantity || 1,
+                })),
+                fulfilment: isPickup
+                  ? "Collection / pickup"
+                  : `Delivery${fullOrder.shipping_city ? ` to ${fullOrder.shipping_city}` : ""}`,
+              })
+            }
+          } catch (alertError) {
+            console.error("[v0] Stripe WhatsApp alert error:", alertError)
           }
         }
         break

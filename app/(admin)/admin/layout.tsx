@@ -27,6 +27,7 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import { OrderNotifications } from "@/components/admin/order-notifications"
 
 const navigation = [
   { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
@@ -180,6 +181,7 @@ export default function AdminLayout({
             <Menu className="h-5 w-5" />
           </Button>
           <div className="flex-1" />
+          <OrderNotifications />
           <Link href="/" className="text-sm text-muted-foreground hover:text-foreground">
             View Store
           </Link>

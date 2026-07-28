@@ -7,6 +7,7 @@ import {
   sendOrderTrackingEmail,
   type OrderEmailData,
 } from "@/lib/emails/order"
+import { sendOwnerPurchaseAlert } from "@/lib/whatsapp"
 
 const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://agrihubsa.co.za"
 
@@ -153,6 +154,23 @@ export async function POST(request: NextRequest) {
 
       // Send the order confirmation email (never blocks the ITN).
       await sendOrderConfirmationEmail(customerEmail, emailData)
+
+      // Alert the store owner on WhatsApp about the successful purchase.
+      const isPickup = fullOrder?.shipping_method === "pickup"
+      await sendOwnerPurchaseAlert({
+        orderNumber: orderNumber || fullOrder?.order_number || "",
+        total: Number(fullOrder?.total ?? amountGross),
+        customerName,
+        customerPhone:
+          fullOrder?.shipping_phone || fullOrder?.billing_phone || null,
+        items: (fullOrder?.order_items || []).map((it: any) => ({
+          name: it.product?.name || it.product_name || "Product",
+          quantity: it.quantity || 1,
+        })),
+        fulfilment: isPickup
+          ? "Collection / pickup"
+          : `Delivery${fullOrder?.shipping_city ? ` to ${fullOrder.shipping_city}` : ""}`,
+      })
 
       // Auto-create Fastway shipment if shipping method is delivery
       if (fullOrder && fullOrder.shipping_method !== "pickup") {

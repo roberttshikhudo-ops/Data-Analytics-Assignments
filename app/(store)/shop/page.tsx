@@ -1,8 +1,13 @@
 import { Suspense } from 'react'
 import { Metadata } from 'next'
-import { ProductCard, ProductCardSkeleton } from '@/components/store/product-card'
+import { ProductCardSkeleton } from '@/components/store/product-card'
 import { ShopFilters } from '@/components/store/shop-filters'
 import { ShopSort } from '@/components/store/shop-sort'
+import { ProgressiveProducts, type ProductSection } from '@/components/store/progressive-products'
+import {
+  CategoryPreviewSections,
+  type CategoryPreviewSection,
+} from '@/components/store/category-preview-sections'
 import { createClient } from '@/lib/supabase/server'
 import type { Product, Category } from '@/lib/types'
 
@@ -110,6 +115,57 @@ async function getCategories() {
 
 // Brand filtering removed - not in current schema
 
+// Bedding & Kitchenware always leads the "All Products" view.
+const LEAD_CATEGORY_SLUG = 'home-living'
+
+/**
+ * Groups all products by their category for the unfiltered "Shop All" view,
+ * producing one snippet block per category. Bedding and Kitchenware leads,
+ * followed by every other category in display order, then anything without an
+ * active category. Each block links to its full category page.
+ */
+function buildShopSections(
+  products: Product[],
+  categories: Category[],
+): CategoryPreviewSection[] {
+  // Bucket products by category id.
+  const byCategory = new Map<string, Product[]>()
+  const uncategorised: Product[] = []
+  for (const p of products) {
+    if (p.category_id) {
+      const bucket = byCategory.get(p.category_id)
+      if (bucket) bucket.push(p)
+      else byCategory.set(p.category_id, [p])
+    } else {
+      uncategorised.push(p)
+    }
+  }
+
+  // Order categories: lead category first, then the rest in display order.
+  const ordered = [...categories].sort((a, b) => {
+    if (a.slug === LEAD_CATEGORY_SLUG) return -1
+    if (b.slug === LEAD_CATEGORY_SLUG) return 1
+    return (a.display_order ?? 0) - (b.display_order ?? 0)
+  })
+
+  const sections: CategoryPreviewSection[] = []
+  for (const cat of ordered) {
+    const items = byCategory.get(cat.id)
+    if (!items || items.length === 0) continue
+    sections.push({
+      title: cat.name,
+      href: `/shop/${cat.slug}`,
+      products: items,
+    })
+  }
+
+  if (uncategorised.length > 0) {
+    sections.push({ title: 'Other', products: uncategorised })
+  }
+
+  return sections
+}
+
 export default async function ShopPage({ searchParams }: ShopPageProps) {
   const params = await searchParams
   const [products, categories] = await Promise.all([
@@ -118,6 +174,14 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
   ])
 
   const currentCategory = categories.find(c => c.slug === params.category)
+
+  // When browsing all products (no specific category selected), present a
+  // snippet of every category with its own "Load more". When a single
+  // category is selected, keep an ungrouped progressive grid.
+  const categorySections: CategoryPreviewSection[] = params.category
+    ? []
+    : buildShopSections(products, categories)
+  const flatSections: ProductSection[] = [{ title: null, products }]
 
   return (
     <div className="container py-8">
@@ -155,11 +219,11 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
           {/* Products */}
           <Suspense fallback={<ProductGridSkeleton />}>
             {products.length > 0 ? (
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
-                {products.map((product, index) => (
-                  <ProductCard key={product.id} product={product} priority={index < 6} />
-                ))}
-              </div>
+              params.category ? (
+                <ProgressiveProducts sections={flatSections} />
+              ) : (
+                <CategoryPreviewSections sections={categorySections} />
+              )
             ) : (
               <div className="text-center py-16">
                 <p className="text-lg font-medium">No products found</p>
