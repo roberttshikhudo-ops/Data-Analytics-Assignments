@@ -1,8 +1,8 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { ProductCard } from '@/components/store/product-card'
-import { Button } from '@/components/ui/button'
+import { ProductPagination, PAGE_SIZE } from '@/components/store/product-pagination'
 import type { Product } from '@/lib/types'
 
 export interface ProductSection {
@@ -13,47 +13,53 @@ export interface ProductSection {
 
 interface ProgressiveProductsProps {
   sections: ProductSection[]
-  /** How many products to show on first paint. */
-  initialCount?: number
-  /** How many more to reveal each time "Load more" is clicked. */
-  batchSize?: number
+  /** Products shown per numbered page. */
+  pageSize?: number
 }
 
 /**
- * Renders product sections but only mounts a limited number of cards at a
- * time, revealing more in batches when the shopper clicks "Load more". This
- * keeps the initial DOM light on large categories (e.g. Bedding & Kitchenware
- * with ~180 products) while preserving the section headings and order.
+ * Renders product sections split across numbered pages (default 50 products
+ * per page). Section headings are preserved on whichever page their items
+ * fall on, so large categories (e.g. Bedding & Kitchenware) stay light and
+ * shoppers can jump straight to page 2, 3, etc.
  */
 export function ProgressiveProducts({
   sections,
-  initialCount = 12,
-  batchSize = 12,
+  pageSize = PAGE_SIZE,
 }: ProgressiveProductsProps) {
   const total = useMemo(
     () => sections.reduce((sum, s) => sum + s.products.length, 0),
     [sections],
   )
 
-  const [visibleCount, setVisibleCount] = useState(initialCount)
+  const totalPages = Math.max(1, Math.ceil(total / pageSize))
+  const [page, setPage] = useState(1)
+  const topRef = useRef<HTMLDivElement>(null)
 
-  // Walk the sections in order, handing each one the slice of the global
-  // reveal window that falls inside it.
+  // Clamp in case the section list shrinks (e.g. after filtering).
+  const currentPage = Math.min(page, totalPages)
+  const pageStart = (currentPage - 1) * pageSize
+  const pageEnd = pageStart + pageSize
+
+  const goToPage = (next: number) => {
+    setPage(next)
+    // Bring the shopper back to the top of the grid on page change.
+    topRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
+  // Walk the sections in order, rendering only the slice of each that falls
+  // within the current page's [pageStart, pageEnd) window.
   let cursor = 0
   const renderedSections = sections.map((section) => {
     const start = cursor
     const end = start + section.products.length
     cursor = end
 
-    // How many of this section's items fall within the visible window.
-    const visibleInSection = Math.max(
-      0,
-      Math.min(section.products.length, visibleCount - start),
-    )
+    const from = Math.max(start, pageStart)
+    const to = Math.min(end, pageEnd)
+    if (to <= from) return null
 
-    if (visibleInSection === 0) return null
-
-    const items = section.products.slice(0, visibleInSection)
+    const items = section.products.slice(from - start, to - start)
 
     return (
       <section
@@ -78,7 +84,7 @@ export function ProgressiveProducts({
             <ProductCard
               key={product.id}
               product={product}
-              priority={start + i < 6}
+              priority={currentPage === 1 && from - start + i < 6}
             />
           ))}
         </div>
@@ -86,26 +92,25 @@ export function ProgressiveProducts({
     )
   })
 
-  const remaining = total - visibleCount
+  const rangeStart = total === 0 ? 0 : pageStart + 1
+  const rangeEnd = Math.min(pageEnd, total)
 
   return (
     <div className="space-y-12">
+      <div ref={topRef} className="scroll-mt-24" />
+
       {renderedSections}
 
-      {remaining > 0 && (
+      {totalPages > 1 && (
         <div className="flex flex-col items-center gap-3 pt-2">
+          <ProductPagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={goToPage}
+          />
           <p className="text-sm text-muted-foreground">
-            Showing {Math.min(visibleCount, total)} of {total} products
+            Showing {rangeStart}&ndash;{rangeEnd} of {total} products
           </p>
-          <Button
-            size="lg"
-            variant="outline"
-            onClick={() =>
-              setVisibleCount((c) => Math.min(c + batchSize, total))
-            }
-          >
-            Load more ({remaining} left)
-          </Button>
         </div>
       )}
     </div>

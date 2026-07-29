@@ -1,9 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import Link from 'next/link'
 import { ProductCard } from '@/components/store/product-card'
-import { Button } from '@/components/ui/button'
+import { ProductPagination, PAGE_SIZE } from '@/components/store/product-pagination'
 import type { Product } from '@/lib/types'
 
 export interface CategoryPreviewSection {
@@ -16,21 +16,18 @@ export interface CategoryPreviewSection {
 
 interface CategoryPreviewSectionsProps {
   sections: CategoryPreviewSection[]
-  /** How many products to show per category before "Load more". */
-  initialCount?: number
-  /** How many more to reveal each time "Load more" is clicked. */
-  batchSize?: number
+  /** Products shown per numbered page within each category. */
+  pageSize?: number
 }
 
 /**
- * Shop All view: renders a snippet of every category on one page, each with
- * its own independent "Load more" control so shoppers can expand just the
+ * Shop All view: renders every category on one page, each with its own
+ * independent numbered pagination so shoppers can page through just the
  * category they're interested in without loading everything at once.
  */
 export function CategoryPreviewSections({
   sections,
-  initialCount = 8,
-  batchSize = 8,
+  pageSize = PAGE_SIZE,
 }: CategoryPreviewSectionsProps) {
   return (
     <div className="space-y-14">
@@ -38,8 +35,7 @@ export function CategoryPreviewSections({
         <CategorySnippet
           key={section.title}
           section={section}
-          initialCount={initialCount}
-          batchSize={batchSize}
+          pageSize={pageSize}
           priority={index === 0}
         />
       ))}
@@ -49,24 +45,35 @@ export function CategoryPreviewSections({
 
 function CategorySnippet({
   section,
-  initialCount,
-  batchSize,
+  pageSize,
   priority,
 }: {
   section: CategoryPreviewSection
-  initialCount: number
-  batchSize: number
+  pageSize: number
   priority: boolean
 }) {
-  const [visibleCount, setVisibleCount] = useState(initialCount)
+  const [page, setPage] = useState(1)
+  const topRef = useRef<HTMLDivElement>(null)
 
   const total = section.products.length
-  const items = section.products.slice(0, visibleCount)
-  const remaining = total - visibleCount
-  const expanded = visibleCount > initialCount
+  const totalPages = Math.max(1, Math.ceil(total / pageSize))
+  const currentPage = Math.min(page, totalPages)
+  const pageStart = (currentPage - 1) * pageSize
+  const pageEnd = pageStart + pageSize
+  const items = section.products.slice(pageStart, pageEnd)
+
+  const goToPage = (next: number) => {
+    setPage(next)
+    topRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
+  const rangeStart = total === 0 ? 0 : pageStart + 1
+  const rangeEnd = Math.min(pageEnd, total)
 
   return (
     <section aria-labelledby={`cat-${section.title}`} className="scroll-mt-24">
+      <div ref={topRef} className="scroll-mt-24" />
+
       {/* Heading */}
       <div className="flex items-center gap-3 mb-4">
         <h2 id={`cat-${section.title}`} className="text-xl font-semibold">
@@ -86,38 +93,28 @@ function CategorySnippet({
         )}
       </div>
 
-      {/* Snippet grid */}
+      {/* Page grid */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
         {items.map((product, i) => (
           <ProductCard
             key={product.id}
             product={product}
-            priority={priority && i < 4}
+            priority={priority && currentPage === 1 && i < 4}
           />
         ))}
       </div>
 
-      {/* Per-category controls */}
-      {(remaining > 0 || expanded) && (
-        <div className="flex flex-wrap items-center gap-3 pt-5">
-          {remaining > 0 && (
-            <Button
-              variant="outline"
-              onClick={() =>
-                setVisibleCount((c) => Math.min(c + batchSize, total))
-              }
-            >
-              Load more ({remaining} left)
-            </Button>
-          )}
-          {expanded && (
-            <Button
-              variant="ghost"
-              onClick={() => setVisibleCount(initialCount)}
-            >
-              Show less
-            </Button>
-          )}
+      {/* Per-category numbered pagination */}
+      {totalPages > 1 && (
+        <div className="flex flex-col items-center gap-3 pt-5">
+          <ProductPagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={goToPage}
+          />
+          <p className="text-sm text-muted-foreground">
+            Showing {rangeStart}&ndash;{rangeEnd} of {total}
+          </p>
         </div>
       )}
     </section>
