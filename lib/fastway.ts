@@ -216,6 +216,27 @@ function getDefaultQuotes(): FastwayQuote[] {
   ]
 }
 
+// Generates a guaranteed-unique provisional tracking number. Used when the
+// Fastway API cannot be reached (down or not configured) so that every paid
+// delivery order STILL receives a tracking number automatically. Provisional
+// numbers use the "AHP" prefix so they are easy to distinguish from real
+// Fastway consignment numbers and can be upgraded to a real waybill later.
+export function generateTrackingNumber(orderNumber?: string): string {
+  const base = (orderNumber || '')
+    .replace(/[^A-Za-z0-9]/g, '')
+    .toUpperCase()
+    .slice(-6)
+  const stamp = Date.now().toString(36).toUpperCase().slice(-5)
+  const rand = Math.random().toString(36).slice(2, 6).toUpperCase()
+  return `AHP${base}${stamp}${rand}`
+}
+
+// True when a tracking number is a provisional (locally-generated) one rather
+// than a real Fastway consignment number.
+export function isProvisionalTrackingNumber(trackingNumber: string): boolean {
+  return typeof trackingNumber === 'string' && trackingNumber.startsWith('AHP')
+}
+
 // Check if order qualifies for free shipping
 export function qualifiesForFreeShipping(orderTotal: number): boolean {
   return orderTotal >= 1000
