@@ -1,15 +1,12 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import { validatePayFastITN, getPaymentStatus } from "@/lib/payfast"
-import { createShipment, AGRIHUB_WAREHOUSE, ShippingAddress } from "@/lib/fastway"
 import {
   sendOrderConfirmationEmail,
-  sendOrderTrackingEmail,
   type OrderEmailData,
 } from "@/lib/emails/order"
+import { fulfilOrderShipment } from "@/lib/shipping"
 import { sendOwnerPurchaseAlert } from "@/lib/whatsapp"
-
-const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://agrihubsa.co.za"
 
 // Resolves the customer's email for an order. Guest checkouts store the address
 // in guest_email; registered users have their email in Supabase auth.
@@ -172,71 +169,11 @@ export async function POST(request: NextRequest) {
           : `Delivery${fullOrder?.shipping_city ? ` to ${fullOrder.shipping_city}` : ""}`,
       })
 
-      // Auto-create Fastway shipment if shipping method is delivery
-      if (fullOrder && fullOrder.shipping_method !== "pickup") {
-        try {
-          const customerAddress: ShippingAddress = {
-            name: `${fullOrder.shipping_first_name || fullOrder.billing_first_name} ${fullOrder.shipping_last_name || fullOrder.billing_last_name}`,
-            street: fullOrder.shipping_address_line1 || fullOrder.billing_address_line1 || "",
-            suburb:
-              fullOrder.shipping_address_line2 ||
-              fullOrder.shipping_city ||
-              fullOrder.billing_address_line2 ||
-              fullOrder.billing_city ||
-              "",
-            city: fullOrder.shipping_city || fullOrder.billing_city || "",
-            postalCode: fullOrder.shipping_postal_code || fullOrder.billing_postal_code || "",
-            province: fullOrder.shipping_province || fullOrder.billing_province || "",
-            phone: fullOrder.shipping_phone || fullOrder.billing_phone || "",
-            email: customerEmail,
-          }
-
-          const items = (fullOrder.order_items || []).map((item: any) => ({
-            description: item.product?.name || item.product_name || "Product",
-            weight: item.product?.weight || 1,
-            quantity: item.quantity || 1,
-          }))
-
-          const serviceType = fullOrder.shipping_method === "express" ? "EXPRESS" : "ROAD"
-
-          const shipment = await createShipment(
-            AGRIHUB_WAREHOUSE,
-            customerAddress,
-            items,
-            serviceType
-          )
-
-          if (shipment) {
-            const trackingUrl = `${SITE_URL}/track?trackingNumber=${encodeURIComponent(shipment.trackingNumber)}`
-
-            // Update order with tracking info
-            await supabaseAdmin
-              .from("orders")
-              .update({
-                tracking_number: shipment.trackingNumber,
-                tracking_url: trackingUrl,
-                shipping_label_url: shipment.labelUrl,
-                courier_service: "fastway",
-                status: "shipped",
-              })
-              .eq("id", orderId)
-
-            console.log(`[v0] Fastway shipment created for order ${orderNumber}: ${shipment.trackingNumber}`)
-
-            // Send the tracking email (never blocks the ITN).
-            await sendOrderTrackingEmail(customerEmail, {
-              ...emailData,
-              trackingNumber: shipment.trackingNumber,
-              trackingUrl,
-            })
-          } else {
-            console.log(`[v0] Could not auto-create shipment for order ${orderNumber}, manual creation required`)
-          }
-        } catch (shipmentError) {
-          console.error("[v0] Auto shipment creation failed:", shipmentError)
-          // Don't fail the ITN - shipment can be created manually
-        }
-      }
+      // Auto-generate a tracking number and link the order to Fastway. This
+      // always produces a tracking number (real Fastway waybill when the API
+      // is reachable, otherwise a provisional number) and emails it to the
+      // customer. It never throws, so it can never fail the ITN.
+      await fulfilOrderShipment(supabaseAdmin, orderId)
     }
 
     return new NextResponse("OK", { status: 200 })

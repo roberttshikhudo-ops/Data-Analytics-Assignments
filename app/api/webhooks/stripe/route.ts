@@ -3,6 +3,7 @@ import { NextResponse } from "next/server"
 import Stripe from "stripe"
 import { createClient } from "@supabase/supabase-js"
 import { sendOwnerPurchaseAlert } from "@/lib/whatsapp"
+import { fulfilOrderShipment } from "@/lib/shipping"
 
 // Lazy initialization to avoid build-time errors
 function getStripe() {
@@ -135,6 +136,11 @@ export async function POST(req: Request) {
           } catch (alertError) {
             console.error("[v0] Stripe WhatsApp alert error:", alertError)
           }
+
+          // Auto-generate a tracking number and link the order to Fastway.
+          // Always produces a tracking number (real Fastway waybill or a
+          // provisional one) and emails it to the customer. Never throws.
+          await fulfilOrderShipment(supabase, orderId)
         }
         break
       }
