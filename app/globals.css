@@ -237,3 +237,44 @@
   animation: float-delayed 10s ease-in-out infinite;
   animation-delay: 2s;
 }
+
+/* Flash-sale hero: gentle floating for real product cards */
+@keyframes float-soft {
+  0%,
+  100% {
+    transform: translateY(0) rotate(var(--tilt, 0deg));
+  }
+  50% {
+    transform: translateY(-18px) rotate(var(--tilt, 0deg));
+  }
+}
+
+.animate-float-soft {
+  animation: float-soft var(--float-duration, 6s) ease-in-out infinite;
+  animation-delay: var(--float-delay, 0s);
+}
+
+/* Auto-scrolling product ribbon ("moving bedding products") */
+@keyframes marquee-x {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  animation: marquee-x var(--marquee-duration, 40s) linear infinite;
+}
+
+.marquee-track:hover .animate-marquee {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-float-soft,
+  .animate-marquee {
+    animation: none;
+  }
+}
