@@ -58,6 +58,30 @@ export async function getFlashProducts(): Promise<Product[]> {
   return (data || []) as Product[]
 }
 
+// Hand-picked "flying" hero products, in display order:
+// 1) Generic Reversible Comforter, 2) MOMO, 3) RARA, 4) Moffy,
+// 5) Fleece throw (R265), 6) Fleece throw (R255).
+const HERO_SLUGS = [
+  '5pcs-generic-reversible-comforters-grey',
+  'momo-002-super-king-quilt-set',
+  'rara-002-super-king-quilt-set',
+  'moffy-001',
+  'fleece-blanket-throw-teal-200cm-by-230cm',
+  'fleece-throw-180x200-grey',
+] as const
+
+export async function getFlashHeroProducts(): Promise<Product[]> {
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from('products')
+    .select('*, category:categories(name, slug)')
+    .in('slug', HERO_SLUGS as unknown as string[])
+
+  const bySlug = new Map((data || []).map((p) => [p.slug, p as Product]))
+  // Preserve the curated order and drop any that aren't found.
+  return HERO_SLUGS.map((slug) => bySlug.get(slug)).filter(Boolean) as Product[]
+}
+
 /**
  * The full 24-Hour Winter Bedding Flash Sale experience.
  *
@@ -67,8 +91,14 @@ export async function getFlashProducts(): Promise<Product[]> {
  *   has its own navigation and continues with the rest of the store below).
  */
 export async function FlashSaleContent({ embedded = false }: { embedded?: boolean }) {
-  const products = await getFlashProducts()
+  const [products, heroProducts] = await Promise.all([
+    getFlashProducts(),
+    getFlashHeroProducts(),
+  ])
   const endDate = getFlashEndDate()
+
+  // Fall back to the general deal list if any curated hero product is missing.
+  const floatingProducts = heroProducts.length >= 4 ? heroProducts : products
 
   // Real "up to X% off" headline computed from live prices.
   const maxDiscount = products.reduce((max, p) => {
@@ -164,7 +194,7 @@ export async function FlashSaleContent({ embedded = false }: { embedded?: boolea
 
           {/* Right: floating real bedding products */}
           <div className="relative">
-            <FloatingBedding products={products} />
+            <FloatingBedding products={floatingProducts} />
           </div>
         </div>
       </section>

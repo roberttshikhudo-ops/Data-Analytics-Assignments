@@ -8,20 +8,28 @@ import type { Product } from '@/lib/types'
 // slightly different duration/delay/tilt so the motion feels organic.
 const SLOTS = [
   {
-    className: 'left-[2%] top-[6%] w-[42%] md:w-[44%] z-20',
-    style: { '--float-duration': '6s', '--float-delay': '0s', '--tilt': '-4deg' },
+    className: 'left-[1%] top-[3%] w-[33%] md:w-[34%] z-20',
+    style: { '--float-duration': '6s', '--float-delay': '0s', '--tilt': '-5deg' },
   },
   {
-    className: 'right-[3%] top-[0%] w-[38%] md:w-[40%] z-10',
+    className: 'right-[2%] top-[6%] w-[30%] md:w-[31%] z-10',
     style: { '--float-duration': '7.5s', '--float-delay': '0.8s', '--tilt': '5deg' },
   },
   {
-    className: 'left-[10%] bottom-[2%] w-[40%] md:w-[42%] z-30',
-    style: { '--float-duration': '6.8s', '--float-delay': '0.4s', '--tilt': '3deg' },
+    className: 'left-[19%] top-[36%] w-[34%] md:w-[35%] z-30',
+    style: { '--float-duration': '6.8s', '--float-delay': '0.4s', '--tilt': '2deg' },
   },
   {
-    className: 'right-[6%] bottom-[6%] w-[34%] md:w-[36%] z-20',
-    style: { '--float-duration': '8s', '--float-delay': '1.2s', '--tilt': '-6deg' },
+    className: 'right-[3%] top-[40%] w-[28%] md:w-[29%] z-20',
+    style: { '--float-duration': '8s', '--float-delay': '1.2s', '--tilt': '-4deg' },
+  },
+  {
+    className: 'left-[3%] bottom-[3%] w-[30%] md:w-[31%] z-20',
+    style: { '--float-duration': '7s', '--float-delay': '0.6s', '--tilt': '4deg' },
+  },
+  {
+    className: 'right-[11%] bottom-[4%] w-[32%] md:w-[33%] z-10',
+    style: { '--float-duration': '6.4s', '--float-delay': '1.6s', '--tilt': '-3deg' },
   },
 ] as const
 
