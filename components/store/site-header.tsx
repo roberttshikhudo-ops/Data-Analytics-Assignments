@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { useState } from 'react'
-import { Menu, Search, ShoppingCart, User, Heart, X, ChevronDown } from 'lucide-react'
+import { Menu, Search, ShoppingCart, User, Heart, X, ChevronDown, MessageCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { SearchBar } from '@/components/store/search-bar'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
@@ -64,6 +64,15 @@ export function SiteHeader() {
               <SheetTitle className="text-left">Menu</SheetTitle>
             </SheetHeader>
             <nav className="mt-6 flex flex-col gap-4">
+              <Button
+                asChild
+                className="w-full justify-center gap-2 bg-[#25D366] text-white hover:bg-[#20BD5A]"
+              >
+                <Link href="/order" onClick={() => setMobileMenuOpen(false)}>
+                  <MessageCircle className="h-5 w-5" />
+                  Order on WhatsApp
+                </Link>
+              </Button>
               <Link 
                 href="/shop" 
                 className="text-lg font-medium hover:text-primary"
@@ -163,6 +172,17 @@ export function SiteHeader() {
           >
             {searchOpen ? <X className="h-5 w-5" /> : <Search className="h-5 w-5" />}
             <span className="sr-only">Search</span>
+          </Button>
+
+          {/* Order on WhatsApp */}
+          <Button
+            asChild
+            className="hidden md:inline-flex gap-2 bg-[#25D366] text-white hover:bg-[#20BD5A]"
+          >
+            <Link href="/order">
+              <MessageCircle className="h-5 w-5" />
+              Order on WhatsApp
+            </Link>
           </Button>
 
           {/* Wishlist */}
