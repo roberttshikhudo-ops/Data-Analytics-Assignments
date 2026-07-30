@@ -37,6 +37,67 @@ const SELLING_POINTS = [
   "Order by WhatsApp, phone or online - fast and easy",
 ]
 
+// 24-hour flash-sale push captions — paste these to drive traffic to the
+// /promo/flash-sale landing page for an immediate sales spike.
+const FLASH_SALE_URL = `${BUSINESS.website}/promo/flash-sale`
+const FLASH_CAPTIONS: { key: string; label: string; text: string }[] = [
+  {
+    key: "whatsapp",
+    label: "WhatsApp",
+    text: `*24-HOUR WINTER BEDDING FLASH SALE!* 🔥❄️
+
+TODAY ONLY - our warmest bedding at the lowest prices of the season. When the clock hits midnight, these deals are GONE.
+
+🛏️ Corduroy Comforter Sets (Queen) - now R450 (was R529)
+❄️ Winter Blankets 2Ply (Queen) - now R290
+🔥 Corduroy Fleece Blankets - now R180 (was R240)
+✨ Fleece Throws - now R160
+
+📦 Nationwide delivery | 💳 Secure checkout | 📲 Order on WhatsApp
+
+👉 Shop now before midnight: ${FLASH_SALE_URL}
+Or reply *BEDDING* and we'll help you order right here.`,
+  },
+  {
+    key: "facebook",
+    label: "Facebook",
+    text: `🔥 24-HOUR FLASH SALE - WINTER BEDDING 🔥
+
+For the next 24 hours only, wrap your home in warmth for less. Once the timer runs out, prices go back up!
+
+🛏️ Corduroy Comforter Sets - R450 (was R529)
+❄️ 2Ply Winter Blankets - R290
+🔥 Corduroy Fleece - R180 (was R240)
+✨ Cosy Fleece Throws - R160
+
+📦 Delivered nationwide | 💳 Safe checkout | 📲 Order by WhatsApp
+
+⏰ Deals end at midnight - shop now 👇
+${FLASH_SALE_URL}
+
+Tag someone who feels the cold! 🥶`,
+  },
+  {
+    key: "instagram",
+    label: "Instagram",
+    text: `⏰ 24 HOURS ONLY. Winter Bedding Flash Sale is LIVE. ❄️🔥
+
+Corduroy comforters, 2ply blankets & fleece throws at their lowest prices of the season. Midnight and they're gone.
+
+📲 Order on WhatsApp 083 306 1529
+🛒 Link in bio / ${FLASH_SALE_URL}
+
+.
+.
+#flashsale #winterbedding #comforter #blankets #homedecor #southafrica #bedroomgoals #agrihubsa #onlineshopping #shoplocalsa #cosyhome #dealsdealsdeals #24hoursale`,
+  },
+  {
+    key: "sms",
+    label: "SMS / Email",
+    text: `Agri Hub SA 24-HOUR FLASH SALE! Winter bedding at rock-bottom prices TODAY ONLY. Comforters R450, blankets R290, fleece from R160. Ends midnight! Shop ${FLASH_SALE_URL} or WhatsApp ${BUSINESS.whatsapp}. Reply STOP to opt out.`,
+  },
+]
+
 // Platform-specific captions
 const CAPTIONS: { key: string; label: string; text: string }[] = [
   {
@@ -268,6 +329,44 @@ export default function MarketingPage() {
           </Card>
         </div>
       </div>
+
+      {/* 24-hour flash sale push */}
+      <Card className="border-red-300 bg-red-50/50">
+        <CardHeader>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <CardTitle className="flex items-center gap-2 text-lg text-red-700">
+                <Flame className="h-5 w-5" /> 24-Hour Flash Sale Push
+              </CardTitle>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Post these now to drive traffic to your live flash-sale page for an
+                immediate sales spike. Every caption links to the landing page below.
+              </p>
+            </div>
+            <Button variant="outline" asChild className="gap-2 bg-transparent">
+              <a href="/promo/flash-sale" target="_blank" rel="noopener noreferrer">
+                <Megaphone className="h-4 w-4" /> View flash-sale page
+              </a>
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <Tabs defaultValue="whatsapp">
+            <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4">
+              {FLASH_CAPTIONS.map((c) => (
+                <TabsTrigger key={c.key} value={c.key}>
+                  {c.label}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+            {FLASH_CAPTIONS.map((c) => (
+              <TabsContent key={c.key} value={c.key} className="mt-4">
+                <CopyBlock text={c.text} />
+              </TabsContent>
+            ))}
+          </Tabs>
+        </CardContent>
+      </Card>
 
       {/* Captions */}
       <Card>
