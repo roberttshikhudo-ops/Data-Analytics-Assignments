@@ -10,7 +10,7 @@ const socialLinks = {
   instagram: 'https://instagram.com/agrihubsa',
   linkedin: 'https://linkedin.com/company/agrihubsa',
   youtube: 'https://youtube.com/@agrihubsa',
-  whatsapp: 'https://wa.me/27791099490',
+  whatsapp: 'https://wa.me/27833061529',
 }
 
 const footerLinks = {
