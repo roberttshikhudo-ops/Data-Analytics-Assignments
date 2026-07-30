@@ -6,8 +6,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { toast } from "sonner"
-import { Copy, Check, Download, Megaphone, ImageDown, ListChecks, Flame } from "lucide-react"
+import { Copy, Check, Download, Megaphone, ImageDown, ListChecks, Flame, MessageCircle } from "lucide-react"
 import { BeddingFlyerGenerator } from "@/components/admin/bedding-flyer-generator"
+import { WHATSAPP_GREETING_MESSAGE } from "@/lib/whatsapp"
 
 // Business details (mirrors lib/invoice.ts BUSINESS constant)
 const BUSINESS = {
@@ -329,6 +330,24 @@ export default function MarketingPage() {
           </Card>
         </div>
       </div>
+
+      {/* WhatsApp auto-greeting to paste into the Business app */}
+      <Card className="border-emerald-300 bg-emerald-50/50">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-lg text-emerald-800">
+            <MessageCircle className="h-5 w-5" /> WhatsApp Auto-Greeting
+          </CardTitle>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Paste this into WhatsApp Business app &rarr; Settings &rarr; Business tools &rarr;
+            Greeting message. New customers who message you will automatically receive this
+            numbered menu. It matches the on-site &ldquo;Order on WhatsApp&rdquo; page so
+            replies like &ldquo;1&rdquo; or &ldquo;Comforters&rdquo; are easy to action.
+          </p>
+        </CardHeader>
+        <CardContent>
+          <CopyBlock text={WHATSAPP_GREETING_MESSAGE} />
+        </CardContent>
+      </Card>
 
       {/* 24-hour flash sale push */}
       <Card className="border-red-300 bg-red-50/50">

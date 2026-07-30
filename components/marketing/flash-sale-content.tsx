@@ -18,13 +18,7 @@ import { ProductMarquee } from '@/components/marketing/product-marquee'
 import { Button } from '@/components/ui/button'
 import { calculateDiscount } from '@/lib/utils'
 import type { Product } from '@/lib/types'
-
-// Public sales WhatsApp line (083 306 1529).
-export const SALES_WA = '27833061529'
-const WA_MESSAGE = encodeURIComponent(
-  "Hi Agri Hub SA! I'd like to order from the 24-Hour Winter Bedding Flash Sale.",
-)
-export const WA_LINK = `https://wa.me/${SALES_WA}?text=${WA_MESSAGE}`
+import { SALES_WHATSAPP_NUMBER } from '@/lib/whatsapp'
 
 // A genuine 24-hour window: ends at 23:59 tonight. If fewer than 3 hours remain
 // when a visitor lands, roll to 23:59 tomorrow so the urgency stays meaningful.
@@ -184,7 +178,7 @@ export async function FlashSaleContent({ embedded = false }: { embedded?: boolea
                 className="h-14 gap-2 bg-[#25D366] px-8 text-lg font-semibold text-white hover:bg-[#20BD5A]"
                 asChild
               >
-                <Link href={WA_LINK} target="_blank" rel="noopener noreferrer">
+                <Link href="/order">
                   <MessageCircle className="h-5 w-5" />
                   Order on WhatsApp
                 </Link>
@@ -312,7 +306,7 @@ export async function FlashSaleContent({ embedded = false }: { embedded?: boolea
                 className="h-14 gap-2 bg-[#25D366] px-8 text-lg font-semibold text-white hover:bg-[#20BD5A]"
                 asChild
               >
-                <Link href={WA_LINK} target="_blank" rel="noopener noreferrer">
+                <Link href="/order">
                   <MessageCircle className="h-5 w-5" />
                   Order on WhatsApp
                 </Link>
@@ -321,7 +315,7 @@ export async function FlashSaleContent({ embedded = false }: { embedded?: boolea
 
             <div className="mt-6">
               <Button variant="link" className="text-white/80 hover:text-white" asChild>
-                <a href={`tel:+${SALES_WA}`}>
+                <a href={`tel:+${SALES_WHATSAPP_NUMBER}`}>
                   <Phone className="mr-2 h-4 w-4" />
                   Call / WhatsApp: 083 306 1529
                 </a>
@@ -341,7 +335,7 @@ export async function FlashSaleContent({ embedded = false }: { embedded?: boolea
             </Link>
           </Button>
           <Button className="flex-1 gap-2 bg-[#25D366] text-white hover:bg-[#20BD5A]" asChild>
-            <Link href={WA_LINK} target="_blank" rel="noopener noreferrer">
+            <Link href="/order">
               <MessageCircle className="h-4 w-4" />
               WhatsApp
             </Link>

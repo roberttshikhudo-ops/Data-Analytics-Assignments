@@ -17,6 +17,141 @@ function formatRand(amount: number): string {
   return `R${(Number(amount) || 0).toFixed(2)}`
 }
 
+/* -------------------------------------------------------------------------- */
+/*  Customer-facing "Order on WhatsApp" configuration                          */
+/* -------------------------------------------------------------------------- */
+
+/** Public sales/orders WhatsApp number (083 306 1529) in wa.me format. */
+export const SALES_WHATSAPP_NUMBER = "27833061529"
+
+/**
+ * The exact message a customer sends when they tap "Order on WhatsApp".
+ * Keep this in one place so every button across the site is identical.
+ */
+export const ORDER_INTENT_MESSAGE =
+  "Hello Agri Hub SA, I would like to place an order from your website. " +
+  "Please help me choose the right product and send me a secure payment link " +
+  "once my order is confirmed."
+
+/**
+ * The greeting the owner should paste into WhatsApp Business app
+ * (Settings > Business tools > Greeting message) so first-time chats
+ * automatically receive the numbered menu.
+ */
+export const WHATSAPP_GREETING_MESSAGE =
+  "Welcome to Agri Hub SA. Thank you for contacting us. Please choose an option by " +
+  "replying with the number:\n\n" +
+  "1. Shop Comforters\n" +
+  "2. Shop Duvets\n" +
+  "3. Shop Blankets & Throws\n" +
+  "4. Winter Specials\n" +
+  "5. Shop Any Other Products\n" +
+  "6. Track My Order\n" +
+  "7. Delivery Cost\n" +
+  "8. Speak to a Sales Consultant\n\n" +
+  "Once you have selected your product, we will send you a secure payment link for " +
+  "immediate checkout."
+
+/** Builds a wa.me click-to-chat link to the sales number with a prefilled message. */
+export function buildOrderWaLink(message: string = ORDER_INTENT_MESSAGE): string {
+  return `https://wa.me/${SALES_WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`
+}
+
+export interface OrderMenuOption {
+  /** Menu number as shown to the customer (1-8). */
+  n: number
+  label: string
+  description: string
+  /** Lucide icon name used by the order page. */
+  icon: string
+  /** On-site destination that shows the relevant products/info. */
+  href: string
+  /** Prefilled WhatsApp message when the customer prefers to chat directly. */
+  waMessage: string
+}
+
+/**
+ * The 8 ordering options. On-site links deep-link into the real catalogue so
+ * the customer can browse; each also carries a tailored WhatsApp message that
+ * tells the sales team exactly what the customer wants.
+ */
+export const ORDER_MENU: OrderMenuOption[] = [
+  {
+    n: 1,
+    label: "Shop Comforters",
+    description: "Reversible & corduroy comforter sets",
+    icon: "BedDouble",
+    href: "/search?q=comforter",
+    waMessage:
+      "Hello Agri Hub SA, I would like to shop Comforters (Option 1). Please help me choose and send a secure payment link once confirmed.",
+  },
+  {
+    n: 2,
+    label: "Shop Duvets",
+    description: "Quilt & duvet sets for every bed size",
+    icon: "Layers",
+    href: "/search?q=quilt",
+    waMessage:
+      "Hello Agri Hub SA, I would like to shop Duvets (Option 2). Please help me choose and send a secure payment link once confirmed.",
+  },
+  {
+    n: 3,
+    label: "Shop Blankets & Throws",
+    description: "Warm winter blankets and cosy throws",
+    icon: "Blocks",
+    href: "/search?q=blanket",
+    waMessage:
+      "Hello Agri Hub SA, I would like to shop Blankets & Throws (Option 3). Please help me choose and send a secure payment link once confirmed.",
+  },
+  {
+    n: 4,
+    label: "Winter Specials",
+    description: "This season's best bedding deals",
+    icon: "Snowflake",
+    href: "/promo/winter-specials",
+    waMessage:
+      "Hello Agri Hub SA, I am interested in your Winter Specials (Option 4). Please send me today's best deals and a secure payment link once confirmed.",
+  },
+  {
+    n: 5,
+    label: "Shop Any Other Products",
+    description: "Browse our full catalogue",
+    icon: "Store",
+    href: "/shop",
+    waMessage:
+      "Hello Agri Hub SA, I would like to shop other products (Option 5). Please help me choose and send a secure payment link once confirmed.",
+  },
+  {
+    n: 6,
+    label: "Track My Order",
+    description: "Check where your parcel is",
+    icon: "Truck",
+    href: "/track",
+    waMessage:
+      "Hello Agri Hub SA, I would like to track my order (Option 6). My order number is: ",
+  },
+  {
+    n: 7,
+    label: "Delivery Cost",
+    description: "Nationwide delivery & free over R1,000",
+    icon: "MapPin",
+    href: "#delivery",
+    waMessage:
+      "Hello Agri Hub SA, please tell me the delivery cost (Option 7) to my area. My town/postal code is: ",
+  },
+  {
+    n: 8,
+    label: "Speak to a Sales Consultant",
+    description: "Get help from a real person",
+    icon: "Headphones",
+    href: buildOrderWaLink(
+      "Hello Agri Hub SA, I would like to speak to a Sales Consultant (Option 8).",
+    ),
+    waMessage:
+      "Hello Agri Hub SA, I would like to speak to a Sales Consultant (Option 8).",
+  },
+]
+
 const STATUS_MESSAGE: Record<string, string> = {
   pending: "we have received your order and it is being confirmed",
   processing: "your order is now being prepared",
