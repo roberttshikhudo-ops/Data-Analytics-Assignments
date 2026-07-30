@@ -1,11 +1,12 @@
 import { Suspense } from 'react'
 import Link from 'next/link'
-import { ArrowRight, Truck, Shield, Phone, Leaf, Flame } from 'lucide-react'
+import { ArrowRight, Truck, Shield, Phone, Leaf } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ProductCard, ProductCardSkeleton } from '@/components/store/product-card'
 import { CategoryCard } from '@/components/store/category-card'
 import { HeroVideo } from '@/components/store/hero-video'
 import { TestimonialsSection } from '@/components/store/testimonials-section'
+import { FlashSaleContent } from '@/components/marketing/flash-sale-content'
 import { createClient } from '@/lib/supabase/server'
 
 async function getFeaturedProducts() {
@@ -140,23 +141,8 @@ export default async function HomePage() {
 
   return (
     <div className="flex flex-col">
-      {/* Flash Sale Announcement Banner */}
-      <Link
-        href="/promo/flash-sale"
-        className="group block bg-red-600 text-white transition-colors hover:bg-red-700"
-      >
-        <div className="container flex flex-wrap items-center justify-center gap-x-3 gap-y-1 py-2.5 text-center text-sm md:text-base">
-          <Flame className="h-5 w-5 shrink-0 animate-pulse" aria-hidden="true" />
-          <span className="font-bold uppercase tracking-wide">24-Hour Flash Sale</span>
-          <span className="hidden text-white/90 sm:inline">
-            Winter bedding at the lowest prices of the season - today only
-          </span>
-          <span className="inline-flex items-center gap-1 font-semibold underline underline-offset-4">
-            Shop now
-            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
-          </span>
-        </div>
-      </Link>
+      {/* Flash Sale — first thing every visitor sees */}
+      <FlashSaleContent embedded />
 
       {/* Hero Video Section */}
       <HeroVideo seedImages={seedImages} />
