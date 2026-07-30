@@ -14,6 +14,8 @@ import {
 import { createClient } from '@/lib/supabase/server'
 import { ProductCard } from '@/components/store/product-card'
 import { CountdownTimer } from '@/components/marketing/countdown-timer'
+import { FloatingBedding } from '@/components/marketing/floating-bedding'
+import { ProductMarquee } from '@/components/marketing/product-marquee'
 import { Button } from '@/components/ui/button'
 import { calculateDiscount } from '@/lib/utils'
 import type { Product } from '@/lib/types'
@@ -117,57 +119,79 @@ export default async function FlashSalePage() {
     <div className="flex flex-col pb-20 md:pb-0">
       {/* Hero */}
       <section className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-900 text-white">
-        <div className="container relative py-14 text-center md:py-20">
-          <div className="mx-auto mb-5 inline-flex items-center gap-2 rounded-full bg-red-500/90 px-4 py-2 text-sm font-semibold">
-            <Flame className="h-4 w-4" />
-            24-Hour Flash Sale
-          </div>
+        {/* Decorative glows */}
+        <div className="pointer-events-none absolute -left-24 top-10 h-72 w-72 rounded-full bg-emerald-500/20 blur-3xl" />
+        <div className="pointer-events-none absolute -right-20 bottom-0 h-72 w-72 rounded-full bg-red-500/20 blur-3xl" />
 
-          <h1 className="mx-auto max-w-3xl text-balance text-4xl font-bold leading-tight md:text-6xl">
-            Winter Bedding Sale
-            {maxDiscount > 0 && (
-              <span className="mt-2 block text-emerald-400">Save up to {maxDiscount}% — Today Only</span>
-            )}
-          </h1>
+        <div className="container relative grid items-center gap-10 py-14 md:grid-cols-2 md:py-20">
+          {/* Left: copy + countdown + CTAs */}
+          <div className="text-center md:text-left">
+            <div className="mb-5 inline-flex items-center gap-2 rounded-full bg-red-500/90 px-4 py-2 text-sm font-semibold">
+              <Flame className="h-4 w-4" />
+              24-Hour Flash Sale
+            </div>
 
-          <p className="mx-auto mt-5 max-w-xl text-pretty text-lg text-white/85">
-            Cozy corduroy comforters, plush fleece throws and warm winter blankets at their
-            lowest prices. When the timer hits zero, the deals are gone.
-          </p>
+            <h1 className="text-balance text-4xl font-bold leading-tight md:text-6xl">
+              Winter Bedding Sale
+              {maxDiscount > 0 && (
+                <span className="mt-2 block text-emerald-400">Save up to {maxDiscount}% — Today Only</span>
+              )}
+            </h1>
 
-          {/* Countdown */}
-          <div className="mt-8">
-            <p className="mb-2 text-sm font-medium uppercase tracking-wider text-white/70">
-              Offer ends in
+            <p className="mx-auto mt-5 max-w-xl text-pretty text-lg text-white/85 md:mx-0">
+              Cozy corduroy comforters, plush fleece throws and warm winter blankets at their
+              lowest prices. When the timer hits zero, the deals are gone.
             </p>
-            <CountdownTimer endDate={endDate} className="flex justify-center" />
+
+            {/* Countdown */}
+            <div className="mt-8">
+              <p className="mb-2 text-sm font-medium uppercase tracking-wider text-white/70">
+                Offer ends in
+              </p>
+              <CountdownTimer endDate={endDate} className="flex justify-center md:justify-start" />
+            </div>
+
+            {/* CTAs */}
+            <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row md:justify-start">
+              <Button
+                size="lg"
+                className="h-14 bg-emerald-500 px-8 text-lg font-semibold text-white hover:bg-emerald-600"
+                asChild
+              >
+                <Link href="#deals">
+                  Shop the Deals
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Link>
+              </Button>
+              <Button
+                size="lg"
+                className="h-14 gap-2 bg-[#25D366] px-8 text-lg font-semibold text-white hover:bg-[#20BD5A]"
+                asChild
+              >
+                <Link href={WA_LINK} target="_blank" rel="noopener noreferrer">
+                  <MessageCircle className="h-5 w-5" />
+                  Order on WhatsApp
+                </Link>
+              </Button>
+            </div>
           </div>
 
-          {/* CTAs */}
-          <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
-            <Button
-              size="lg"
-              className="h-14 bg-emerald-500 px-8 text-lg font-semibold text-white hover:bg-emerald-600"
-              asChild
-            >
-              <Link href="#deals">
-                Shop the Deals
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Link>
-            </Button>
-            <Button
-              size="lg"
-              className="h-14 gap-2 bg-[#25D366] px-8 text-lg font-semibold text-white hover:bg-[#20BD5A]"
-              asChild
-            >
-              <Link href={WA_LINK} target="_blank" rel="noopener noreferrer">
-                <MessageCircle className="h-5 w-5" />
-                Order on WhatsApp
-              </Link>
-            </Button>
+          {/* Right: floating real bedding products */}
+          <div className="relative">
+            <FloatingBedding products={products} />
           </div>
         </div>
       </section>
+
+      {/* Moving product ribbon */}
+      {products.length > 0 && (
+        <section className="border-b bg-background py-6">
+          <p className="container mb-4 text-center text-sm font-medium uppercase tracking-wider text-muted-foreground">
+            Tap any product to grab the deal
+          </p>
+          <ProductMarquee products={products} />
+        </section>
+      )}
 
       {/* Trust bar */}
       <section className="border-b bg-card py-6">
