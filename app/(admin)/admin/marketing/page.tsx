@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { toast } from "sonner"
-import { Copy, Check, Download, Megaphone, ImageDown, ListChecks } from "lucide-react"
+import { Copy, Check, Download, Megaphone, ImageDown, ListChecks, Flame } from "lucide-react"
 import { BeddingFlyerGenerator } from "@/components/admin/bedding-flyer-generator"
 
 // Business details (mirrors lib/invoice.ts BUSINESS constant)
