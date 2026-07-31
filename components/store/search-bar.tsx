@@ -163,7 +163,7 @@ export function SearchBar({ className, autoFocus, onSearch }: SearchBarProps) {
               {results.products.map((product) => (
                 <Link
                   key={product.id}
-                  href={`/product/${product.slug}`}
+                  href={`/products/${product.slug}`}
                   onClick={handleResultClick}
                   className="flex items-start gap-3 p-2 rounded-md hover:bg-gray-100 transition-colors"
                 >
