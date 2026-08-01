@@ -1,16 +1,20 @@
 'use client'
 
+import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Heart, ShoppingCart, Eye } from 'lucide-react'
+import { Heart, ShoppingCart, Eye, MessageCircle, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useCart } from '@/hooks/use-cart'
 import { useWishlist } from '@/hooks/use-wishlist'
+import { ProductQuickView } from '@/components/store/product-quick-view'
 import { formatPrice, calculateDiscount, cn } from '@/lib/utils'
+import { buildProductWaLink } from '@/lib/whatsapp'
 import type { Product } from '@/lib/types'
+import type { ProductGroup } from '@/lib/product-variants'
 
 // Tiny neutral blur placeholder so a color paints instantly while the
 // optimized image streams in — avoids blank/grey boxes on first visit.
@@ -19,40 +23,60 @@ const BLUR_DATA_URL =
 
 interface ProductCardProps {
   product: Product
+  /** Optional pre-computed variant group (colour siblings collapsed to one card). */
+  group?: ProductGroup
   /** Eagerly load this image (use for the first row of above-the-fold cards). */
   priority?: boolean
 }
 
-export function ProductCard({ product, priority = false }: ProductCardProps) {
+export function ProductCard({ product, group, priority = false }: ProductCardProps) {
   const { addItem } = useCart()
-  const { isInWishlist, isLoading: wishlistLoading, toggleWishlist } = useWishlist(product.id)
-  const discount = calculateDiscount(product.price, product.compare_at_price)
-  const isOutOfStock = product.stock_quantity <= 0
-  const isLowStock = product.stock_quantity > 0 && product.stock_quantity <= 10
+
+  // Fall back to a trivial single-variant group for legacy call sites.
+  const g: ProductGroup = group ?? {
+    id: product.id,
+    name: product.name,
+    primary: product,
+    hasVariants: false,
+    variants: [{ product, label: product.name, colorKey: 'default', swatch: '#d8c7a8' }],
+  }
+
+  const [activeIndex, setActiveIndex] = useState(0)
+  const [quickViewOpen, setQuickViewOpen] = useState(false)
+
+  const active = g.variants[activeIndex]?.product ?? g.primary
+  const { isInWishlist, isLoading: wishlistLoading, toggleWishlist } = useWishlist(active.id)
+
+  const discount = calculateDiscount(active.price, active.compare_at_price)
+  const isOutOfStock = active.stock_quantity <= 0
+  const isLowStock = active.stock_quantity > 0 && active.stock_quantity <= 10
+  const displayName = g.hasVariants ? g.name : active.name
+
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL
+  const productUrl = baseUrl ? `${baseUrl}/products/${active.slug}` : undefined
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault()
     if (isOutOfStock) return
-    
     addItem({
-      productId: product.id,
-      name: product.name,
-      price: product.price,
-      image: product.image_url,
-      sku: product.sku,
-      stock: product.stock_quantity,
+      productId: active.id,
+      name: active.name,
+      price: active.price,
+      image: active.image_url,
+      sku: active.sku,
+      stock: active.stock_quantity,
     })
   }
 
   return (
-    <Card className="group relative overflow-hidden border-border/50 hover:border-primary/30 transition-colors">
-      <Link href={`/products/${product.slug}`}>
+    <Card className="group relative flex flex-col overflow-hidden border-border/50 transition-colors hover:border-primary/30">
+      <Link href={`/products/${active.slug}`} className="flex flex-1 flex-col">
         {/* Image */}
-        <div className="relative aspect-square bg-muted overflow-hidden">
-          {product.image_url ? (
+        <div className="relative aspect-square overflow-hidden bg-muted">
+          {active.image_url ? (
             <Image
-              src={product.image_url}
-              alt={product.name}
+              src={active.image_url}
+              alt={displayName}
               fill
               className="object-cover transition-transform group-hover:scale-105"
               sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
@@ -65,43 +89,49 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
               decoding="async"
             />
           ) : (
-            <div className="h-full w-full flex items-center justify-center text-muted-foreground bg-gradient-to-br from-primary/5 to-accent/5">
+            <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary/5 to-accent/5 text-muted-foreground">
               <ShoppingCart className="h-12 w-12" />
             </div>
           )}
-          
+
           {/* Badges */}
-          <div className="absolute top-2 left-2 flex flex-col gap-1">
+          <div className="absolute left-2 top-2 flex flex-col gap-1">
             {discount && (
               <Badge variant="destructive" className="text-xs">
                 -{discount}%
               </Badge>
             )}
-            {product.is_featured && (
-              <Badge className="bg-primary text-xs">Featured</Badge>
+            {active.is_featured && <Badge className="bg-primary text-xs">Featured</Badge>}
+            {active.is_new && !isOutOfStock && (
+              <Badge className="bg-accent text-accent-foreground text-xs">New</Badge>
             )}
             {isOutOfStock && (
-              <Badge variant="secondary" className="text-xs">Out of Stock</Badge>
+              <Badge variant="secondary" className="text-xs">
+                Out of Stock
+              </Badge>
             )}
             {isLowStock && !isOutOfStock && (
-              <Badge variant="outline" className="bg-warning/10 text-warning-foreground border-warning text-xs">
+              <Badge
+                variant="outline"
+                className="border-warning bg-warning/10 text-xs text-warning-foreground"
+              >
                 Low Stock
               </Badge>
             )}
-            {product.availability === "online_only" && (
-              <Badge variant="outline" className="bg-blue-500/10 text-blue-700 border-blue-300 text-xs">
+            {active.availability === 'online_only' && (
+              <Badge variant="outline" className="border-blue-300 bg-blue-500/10 text-xs text-blue-700">
                 Online Only
               </Badge>
             )}
-            {product.availability === "in_store_only" && (
-              <Badge variant="outline" className="bg-amber-500/10 text-amber-700 border-amber-300 text-xs">
+            {active.availability === 'in_store_only' && (
+              <Badge variant="outline" className="border-amber-300 bg-amber-500/10 text-xs text-amber-700">
                 In-Store Only
               </Badge>
             )}
           </div>
 
           {/* Quick actions */}
-          <div className="absolute top-2 right-2 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="absolute right-2 top-2 flex flex-col gap-1 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
             <Button
               size="icon"
               variant="secondary"
@@ -120,55 +150,111 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
               size="icon"
               variant="secondary"
               className="h-8 w-8 rounded-full"
+              aria-label="Quick view"
+              onClick={(e) => {
+                e.preventDefault()
+                setQuickViewOpen(true)
+              }}
             >
               <Eye className="h-4 w-4" />
             </Button>
           </div>
         </div>
 
-        <CardContent className="p-4">
+        <CardContent className="flex flex-1 flex-col p-4">
           {/* Category */}
-          {product.category && (
-            <p className="text-sm text-muted-foreground mb-1">
-              {product.category.name}
-            </p>
+          {active.category && (
+            <p className="mb-1 text-sm text-muted-foreground">{active.category.name}</p>
           )}
-          
+
           {/* Name */}
-          <h3 className="font-medium text-base leading-snug line-clamp-2 min-h-[3rem] group-hover:text-primary transition-colors">
-            {product.name}
+          <h3 className="line-clamp-2 min-h-[3rem] text-base font-medium leading-snug transition-colors group-hover:text-primary">
+            {displayName}
           </h3>
 
           {/* Price */}
           <div className="mt-2 flex items-baseline gap-2">
-            <span className="font-bold text-xl">{formatPrice(product.price)}</span>
-            {product.compare_at_price && (
+            <span className="text-xl font-bold">{formatPrice(active.price)}</span>
+            {active.compare_at_price && (
               <span className="text-base text-muted-foreground line-through">
-                {formatPrice(product.compare_at_price)}
+                {formatPrice(active.compare_at_price)}
               </span>
             )}
           </div>
 
-          {/* Stock indicator */}
-          {!isOutOfStock && (
-            <p className={`text-sm mt-1 ${isLowStock ? 'text-warning-foreground' : 'text-muted-foreground'}`}>
-              {isLowStock ? `Only ${product.stock_quantity} left` : 'In Stock'}
-            </p>
+          {/* Colour swatches */}
+          {g.hasVariants && (
+            <div className="mt-3 flex items-center gap-1.5">
+              {g.variants.slice(0, 5).map((v, i) => (
+                <button
+                  key={v.product.id}
+                  type="button"
+                  aria-label={`View ${v.label}`}
+                  aria-pressed={i === activeIndex}
+                  onClick={(e) => {
+                    e.preventDefault()
+                    setActiveIndex(i)
+                  }}
+                  className={cn(
+                    'relative h-6 w-6 rounded-full border shadow-sm transition-transform hover:scale-110',
+                    i === activeIndex ? 'ring-2 ring-primary ring-offset-1' : 'border-border',
+                  )}
+                  style={{ backgroundColor: v.swatch }}
+                >
+                  {i === activeIndex && (
+                    <Check
+                      className={cn(
+                        'absolute inset-0 m-auto h-3 w-3',
+                        v.colorKey === 'white' || v.colorKey === 'cream' || v.colorKey === 'ivory'
+                          ? 'text-black'
+                          : 'text-white',
+                      )}
+                    />
+                  )}
+                </button>
+              ))}
+              {g.variants.length > 5 && (
+                <span className="text-xs text-muted-foreground">+{g.variants.length - 5}</span>
+              )}
+            </div>
           )}
         </CardContent>
       </Link>
 
-      {/* Add to cart button */}
-      <div className="px-4 pb-4">
+      {/* Actions */}
+      <div className="flex flex-col gap-2 px-4 pb-4">
         <Button
           className="w-full"
           variant={isOutOfStock ? 'secondary' : 'default'}
           disabled={isOutOfStock}
           onClick={handleAddToCart}
         >
+          <ShoppingCart className="mr-2 h-4 w-4" />
           {isOutOfStock ? 'Out of Stock' : 'Add to Cart'}
         </Button>
+        <Button
+          asChild
+          variant="outline"
+          className="w-full gap-2 border-[#25D366]/40 text-[#075E54] hover:bg-[#25D366]/10 hover:text-[#075E54]"
+        >
+          <a
+            href={buildProductWaLink(active.name, active.price, productUrl)}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <MessageCircle className="h-4 w-4" />
+            Order on WhatsApp
+          </a>
+        </Button>
       </div>
+
+      <ProductQuickView
+        group={g}
+        activeIndex={activeIndex}
+        onSelectVariant={setActiveIndex}
+        open={quickViewOpen}
+        onOpenChange={setQuickViewOpen}
+      />
     </Card>
   )
 }
@@ -177,13 +263,14 @@ export function ProductCardSkeleton() {
   return (
     <Card className="overflow-hidden">
       <Skeleton className="aspect-square" />
-      <CardContent className="p-4 space-y-3">
+      <CardContent className="space-y-3 p-4">
         <Skeleton className="h-3 w-16" />
         <Skeleton className="h-4 w-full" />
         <Skeleton className="h-4 w-2/3" />
         <Skeleton className="h-6 w-24" />
       </CardContent>
-      <div className="px-4 pb-4">
+      <div className="space-y-2 px-4 pb-4">
+        <Skeleton className="h-10 w-full" />
         <Skeleton className="h-10 w-full" />
       </div>
     </Card>

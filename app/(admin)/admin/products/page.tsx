@@ -3,7 +3,6 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Plus, Image, DollarSign } from "lucide-react"
 import { ProductsTable } from "@/components/admin/products-table"
-import { CatalogueDownloadButtonFive } from "@/components/admin/catalogue-download-button-5"
 import { CatalogueDownloadButtonSix } from "@/components/admin/catalogue-download-button-6"
 import { CatalogueDownloadButtonFleece } from "@/components/admin/catalogue-download-button-fleece"
 import { CatalogueDownloadButtonThrows } from "@/components/admin/catalogue-download-button-throws"
@@ -51,7 +50,6 @@ export default async function ProductsPage() {
           <p className="text-muted-foreground">Manage your product catalog</p>
         </div>
         <div className="flex gap-2">
-          <CatalogueDownloadButtonFive />
           <CatalogueDownloadButtonSix />
           <CatalogueDownloadButtonFleece />
           <CatalogueDownloadButtonThrows />
