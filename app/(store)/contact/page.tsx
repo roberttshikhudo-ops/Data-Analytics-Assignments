@@ -110,7 +110,7 @@ export default function ContactPage() {
                 </CardHeader>
                 <CardContent className="space-y-2">
                   <p className="text-muted-foreground">
-                    <strong>Email:</strong> info@agrihubsa.co.za
+                    <strong>Email:</strong> robert.tshikhudo@gmail.com
                   </p>
                   <p className="text-muted-foreground">
                     <strong>Website:</strong> www.agrihubsa.co.za

@@ -78,7 +78,7 @@ export default function PrivacyPolicyPage() {
               If you have questions about this Privacy Policy, please contact us at:
             </p>
             <p className="mt-2 text-muted-foreground">
-              Email: info@agrihubsa.co.za<br />
+              Email: robert.tshikhudo@gmail.com<br />
               Phone: 079 109 9490
             </p>
           </section>

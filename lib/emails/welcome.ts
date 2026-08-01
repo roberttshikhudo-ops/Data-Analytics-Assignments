@@ -92,7 +92,7 @@ function buildWelcomeHtml(): string {
     <div style="background:#1f2937; padding:20px 24px; border-radius:0 0 12px 12px; text-align:center;">
       <p style="margin:0; color:#ffffff; font-size:13px;">Agri Hub SA</p>
       <p style="margin:6px 0 0; color:rgba(255,255,255,0.7); font-size:12px;">
-        www.agrihubsa.co.za &middot; info@agrihubsa.co.za
+        www.agrihubsa.co.za &middot; robert.tshikhudo@gmail.com
       </p>
     </div>
   </div>

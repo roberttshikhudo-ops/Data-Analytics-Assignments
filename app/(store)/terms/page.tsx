@@ -89,7 +89,7 @@ export default function TermsPage() {
               For questions about these Terms & Conditions, contact us at:
             </p>
             <p className="mt-2 text-muted-foreground">
-              Email: info@agrihubsa.co.za<br />
+              Email: robert.tshikhudo@gmail.com<br />
               Phone: 079 109 9490
             </p>
           </section>

@@ -571,7 +571,7 @@ export default function AboutPage() {
                 </div>
                 <h4 className="font-semibold text-white mb-2">Email</h4>
                 <p className="text-sm text-white/80">
-                  info@agrihubsa.co.za<br />
+                  robert.tshikhudo@gmail.com<br />
                   www.agrihubsa.co.za
                 </p>
               </CardContent>
