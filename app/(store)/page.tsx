@@ -3,7 +3,7 @@ import { ArrowRight, Truck, Shield, MessageCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ProductCard } from '@/components/store/product-card'
 import { CategoryCard } from '@/components/store/category-card'
-import { buildCuratedGroup, type ProductGroup } from '@/lib/product-variants'
+import { buildCuratedGroup, groupProductVariants, type ProductGroup } from '@/lib/product-variants'
 import { createClient } from '@/lib/supabase/server'
 import type { Product } from '@/lib/types'
 
@@ -52,9 +52,19 @@ async function getCategories() {
 export default async function HomePage() {
   const [products, categories] = await Promise.all([getCategoryProducts(), getCategories()])
 
+  // Curated families shown first, in the exact requested order.
   const featured = FEATURED_FAMILIES.map((f) =>
     buildCuratedGroup(f.id, f.name, products.filter((p) => f.match.test(p.name))),
   ).filter((g): g is ProductGroup => g !== null)
+
+  // Every product already placed in a featured family, so we don't repeat it.
+  const featuredIds = new Set(featured.flatMap((g) => g.variants.map((v) => v.product.id)))
+
+  // All remaining products, auto-grouped by colour/variant, appended after the
+  // featured rows so the whole Bedding and Kitchenware range is on the page.
+  const rest = groupProductVariants(products.filter((p) => !featuredIds.has(p.id)))
+
+  const allGroups = [...featured, ...rest]
 
   return (
     <div className="flex flex-col">
@@ -99,21 +109,14 @@ export default async function HomePage() {
           <div className="mb-8">
             <h1 className="text-3xl font-bold md:text-4xl">Bedding and Kitchenware</h1>
             <p className="mt-2 text-lg text-muted-foreground">
-              Quality comforters, cookware and homeware - tap a design or colour to switch
+              Our full range of comforters, cookware and homeware - {allGroups.length} products, tap a design or
+              colour to switch
             </p>
           </div>
           <div className="grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-3">
-            {featured.map((grp, index) => (
+            {allGroups.map((grp, index) => (
               <ProductCard key={grp.id} product={grp.primary} group={grp} priority={index < 6} />
             ))}
-          </div>
-          <div className="mt-8 flex justify-center">
-            <Button asChild size="lg" variant="outline">
-              <Link href="/shop">
-                View all products
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
           </div>
         </div>
       </section>
