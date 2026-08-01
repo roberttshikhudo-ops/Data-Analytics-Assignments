@@ -9,22 +9,30 @@ import type { Product } from '@/lib/types'
 
 const HOME_LIVING_CATEGORY_ID = '099152dd-3ae4-4033-a201-92218245e22a'
 
-// Featured families in the exact order requested. Each row is 3 cards on
-// desktop: row 1 = comforters, row 2 = comforters, row 3 = cookware,
-// row 4 = chairs & folding tables.
-const FEATURED_FAMILIES: { id: string; name: string; match: RegExp }[] = [
+type FamilyDef = { id: string; name: string; match: RegExp }
+
+// Curated bedding families, shown first in this exact order.
+const BEDDING_FAMILIES: FamilyDef[] = [
   { id: 'moffy', name: 'Moffy 7pcs Super King Comforter', match: /^moffy\b/i },
   { id: 'rara', name: 'RARA Super King Quilt Set', match: /\brara\b/i },
   { id: 'generic-reversible', name: '5pcs Generic Reversible Comforters', match: /generic reversible/i },
   { id: '9pcs', name: '9pcs Comforter Set', match: /^9pcs comforter set/i },
   { id: 'momo', name: 'MOMO Super King Quilt Set', match: /\bmomo\b/i },
   { id: 'geometric', name: '5pcs Geometric Comforter', match: /geometric comforter/i },
+]
+
+// Curated kitchen families, shown after all bedding.
+const KITCHEN_FAMILIES: FamilyDef[] = [
   { id: '8pcs-cookware', name: '8pcs Non-Stick Granite Cookware Pot Set', match: /^8pcs non-stick granite cookware/i },
   { id: '10pcs-cookware', name: '10pcs Granite Non-Stick Cookware Set', match: /^10pcs granite non-stick cookware/i },
   { id: 'luna-cookware', name: 'Luna Marble 10pcs Premium Cookware Set', match: /^luna marble/i },
-  { id: 'fortis-chair', name: 'Fortis 6-Pack Folding Chair', match: /^fortis 6-pack folding chair/i },
-  { id: 'foldable-table', name: 'Foldable Table', match: /^foldable table/i },
 ]
+
+// Keywords used to sort the remaining auto-grouped products into sections.
+const BEDDING_KEYWORDS =
+  /comforter|quilt|duvet|blanket|throw|sheet|bedding|pillow|mattress|\bbed\b|linen|fitted|cover/i
+const KITCHEN_KEYWORDS =
+  /cookware|\bpot\b|\bpots\b|\bpan\b|frying|casserole|bowl|dinner|plate|cutlery|utensil|kettle|mug|\bcup\b|glass|kitchen|granite|marble|canister|storage|\btray\b|flask|jug/i
 
 async function getCategoryProducts() {
   const supabase = await createClient()
@@ -52,19 +60,37 @@ async function getCategories() {
 export default async function HomePage() {
   const [products, categories] = await Promise.all([getCategoryProducts(), getCategories()])
 
-  // Curated families shown first, in the exact requested order.
-  const featured = FEATURED_FAMILIES.map((f) =>
-    buildCuratedGroup(f.id, f.name, products.filter((p) => f.match.test(p.name))),
-  ).filter((g): g is ProductGroup => g !== null)
+  const buildFamilies = (defs: FamilyDef[]) =>
+    defs
+      .map((f) => buildCuratedGroup(f.id, f.name, products.filter((p) => f.match.test(p.name))))
+      .filter((g): g is ProductGroup => g !== null)
 
-  // Every product already placed in a featured family, so we don't repeat it.
-  const featuredIds = new Set(featured.flatMap((g) => g.variants.map((v) => v.product.id)))
+  // Curated bedding families first, then curated kitchen families.
+  const beddingFeatured = buildFamilies(BEDDING_FAMILIES)
+  const kitchenFeatured = buildFamilies(KITCHEN_FAMILIES)
 
-  // All remaining products, auto-grouped by colour/variant, appended after the
-  // featured rows so the whole Bedding and Kitchenware range is on the page.
+  // Products already placed in a curated family, so we don't repeat them.
+  const featuredIds = new Set(
+    [...beddingFeatured, ...kitchenFeatured].flatMap((g) => g.variants.map((v) => v.product.id)),
+  )
+
+  // Everything else, auto-grouped by colour/variant, then sorted into sections.
   const rest = groupProductVariants(products.filter((p) => !featuredIds.has(p.id)))
+  const isBedding = (g: ProductGroup) => BEDDING_KEYWORDS.test(g.name) || BEDDING_KEYWORDS.test(g.primary.name)
+  const isKitchen = (g: ProductGroup) => KITCHEN_KEYWORDS.test(g.name) || KITCHEN_KEYWORDS.test(g.primary.name)
 
-  const allGroups = [...featured, ...rest]
+  const restBedding = rest.filter((g) => isBedding(g))
+  const restKitchen = rest.filter((g) => !isBedding(g) && isKitchen(g))
+  const restOther = rest.filter((g) => !isBedding(g) && !isKitchen(g))
+
+  // Final order: all bedding, then all kitchen, then anything else.
+  const allGroups = [
+    ...beddingFeatured,
+    ...restBedding,
+    ...kitchenFeatured,
+    ...restKitchen,
+    ...restOther,
+  ]
 
   return (
     <div className="flex flex-col">

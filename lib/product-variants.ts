@@ -28,6 +28,8 @@ const COLOR_SWATCHES: Record<string, string> = {
   sky: '#87ceeb',
   aqua: '#4fd1c5',
   teal: '#1f7a70',
+  emerald: '#2e8b57',
+  jade: '#3ebd93',
   green: '#3a7d44',
   sage: '#9caf88',
   lime: '#a4c639',
@@ -47,6 +49,11 @@ const COLOR_SWATCHES: Record<string, string> = {
   gold: '#c9a13b',
   mustard: '#d4a017',
   pink: '#e08aa8',
+  magenta: '#c72a86',
+  fuchsia: '#c154c1',
+  turquoise: '#40c4c4',
+  indigo: '#4b3f9e',
+  khaki: '#b5a56a',
   rose: '#c76b78',
   coral: '#e9967a',
   peach: '#f4b183',
@@ -140,6 +147,22 @@ function extractDesignCode(name: string): string | null {
   return null
 }
 
+/**
+ * Parses a design-numbered series such as "5pcs Comforter Set 001 - Light Grey"
+ * or "Flower Reversible Comforter P3". Returns the shared base name (used to
+ * group siblings) and a descriptive label for the variant. Returns null when
+ * the name has no design code.
+ */
+export function parseDesignSeries(name: string): { base: string; label: string } | null {
+  const m = name.match(/^(.*?)[\s-]*\b(P\d+|\d{3})\b\s*(.*)$/i)
+  if (!m) return null
+  const base = m[1].trim().replace(/[-\u2013\s]+$/, '')
+  if (!base) return null
+  const code = m[2].toUpperCase()
+  const tail = m[3].replace(/^[\s\-\u2013]+/, '').trim()
+  return { base, label: tail ? `${code} ${tail}` : code }
+}
+
 /** Builds a single variant descriptor for a product (colour, then design, then fallback). */
 function buildVariant(product: Product): ProductVariant {
   const parsed = parseVariant(product.name)
@@ -183,6 +206,35 @@ export function groupProductVariants(products: Product[]): ProductGroup[] {
   const groups = new Map<string, ProductGroup>()
 
   for (const product of products) {
+    // Design-numbered series (001/002…, P1/P2…) are checked first so the
+    // number is stripped into the shared base and siblings collapse into one
+    // card with image thumbnails, matching the featured rows.
+    const series = parseDesignSeries(product.name)
+    if (series) {
+      const key = `series:${series.base.toLowerCase()}`
+      const variant: ProductVariant = {
+        product,
+        label: series.label,
+        colorKey: 'design',
+        swatch: DESIGN_SWATCH,
+        kind: 'design',
+      }
+      const existing = groups.get(key)
+      if (existing) {
+        existing.variants.push(variant)
+        existing.hasVariants = true
+      } else {
+        groups.set(key, {
+          id: key,
+          name: series.base,
+          primary: product,
+          variants: [variant],
+          hasVariants: false,
+        })
+      }
+      continue
+    }
+
     const parsed = parseVariant(product.name)
 
     if (parsed) {
