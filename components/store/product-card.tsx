@@ -51,6 +51,11 @@ export function ProductCard({ product, group, priority = false }: ProductCardPro
   const isOutOfStock = active.stock_quantity <= 0
   const isLowStock = active.stock_quantity > 0 && active.stock_quantity <= 10
   const displayName = g.hasVariants ? g.name : active.name
+  // "New" and "Low Stock" badges are only shown for carpets.
+  const isCarpet =
+    /\bcarpet/i.test(active.name) ||
+    /\bcarpet/i.test(g.name) ||
+    /\bcarpet/i.test(active.category?.name ?? '')
 
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL
   const productUrl = baseUrl ? `${baseUrl}/products/${active.slug}` : undefined
@@ -102,7 +107,7 @@ export function ProductCard({ product, group, priority = false }: ProductCardPro
               </Badge>
             )}
             {active.is_featured && <Badge className="bg-primary text-xs">Featured</Badge>}
-            {active.is_new && !isOutOfStock && (
+            {active.is_new && !isOutOfStock && isCarpet && (
               <Badge className="bg-accent text-accent-foreground text-xs">New</Badge>
             )}
             {isOutOfStock && (
@@ -110,7 +115,7 @@ export function ProductCard({ product, group, priority = false }: ProductCardPro
                 Out of Stock
               </Badge>
             )}
-            {isLowStock && !isOutOfStock && (
+            {isLowStock && !isOutOfStock && isCarpet && (
               <Badge
                 variant="outline"
                 className="border-warning bg-warning/10 text-xs text-warning-foreground"

@@ -199,7 +199,7 @@ export function SiteFooter() {
               </li>
               <li>
                 <EmailLink
-                  email="info@agrihubsa.co.za"
+                  email="robert.tshikhudo@gmail.com"
                   className="flex items-center gap-2 text-base text-secondary-foreground/80 hover:text-primary transition-colors"
                 />
               </li>

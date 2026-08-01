@@ -263,5 +263,5 @@ export const AGRIHUB_WAREHOUSE: ShippingAddress = {
   postalCode: '1685',
   province: 'Gauteng',
   phone: '0833061529',
-  email: 'info@agrihubsa.co.za',
+  email: 'robert.tshikhudo@gmail.com',
 }

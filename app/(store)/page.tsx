@@ -7,17 +7,40 @@ import { CategoryCard } from '@/components/store/category-card'
 import { groupProductVariants } from '@/lib/product-variants'
 import { createClient } from '@/lib/supabase/server'
 
+const HOME_LIVING_CATEGORY_ID = '099152dd-3ae4-4033-a201-92218245e22a'
+
 async function getHomeLivingProducts() {
   const supabase = await createClient()
-  const { data } = await supabase
-    .from('products')
-    .select('*, category:categories(*)')
-    .eq('is_active', true)
-    .eq('category_id', '099152dd-3ae4-4033-a201-92218245e22a')
-    .order('created_at', { ascending: false })
-    .limit(48)
 
-  return data || []
+  // Fetch reversible comforters explicitly (they're older rows that fall
+  // outside the most-recent slice) so we can feature them first, plus a slice
+  // of the newest products for variety.
+  const [reversible, recent] = await Promise.all([
+    supabase
+      .from('products')
+      .select('*, category:categories(*)')
+      .eq('is_active', true)
+      .eq('category_id', HOME_LIVING_CATEGORY_ID)
+      .ilike('name', '%reversible%')
+      .order('name')
+      .limit(60),
+    supabase
+      .from('products')
+      .select('*, category:categories(*)')
+      .eq('is_active', true)
+      .eq('category_id', HOME_LIVING_CATEGORY_ID)
+      .order('created_at', { ascending: false })
+      .limit(48),
+  ])
+
+  // Merge with reversible comforters first, de-duplicating by id.
+  const merged = [...(reversible.data || []), ...(recent.data || [])]
+  const seen = new Set<string>()
+  return merged.filter((p) => {
+    if (seen.has(p.id)) return false
+    seen.add(p.id)
+    return true
+  })
 }
 
 async function getCategories() {
@@ -34,7 +57,15 @@ async function getCategories() {
 export default async function HomePage() {
   const [products, categories] = await Promise.all([getHomeLivingProducts(), getCategories()])
 
-  const productGroups = groupProductVariants(products)
+  const grouped = groupProductVariants(products)
+
+  // Feature reversible comforters first, then the rest of the range (a natural
+  // mix of cookware, bedding and homeware) in its existing order.
+  const isReversible = (name: string) => /reversible/i.test(name)
+  const productGroups = [
+    ...grouped.filter((grp) => isReversible(grp.name)),
+    ...grouped.filter((grp) => !isReversible(grp.name)),
+  ]
 
   return (
     <div className="flex flex-col">
@@ -85,7 +116,7 @@ export default async function HomePage() {
           <Suspense fallback={<ProductGridSkeleton count={8} />}>
             <div className="grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-6 lg:grid-cols-4">
               {productGroups.map((grp, index) => (
-                <ProductCard key={grp.id} product={grp.primary} group={grp} priority={index < 4} />
+                <ProductCard key={grp.id} product={grp.primary} group={grp} priority={index < 8} />
               ))}
             </div>
           </Suspense>

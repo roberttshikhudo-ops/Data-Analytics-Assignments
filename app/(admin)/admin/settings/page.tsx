@@ -20,7 +20,7 @@ export default function SettingsPage() {
   // Store Settings
   const [storeSettings, setStoreSettings] = useState({
     storeName: "Agri Hub SA",
-    storeEmail: "info@agrihubsa.co.za",
+    storeEmail: "robert.tshikhudo@gmail.com",
     storePhone: "+27 12 345 6789",
     storeAddress: "123 Farm Road, Pretoria, Gauteng, South Africa",
     currency: "ZAR",

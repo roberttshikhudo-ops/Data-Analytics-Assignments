@@ -307,7 +307,7 @@ function shell(headerTitle: string, headerSubtitle: string, bodyHtml: string): s
     <div style="background:#1f2937; padding:20px 24px; border-radius:0 0 12px 12px; text-align:center;">
       <p style="margin:0; color:#ffffff; font-size:13px;">Agri Hub SA</p>
       <p style="margin:6px 0 0; color:rgba(255,255,255,0.7); font-size:12px;">
-        www.agrihubsa.co.za &middot; info@agrihubsa.co.za
+        www.agrihubsa.co.za &middot; robert.tshikhudo@gmail.com
       </p>
     </div>
   </div>
@@ -343,7 +343,7 @@ function buildConfirmationHtml(data: OrderEmailData): string {
       </a>
     </div>
     <p style="margin:16px 0 0; font-size:14px; line-height:1.6; color:#6b7280;">
-      Questions about your order? Just reply to this email or contact us at info@agrihubsa.co.za.
+      Questions about your order? Just reply to this email or contact us at robert.tshikhudo@gmail.com.
     </p>`
   return shell("Order Confirmed", "Thank you for shopping with Agri Hub SA", body)
 }
@@ -376,7 +376,7 @@ function buildReceivedHtml(data: OrderEmailData): string {
       </a>
     </div>
     <p style="margin:16px 0 0; font-size:14px; line-height:1.6; color:#6b7280;">
-      Questions about your order? Just reply to this email or contact us at info@agrihubsa.co.za.
+      Questions about your order? Just reply to this email or contact us at robert.tshikhudo@gmail.com.
     </p>`
   return shell("Order Received", "Thank you for shopping with Agri Hub SA", body)
 }
@@ -405,7 +405,7 @@ function buildStatusHtml(
       </a>
     </div>
     <p style="margin:16px 0 0; font-size:14px; line-height:1.6; color:#6b7280;">
-      Questions? Just reply to this email or contact us at info@agrihubsa.co.za.
+      Questions? Just reply to this email or contact us at robert.tshikhudo@gmail.com.
     </p>`
   return shell(copy.title, copy.subtitle, body)
 }

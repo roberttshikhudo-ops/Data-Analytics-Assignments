@@ -15,7 +15,7 @@ const BUSINESS = {
   name: "Agri Hub SA",
   whatsapp: "083 306 1529",
   website: "agrihubsa.co.za",
-  email: "info@agrihubsa.co.za",
+  email: "robert.tshikhudo@gmail.com",
   waLink: "https://wa.me/27833061529",
 }
 
