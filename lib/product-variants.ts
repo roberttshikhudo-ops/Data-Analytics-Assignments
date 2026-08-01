@@ -64,6 +64,9 @@ const COLOR_SWATCHES: Record<string, string> = {
   mauve: '#b784a7',
   orange: '#e08a3c',
   yellow: '#e6c34a',
+  rainbow: '#d76fb0',
+  multicolour: '#d76fb0',
+  multicolor: '#d76fb0',
 }
 
 export interface ParsedVariant {
@@ -82,40 +85,48 @@ export interface ParsedVariant {
  * suffix after the final dash is not a recognised colour.
  */
 export function parseVariant(name: string): ParsedVariant | null {
-  // Everything after the LAST dash is the potential colour suffix.
-  const dashIdx = name.lastIndexOf('-')
-  if (dashIdx <= 0) return null
+  // Try each dash from first to last, using the earliest split whose suffix
+  // contains a recognised colour. This keeps hyphenated bases intact
+  // ("Non-Stick", "Tie-Dye") while still grouping "...-Camel Tie-Dye".
+  const dashPositions: number[] = []
+  for (let i = 0; i < name.length; i++) {
+    if (name[i] === '-' || name[i] === '\u2013') dashPositions.push(i)
+  }
 
-  const base = name.slice(0, dashIdx).trim()
-  const suffix = name.slice(dashIdx + 1).trim()
-  if (!base || !suffix) return null
+  for (const dashIdx of dashPositions) {
+    const base = name.slice(0, dashIdx).trim()
+    const suffix = name.slice(dashIdx + 1).trim()
+    if (!base || !suffix) continue
 
-  // Strip a trailing parenthetical size, e.g. "Charcoal (Queen)" -> "Charcoal".
-  const cleaned = suffix.replace(/\s*\([^)]*\)\s*$/, '').trim()
-  // Separate an optional trailing number, e.g. "Black1" -> core "Black", digits "1".
-  const digitMatch = cleaned.match(/^(.*?)(\d+)$/)
-  const core = (digitMatch ? digitMatch[1] : cleaned).trim()
-  const digits = digitMatch ? digitMatch[2] : ''
-  if (!core) return null
+    // Strip a trailing parenthetical size, e.g. "Charcoal (Queen)" -> "Charcoal".
+    const cleaned = suffix.replace(/\s*\([^)]*\)\s*$/, '').trim()
+    // Separate an optional trailing number, e.g. "Black1" -> core "Black", digits "1".
+    const digitMatch = cleaned.match(/^(.*?)(\d+)$/)
+    const core = (digitMatch ? digitMatch[1] : cleaned).trim()
+    const digits = digitMatch ? digitMatch[2] : ''
+    if (!core) continue
 
-  // A colour phrase may be multi-word ("Navy Blue", "Grey & Black", "Light Grey").
-  // Use the first recognised colour token as the swatch.
-  const words = core.toLowerCase().split(/[^a-z]+/).filter(Boolean)
-  let colorKey = ''
-  for (const word of words) {
-    if (COLOR_SWATCHES[word]) {
-      colorKey = word
-      break
+    // A colour phrase may be multi-word ("Navy Blue", "Camel Tie-Dye").
+    // Use the first recognised colour token as the swatch.
+    const words = core.toLowerCase().split(/[^a-z]+/).filter(Boolean)
+    let colorKey = ''
+    for (const word of words) {
+      if (COLOR_SWATCHES[word]) {
+        colorKey = word
+        break
+      }
+    }
+    if (!colorKey) continue
+
+    return {
+      base,
+      label: `${core}${digits}`.trim(),
+      colorKey,
+      swatch: COLOR_SWATCHES[colorKey],
     }
   }
-  if (!colorKey) return null
 
-  return {
-    base,
-    label: `${core}${digits}`.trim(),
-    colorKey,
-    swatch: COLOR_SWATCHES[colorKey],
-  }
+  return null
 }
 
 export interface ProductVariant {

@@ -29,10 +29,22 @@ const KITCHEN_FAMILIES: FamilyDef[] = [
 ]
 
 // Keywords used to sort the remaining auto-grouped products into sections.
+// "Soft" (carpets, rugs, throws, fleece) is checked first so those families
+// stay together in one block, then bedding, then kitchen.
+const SOFT_KEYWORDS = /carpet|\brug\b|\brugs\b|throw|fleece/i
 const BEDDING_KEYWORDS =
-  /comforter|quilt|duvet|blanket|throw|sheet|bedding|pillow|mattress|\bbed\b|linen|fitted|cover/i
+  /comforter|quilt|duvet|blanket|sheet|bedding|pillow|mattress|\bbed\b|linen|fitted|cover/i
 const KITCHEN_KEYWORDS =
   /cookware|\bpot\b|\bpots\b|\bpan\b|frying|casserole|bowl|dinner|plate|cutlery|utensil|kettle|mug|\bcup\b|glass|kitchen|granite|marble|canister|storage|\btray\b|flask|jug/i
+
+/** True when a product has a genuine product photo (blob upload or local file). */
+function hasRealImage(p: Product): boolean {
+  const url = (p.image_url ?? '').trim()
+  if (!url) return false
+  // Generic stock photos are not real product images.
+  if (/unsplash|placeholder|\/placeholder\.svg/i.test(url)) return false
+  return true
+}
 
 async function getCategoryProducts() {
   const supabase = await createClient()
@@ -43,7 +55,7 @@ async function getCategoryProducts() {
     .eq('category_id', HOME_LIVING_CATEGORY_ID)
     .order('name')
 
-  return (data || []) as Product[]
+  return ((data || []) as Product[]).filter(hasRealImage)
 }
 
 async function getCategories() {
@@ -76,17 +88,28 @@ export default async function HomePage() {
 
   // Everything else, auto-grouped by colour/variant, then sorted into sections.
   const rest = groupProductVariants(products.filter((p) => !featuredIds.has(p.id)))
-  const isBedding = (g: ProductGroup) => BEDDING_KEYWORDS.test(g.name) || BEDDING_KEYWORDS.test(g.primary.name)
-  const isKitchen = (g: ProductGroup) => KITCHEN_KEYWORDS.test(g.name) || KITCHEN_KEYWORDS.test(g.primary.name)
+  const matches = (re: RegExp) => (g: ProductGroup) => re.test(g.name) || re.test(g.primary.name)
+  const isSoft = matches(SOFT_KEYWORDS)
+  const isBedding = matches(BEDDING_KEYWORDS)
+  const isKitchen = matches(KITCHEN_KEYWORDS)
 
-  const restBedding = rest.filter((g) => isBedding(g))
-  const restKitchen = rest.filter((g) => !isBedding(g) && isKitchen(g))
-  const restOther = rest.filter((g) => !isBedding(g) && !isKitchen(g))
+  // Carpets, rugs, throws and fleece all live together in one block. Carpets
+  // and rugs come first, then throws and fleece.
+  const restSoft = rest.filter((g) => isSoft(g))
+  const softCarpets = restSoft.filter((g) => /carpet|\brug/i.test(g.name) || /carpet|\brug/i.test(g.primary.name))
+  const softThrows = restSoft.filter((g) => !softCarpets.includes(g))
 
-  // Final order: all bedding, then all kitchen, then anything else.
+  const restBedding = rest.filter((g) => !isSoft(g) && isBedding(g))
+  const restKitchen = rest.filter((g) => !isSoft(g) && !isBedding(g) && isKitchen(g))
+  const restOther = rest.filter((g) => !isSoft(g) && !isBedding(g) && !isKitchen(g))
+
+  // Final order: featured bedding, other bedding, then carpets/throws/fleece
+  // together, then all kitchen, then anything else.
   const allGroups = [
     ...beddingFeatured,
     ...restBedding,
+    ...softCarpets,
+    ...softThrows,
     ...kitchenFeatured,
     ...restKitchen,
     ...restOther,
