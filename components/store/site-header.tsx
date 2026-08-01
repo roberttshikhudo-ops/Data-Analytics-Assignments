@@ -117,7 +117,7 @@ export function SiteHeader() {
         </Sheet>
 
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2">
+        <Link href="/" className="flex shrink-0 items-center gap-2">
           <Image
             src="/images/agri-hub-logo.jpg"
             alt="Agri Hub SA"
@@ -125,7 +125,7 @@ export function SiteHeader() {
             height={40}
             className="rounded-lg"
           />
-          <span className="hidden sm:inline-block text-xl font-bold text-primary">
+          <span className="hidden sm:inline-block whitespace-nowrap text-xl font-bold text-primary">
             Agri Hub SA
           </span>
         </Link>
