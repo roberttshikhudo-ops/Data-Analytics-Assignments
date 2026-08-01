@@ -57,6 +57,44 @@ export function buildOrderWaLink(message: string = ORDER_INTENT_MESSAGE): string
   return `https://wa.me/${SALES_WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`
 }
 
+/**
+ * Builds a prefilled "order this product" message for a single item so the
+ * sales team knows exactly what the shopper tapped on.
+ */
+export function buildProductEnquiryMessage(
+  productName: string,
+  price?: number,
+  url?: string,
+): string {
+  const lines = [
+    `Hello Agri Hub SA, I would like to order this product:`,
+    ``,
+    `• ${productName}${typeof price === "number" ? ` — ${formatRand(price)}` : ""}`,
+  ]
+  if (url) lines.push(url)
+  lines.push(``, `Please confirm availability and send me a secure payment link.`)
+  return lines.join("\n")
+}
+
+/** Builds a wa.me link for ordering a specific product. */
+export function buildProductWaLink(
+  productName: string,
+  price?: number,
+  url?: string,
+): string {
+  return buildOrderWaLink(buildProductEnquiryMessage(productName, price, url))
+}
+
+/** Message used by the "Request a bulk quote" call to action. */
+export const BULK_QUOTE_MESSAGE =
+  "Hello Agri Hub SA, I would like a bulk / wholesale quote. " +
+  "Please tell me about pricing for larger quantities. The products and quantities I need are: "
+
+/** Builds a wa.me link for requesting a bulk / wholesale quote. */
+export function buildBulkQuoteWaLink(): string {
+  return buildOrderWaLink(BULK_QUOTE_MESSAGE)
+}
+
 export interface OrderMenuOption {
   /** Menu number as shown to the customer (1-8). */
   n: number
