@@ -116,6 +116,51 @@ export interface ProductVariant {
   label: string
   colorKey: string
   swatch: string
+  /** 'color' renders a solid swatch dot; 'design' renders an image thumbnail. */
+  kind: 'color' | 'design'
+}
+
+const DESIGN_SWATCH = '#d8c7a8'
+
+/** Finds the first recognised colour token anywhere in a product name. */
+function findColorToken(name: string): { colorKey: string; swatch: string } | null {
+  const words = name.toLowerCase().split(/[^a-z]+/).filter(Boolean)
+  for (const word of words) {
+    if (COLOR_SWATCHES[word]) return { colorKey: word, swatch: COLOR_SWATCHES[word] }
+  }
+  return null
+}
+
+/** Extracts a short design code such as "001" or "P3" from a product name. */
+function extractDesignCode(name: string): string | null {
+  const p = name.match(/\bP\d+\b/i)
+  if (p) return p[0].toUpperCase()
+  const d = name.match(/\b\d{3}\b/)
+  if (d) return d[0]
+  return null
+}
+
+/** Builds a single variant descriptor for a product (colour, then design, then fallback). */
+function buildVariant(product: Product): ProductVariant {
+  const parsed = parseVariant(product.name)
+  if (parsed) {
+    return { product, label: parsed.label, colorKey: parsed.colorKey, swatch: parsed.swatch, kind: 'color' }
+  }
+  const design = extractDesignCode(product.name)
+  if (design) {
+    return { product, label: design, colorKey: 'design', swatch: DESIGN_SWATCH, kind: 'design' }
+  }
+  const colour = findColorToken(product.name)
+  if (colour) {
+    return {
+      product,
+      label: colour.colorKey.charAt(0).toUpperCase() + colour.colorKey.slice(1),
+      colorKey: colour.colorKey,
+      swatch: colour.swatch,
+      kind: 'color',
+    }
+  }
+  return { product, label: 'Standard', colorKey: 'design', swatch: DESIGN_SWATCH, kind: 'design' }
 }
 
 export interface ProductGroup {
@@ -147,6 +192,7 @@ export function groupProductVariants(products: Product[]): ProductGroup[] {
         label: parsed.label,
         colorKey: parsed.colorKey,
         swatch: parsed.swatch,
+        kind: 'color',
       }
       const existing = groups.get(key)
       if (existing) {
@@ -168,7 +214,7 @@ export function groupProductVariants(products: Product[]): ProductGroup[] {
         name: product.name,
         primary: product,
         variants: [
-          { product, label: product.name, colorKey: 'default', swatch: '#d8c7a8' },
+          { product, label: product.name, colorKey: 'default', swatch: '#d8c7a8', kind: 'color' },
         ],
         hasVariants: false,
       })
@@ -176,4 +222,26 @@ export function groupProductVariants(products: Product[]): ProductGroup[] {
   }
 
   return Array.from(groups.values())
+}
+
+/**
+ * Builds a curated card from an explicit list of sibling products (e.g. all
+ * "Moffy" designs). Unlike groupProductVariants, the family is chosen
+ * externally rather than by a shared colour suffix, so this also handles
+ * design-numbered ranges (001, 002 …) and mixed naming.
+ */
+export function buildCuratedGroup(
+  id: string,
+  name: string,
+  products: Product[],
+): ProductGroup | null {
+  if (products.length === 0) return null
+  const variants = products.map(buildVariant)
+  return {
+    id,
+    name,
+    primary: variants[0].product,
+    variants,
+    hasVariants: variants.length > 1,
+  }
 }

@@ -37,6 +37,7 @@ export function ProductQuickView({
   const [quantity, setQuantity] = useState(1)
 
   const active = group.variants[activeIndex]?.product ?? group.primary
+  const useThumbnails = group.variants.some((v) => v.kind === 'design')
   const discount = calculateDiscount(active.price, active.compare_at_price)
   const isOutOfStock = active.stock_quantity <= 0
   const maxQty = Math.max(1, active.stock_quantity)
@@ -116,38 +117,61 @@ export function ProductQuickView({
               )}
             </div>
 
-            {/* Colour variants */}
+            {/* Variant selector */}
             {group.hasVariants && (
               <div className="mt-5">
                 <p className="mb-2 text-sm font-medium">
-                  Colour: <span className="text-muted-foreground">{group.variants[activeIndex]?.label}</span>
+                  {useThumbnails ? 'Design' : 'Colour'}:{' '}
+                  <span className="text-muted-foreground">{group.variants[activeIndex]?.label}</span>
                 </p>
                 <div className="flex flex-wrap gap-2">
-                  {group.variants.map((v, i) => (
-                    <button
-                      key={v.product.id}
-                      type="button"
-                      onClick={() => onSelectVariant(i)}
-                      aria-label={`Select ${v.label}`}
-                      aria-pressed={i === activeIndex}
-                      className={cn(
-                        'relative h-8 w-8 rounded-full border shadow-sm transition-transform hover:scale-110',
-                        i === activeIndex ? 'ring-2 ring-primary ring-offset-2' : 'border-border',
-                      )}
-                      style={{ backgroundColor: v.swatch }}
-                    >
-                      {i === activeIndex && (
-                        <Check
-                          className={cn(
-                            'absolute inset-0 m-auto h-4 w-4',
-                            v.colorKey === 'white' || v.colorKey === 'cream' || v.colorKey === 'ivory'
-                              ? 'text-black'
-                              : 'text-white',
-                          )}
-                        />
-                      )}
-                    </button>
-                  ))}
+                  {group.variants.map((v, i) =>
+                    useThumbnails ? (
+                      <button
+                        key={v.product.id}
+                        type="button"
+                        onClick={() => onSelectVariant(i)}
+                        aria-label={`Select ${v.label}`}
+                        aria-pressed={i === activeIndex}
+                        className={cn(
+                          'relative h-12 w-12 overflow-hidden rounded-md border shadow-sm transition-transform hover:scale-110',
+                          i === activeIndex ? 'ring-2 ring-primary ring-offset-2' : 'border-border',
+                        )}
+                      >
+                        {v.product.image_url ? (
+                          <Image src={v.product.image_url} alt={v.label} fill className="object-cover" sizes="48px" />
+                        ) : (
+                          <span className="flex h-full w-full items-center justify-center bg-muted text-xs">
+                            {v.label}
+                          </span>
+                        )}
+                      </button>
+                    ) : (
+                      <button
+                        key={v.product.id}
+                        type="button"
+                        onClick={() => onSelectVariant(i)}
+                        aria-label={`Select ${v.label}`}
+                        aria-pressed={i === activeIndex}
+                        className={cn(
+                          'relative h-8 w-8 rounded-full border shadow-sm transition-transform hover:scale-110',
+                          i === activeIndex ? 'ring-2 ring-primary ring-offset-2' : 'border-border',
+                        )}
+                        style={{ backgroundColor: v.swatch }}
+                      >
+                        {i === activeIndex && (
+                          <Check
+                            className={cn(
+                              'absolute inset-0 m-auto h-4 w-4',
+                              v.colorKey === 'white' || v.colorKey === 'cream' || v.colorKey === 'ivory'
+                                ? 'text-black'
+                                : 'text-white',
+                            )}
+                          />
+                        )}
+                      </button>
+                    ),
+                  )}
                 </div>
               </div>
             )}

@@ -38,8 +38,12 @@ export function ProductCard({ product, group, priority = false }: ProductCardPro
     name: product.name,
     primary: product,
     hasVariants: false,
-    variants: [{ product, label: product.name, colorKey: 'default', swatch: '#d8c7a8' }],
+    variants: [{ product, label: product.name, colorKey: 'default', swatch: '#d8c7a8', kind: 'color' }],
   }
+
+  // When any variant is design-based (e.g. Moffy 001–005), show image
+  // thumbnails instead of solid colour dots for the whole group.
+  const useThumbnails = g.variants.some((v) => v.kind === 'design')
 
   const [activeIndex, setActiveIndex] = useState(0)
   const [quickViewOpen, setQuickViewOpen] = useState(false)
@@ -187,37 +191,68 @@ export function ProductCard({ product, group, priority = false }: ProductCardPro
             )}
           </div>
 
-          {/* Colour swatches */}
+          {/* Variant selector: image thumbnails for designs, colour dots otherwise */}
           {g.hasVariants && (
             <div className="mt-3 flex items-center gap-1.5">
-              {g.variants.slice(0, 5).map((v, i) => (
-                <button
-                  key={v.product.id}
-                  type="button"
-                  aria-label={`View ${v.label}`}
-                  aria-pressed={i === activeIndex}
-                  onClick={(e) => {
-                    e.preventDefault()
-                    setActiveIndex(i)
-                  }}
-                  className={cn(
-                    'relative h-6 w-6 rounded-full border shadow-sm transition-transform hover:scale-110',
-                    i === activeIndex ? 'ring-2 ring-primary ring-offset-1' : 'border-border',
-                  )}
-                  style={{ backgroundColor: v.swatch }}
-                >
-                  {i === activeIndex && (
-                    <Check
-                      className={cn(
-                        'absolute inset-0 m-auto h-3 w-3',
-                        v.colorKey === 'white' || v.colorKey === 'cream' || v.colorKey === 'ivory'
-                          ? 'text-black'
-                          : 'text-white',
-                      )}
-                    />
-                  )}
-                </button>
-              ))}
+              {g.variants.slice(0, 5).map((v, i) =>
+                useThumbnails ? (
+                  <button
+                    key={v.product.id}
+                    type="button"
+                    aria-label={`View ${v.label}`}
+                    aria-pressed={i === activeIndex}
+                    onClick={(e) => {
+                      e.preventDefault()
+                      setActiveIndex(i)
+                    }}
+                    className={cn(
+                      'relative h-8 w-8 overflow-hidden rounded-md border shadow-sm transition-transform hover:scale-110',
+                      i === activeIndex ? 'ring-2 ring-primary ring-offset-1' : 'border-border',
+                    )}
+                  >
+                    {v.product.image_url ? (
+                      <Image
+                        src={v.product.image_url}
+                        alt={v.label}
+                        fill
+                        className="object-cover"
+                        sizes="32px"
+                      />
+                    ) : (
+                      <span className="flex h-full w-full items-center justify-center bg-muted text-[10px]">
+                        {v.label}
+                      </span>
+                    )}
+                  </button>
+                ) : (
+                  <button
+                    key={v.product.id}
+                    type="button"
+                    aria-label={`View ${v.label}`}
+                    aria-pressed={i === activeIndex}
+                    onClick={(e) => {
+                      e.preventDefault()
+                      setActiveIndex(i)
+                    }}
+                    className={cn(
+                      'relative h-6 w-6 rounded-full border shadow-sm transition-transform hover:scale-110',
+                      i === activeIndex ? 'ring-2 ring-primary ring-offset-1' : 'border-border',
+                    )}
+                    style={{ backgroundColor: v.swatch }}
+                  >
+                    {i === activeIndex && (
+                      <Check
+                        className={cn(
+                          'absolute inset-0 m-auto h-3 w-3',
+                          v.colorKey === 'white' || v.colorKey === 'cream' || v.colorKey === 'ivory'
+                            ? 'text-black'
+                            : 'text-white',
+                        )}
+                      />
+                    )}
+                  </button>
+                ),
+              )}
               {g.variants.length > 5 && (
                 <span className="text-xs text-muted-foreground">+{g.variants.length - 5}</span>
               )}

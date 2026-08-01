@@ -1,46 +1,41 @@
-import { Suspense } from 'react'
 import Link from 'next/link'
 import { ArrowRight, Truck, Shield, MessageCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { ProductCard, ProductCardSkeleton } from '@/components/store/product-card'
+import { ProductCard } from '@/components/store/product-card'
 import { CategoryCard } from '@/components/store/category-card'
-import { groupProductVariants } from '@/lib/product-variants'
+import { buildCuratedGroup, type ProductGroup } from '@/lib/product-variants'
 import { createClient } from '@/lib/supabase/server'
+import type { Product } from '@/lib/types'
 
 const HOME_LIVING_CATEGORY_ID = '099152dd-3ae4-4033-a201-92218245e22a'
 
-async function getHomeLivingProducts() {
+// Featured families in the exact order requested. Each row is 3 cards on
+// desktop: row 1 = comforters, row 2 = comforters, row 3 = cookware,
+// row 4 = chairs & folding tables.
+const FEATURED_FAMILIES: { id: string; name: string; match: RegExp }[] = [
+  { id: 'moffy', name: 'Moffy 7pcs Super King Comforter', match: /^moffy\b/i },
+  { id: 'rara', name: 'RARA Super King Quilt Set', match: /\brara\b/i },
+  { id: 'generic-reversible', name: '5pcs Generic Reversible Comforters', match: /generic reversible/i },
+  { id: '9pcs', name: '9pcs Comforter Set', match: /^9pcs comforter set/i },
+  { id: 'momo', name: 'MOMO Super King Quilt Set', match: /\bmomo\b/i },
+  { id: 'geometric', name: '5pcs Geometric Comforter', match: /geometric comforter/i },
+  { id: '8pcs-cookware', name: '8pcs Non-Stick Granite Cookware Pot Set', match: /^8pcs non-stick granite cookware/i },
+  { id: '10pcs-cookware', name: '10pcs Granite Non-Stick Cookware Set', match: /^10pcs granite non-stick cookware/i },
+  { id: 'luna-cookware', name: 'Luna Marble 10pcs Premium Cookware Set', match: /^luna marble/i },
+  { id: 'fortis-chair', name: 'Fortis 6-Pack Folding Chair', match: /^fortis 6-pack folding chair/i },
+  { id: 'foldable-table', name: 'Foldable Table', match: /^foldable table/i },
+]
+
+async function getCategoryProducts() {
   const supabase = await createClient()
+  const { data } = await supabase
+    .from('products')
+    .select('*, category:categories(*)')
+    .eq('is_active', true)
+    .eq('category_id', HOME_LIVING_CATEGORY_ID)
+    .order('name')
 
-  // Fetch reversible comforters explicitly (they're older rows that fall
-  // outside the most-recent slice) so we can feature them first, plus a slice
-  // of the newest products for variety.
-  const [reversible, recent] = await Promise.all([
-    supabase
-      .from('products')
-      .select('*, category:categories(*)')
-      .eq('is_active', true)
-      .eq('category_id', HOME_LIVING_CATEGORY_ID)
-      .ilike('name', '%reversible%')
-      .order('name')
-      .limit(60),
-    supabase
-      .from('products')
-      .select('*, category:categories(*)')
-      .eq('is_active', true)
-      .eq('category_id', HOME_LIVING_CATEGORY_ID)
-      .order('created_at', { ascending: false })
-      .limit(48),
-  ])
-
-  // Merge with reversible comforters first, de-duplicating by id.
-  const merged = [...(reversible.data || []), ...(recent.data || [])]
-  const seen = new Set<string>()
-  return merged.filter((p) => {
-    if (seen.has(p.id)) return false
-    seen.add(p.id)
-    return true
-  })
+  return (data || []) as Product[]
 }
 
 async function getCategories() {
@@ -55,17 +50,11 @@ async function getCategories() {
 }
 
 export default async function HomePage() {
-  const [products, categories] = await Promise.all([getHomeLivingProducts(), getCategories()])
+  const [products, categories] = await Promise.all([getCategoryProducts(), getCategories()])
 
-  const grouped = groupProductVariants(products)
-
-  // Feature reversible comforters first, then the rest of the range (a natural
-  // mix of cookware, bedding and homeware) in its existing order.
-  const isReversible = (name: string) => /reversible/i.test(name)
-  const productGroups = [
-    ...grouped.filter((grp) => isReversible(grp.name)),
-    ...grouped.filter((grp) => !isReversible(grp.name)),
-  ]
+  const featured = FEATURED_FAMILIES.map((f) =>
+    buildCuratedGroup(f.id, f.name, products.filter((p) => f.match.test(p.name))),
+  ).filter((g): g is ProductGroup => g !== null)
 
   return (
     <div className="flex flex-col">
@@ -104,22 +93,28 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Product Grid */}
+      {/* Featured Product Grid */}
       <section className="py-10">
         <div className="container">
           <div className="mb-8">
             <h1 className="text-3xl font-bold md:text-4xl">Bedding and Kitchenware</h1>
             <p className="mt-2 text-lg text-muted-foreground">
-              Quality cookware, bedding and homeware - shop the full range below
+              Quality comforters, cookware and homeware - tap a design or colour to switch
             </p>
           </div>
-          <Suspense fallback={<ProductGridSkeleton count={8} />}>
-            <div className="grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-6 lg:grid-cols-4">
-              {productGroups.map((grp, index) => (
-                <ProductCard key={grp.id} product={grp.primary} group={grp} priority={index < 8} />
-              ))}
-            </div>
-          </Suspense>
+          <div className="grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-3">
+            {featured.map((grp, index) => (
+              <ProductCard key={grp.id} product={grp.primary} group={grp} priority={index < 6} />
+            ))}
+          </div>
+          <div className="mt-8 flex justify-center">
+            <Button asChild size="lg" variant="outline">
+              <Link href="/shop">
+                View all products
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
         </div>
       </section>
 
@@ -144,16 +139,6 @@ export default async function HomePage() {
           </div>
         </section>
       )}
-    </div>
-  )
-}
-
-function ProductGridSkeleton({ count }: { count: number }) {
-  return (
-    <div className="grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-6 lg:grid-cols-4">
-      {Array.from({ length: count }).map((_, i) => (
-        <ProductCardSkeleton key={i} />
-      ))}
     </div>
   )
 }
