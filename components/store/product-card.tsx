@@ -41,9 +41,13 @@ export function ProductCard({ product, group, priority = false }: ProductCardPro
     variants: [{ product, label: product.name, colorKey: 'default', swatch: '#d8c7a8', kind: 'color' }],
   }
 
-  // When any variant is design-based (e.g. Moffy 001–005), show image
-  // thumbnails instead of solid colour dots for the whole group.
-  const useThumbnails = g.variants.some((v) => v.kind === 'design')
+  // Show image thumbnails (instead of solid colour dots) when any variant is
+  // design-based (e.g. Moffy 001–005), OR when two variants share the same
+  // swatch colour — e.g. "White & Silver" vs "White & Gold" would otherwise
+  // render identical dots, so thumbnails keep them distinguishable.
+  const hasDuplicateSwatch =
+    new Set(g.variants.map((v) => v.colorKey)).size !== g.variants.length
+  const useThumbnails = g.variants.some((v) => v.kind === 'design') || hasDuplicateSwatch
 
   const [activeIndex, setActiveIndex] = useState(0)
   const [quickViewOpen, setQuickViewOpen] = useState(false)
