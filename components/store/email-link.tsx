@@ -27,19 +27,19 @@ export function EmailLink({ email, className }: EmailLinkProps) {
   }
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2 min-w-0 max-w-full">
       {/* Goes to the on-site contact form, which delivers straight to our inbox.
           No external mail app (Outlook, etc.) required. */}
-      <Link href="/contact" className={className} aria-label={`Send us an email via our contact form`}>
+      <Link href="/contact" className={`${className ?? ''} min-w-0`} aria-label={`Send us an email via our contact form`}>
         <Mail className="h-5 w-5 shrink-0" />
-        <span>{email}</span>
+        <span className="min-w-0 break-all">{email}</span>
       </Link>
       <button
         type="button"
         onClick={handleCopy}
         aria-label="Copy email address"
         title="Copy email address"
-        className="text-secondary-foreground/60 hover:text-primary transition-colors"
+        className="shrink-0 text-secondary-foreground/60 hover:text-primary transition-colors"
       >
         {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
       </button>

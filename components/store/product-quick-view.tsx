@@ -37,7 +37,9 @@ export function ProductQuickView({
   const [quantity, setQuantity] = useState(1)
 
   const active = group.variants[activeIndex]?.product ?? group.primary
-  const useThumbnails = group.variants.some((v) => v.kind === 'design')
+  const hasDuplicateSwatch =
+    new Set(group.variants.map((v) => v.colorKey)).size !== group.variants.length
+  const useThumbnails = group.variants.some((v) => v.kind === 'design') || hasDuplicateSwatch
   const discount = calculateDiscount(active.price, active.compare_at_price)
   const isOutOfStock = active.stock_quantity <= 0
   const maxQty = Math.max(1, active.stock_quantity)
