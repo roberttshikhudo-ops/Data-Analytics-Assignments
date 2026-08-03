@@ -268,26 +268,31 @@ export function ProductCard({ product, group, priority = false }: ProductCardPro
       {/* Actions */}
       <div className="flex flex-col gap-2 px-4 pb-4">
         <Button
-          className="w-full"
+          className="w-full gap-1.5 px-2 text-sm"
           variant={isOutOfStock ? 'secondary' : 'default'}
           disabled={isOutOfStock}
           onClick={handleAddToCart}
         >
-          <ShoppingCart className="mr-2 h-4 w-4" />
+          <ShoppingCart className="h-4 w-4 shrink-0" />
           {isOutOfStock ? 'Out of Stock' : 'Add to Cart'}
         </Button>
         <Button
           asChild
           variant="outline"
-          className="w-full gap-2 border-[#25D366]/40 text-[#075E54] hover:bg-[#25D366]/10 hover:text-[#075E54]"
+          className="w-full gap-1.5 px-2 text-sm border-[#25D366]/40 text-[#075E54] hover:bg-[#25D366]/10 hover:text-[#075E54]"
         >
           <a
             href={buildProductWaLink(active.name, active.price, productUrl)}
             target="_blank"
             rel="noopener noreferrer"
           >
-            <MessageCircle className="h-4 w-4" />
-            Order on WhatsApp
+            <MessageCircle className="h-4 w-4 shrink-0" />
+            {/* Shorter label on the narrow 2-col mobile grid so it never
+                overflows the button box; full label from sm upward. */}
+            <span className="truncate">
+              <span className="min-[420px]:hidden">WhatsApp</span>
+              <span className="hidden min-[420px]:inline">Order on WhatsApp</span>
+            </span>
           </a>
         </Button>
       </div>
