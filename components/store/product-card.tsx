@@ -292,13 +292,18 @@ export function ProductCard({ product, group, priority = false }: ProductCardPro
         </Button>
       </div>
 
-      <ProductQuickView
-        group={g}
-        activeIndex={activeIndex}
-        onSelectVariant={setActiveIndex}
-        open={quickViewOpen}
-        onOpenChange={setQuickViewOpen}
-      />
+      {/* Mount the quick-view dialog only once opened. Rendering a Radix Dialog
+          per card up-front bloated the initial server render and hydration; the
+          dialog's own state is self-contained so lazy mounting is safe. */}
+      {quickViewOpen && (
+        <ProductQuickView
+          group={g}
+          activeIndex={activeIndex}
+          onSelectVariant={setActiveIndex}
+          open={quickViewOpen}
+          onOpenChange={setQuickViewOpen}
+        />
+      )}
     </Card>
   )
 }
