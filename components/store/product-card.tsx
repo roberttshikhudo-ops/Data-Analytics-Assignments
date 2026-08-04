@@ -85,13 +85,13 @@ export function ProductCard({ product, group, priority = false }: ProductCardPro
     <Card className="group relative flex flex-col overflow-hidden border-border/50 transition-colors hover:border-primary/30">
       <Link href={`/products/${active.slug}`} className="flex flex-1 flex-col">
         {/* Image */}
-        <div className="relative aspect-square overflow-hidden bg-muted">
+        <div className="relative aspect-square overflow-hidden bg-white">
           {active.image_url ? (
             <Image
               src={active.image_url}
               alt={displayName}
               fill
-              className="object-cover transition-transform group-hover:scale-105"
+              className="object-contain p-3 transition-transform group-hover:scale-105"
               sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
               quality={60}
               placeholder="blur"
