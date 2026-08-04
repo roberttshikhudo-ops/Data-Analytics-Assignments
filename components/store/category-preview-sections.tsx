@@ -1,9 +1,10 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import { ProductCard } from '@/components/store/product-card'
 import { ProductPagination, PAGE_SIZE } from '@/components/store/product-pagination'
+import { groupProductVariants } from '@/lib/product-variants'
 import type { Product } from '@/lib/types'
 
 export interface CategoryPreviewSection {
@@ -55,12 +56,15 @@ function CategorySnippet({
   const [page, setPage] = useState(1)
   const topRef = useRef<HTMLDivElement>(null)
 
-  const total = section.products.length
+  // Collapse colour siblings into one card with a swatch selector.
+  const groups = useMemo(() => groupProductVariants(section.products), [section.products])
+
+  const total = groups.length
   const totalPages = Math.max(1, Math.ceil(total / pageSize))
   const currentPage = Math.min(page, totalPages)
   const pageStart = (currentPage - 1) * pageSize
   const pageEnd = pageStart + pageSize
-  const items = section.products.slice(pageStart, pageEnd)
+  const items = groups.slice(pageStart, pageEnd)
 
   const goToPage = (next: number) => {
     setPage(next)
@@ -95,10 +99,11 @@ function CategorySnippet({
 
       {/* Page grid */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-        {items.map((product, i) => (
+        {items.map((grp, i) => (
           <ProductCard
-            key={product.id}
-            product={product}
+            key={grp.id}
+            product={grp.primary}
+            group={grp}
             priority={priority && currentPage === 1 && i < 4}
           />
         ))}

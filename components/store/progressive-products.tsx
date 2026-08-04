@@ -3,6 +3,7 @@
 import { useMemo, useRef, useState } from 'react'
 import { ProductCard } from '@/components/store/product-card'
 import { ProductPagination, PAGE_SIZE } from '@/components/store/product-pagination'
+import { groupProductVariants } from '@/lib/product-variants'
 import type { Product } from '@/lib/types'
 
 export interface ProductSection {
@@ -27,9 +28,17 @@ export function ProgressiveProducts({
   sections,
   pageSize = PAGE_SIZE,
 }: ProgressiveProductsProps) {
-  const total = useMemo(
-    () => sections.reduce((sum, s) => sum + s.products.length, 0),
+  // Collapse colour siblings into a single card (with a swatch selector) per
+  // section, matching the homepage. Without this, each colour rendered as its
+  // own card with no chooser at the bottom.
+  const groupedSections = useMemo(
+    () => sections.map((s) => ({ title: s.title, groups: groupProductVariants(s.products) })),
     [sections],
+  )
+
+  const total = useMemo(
+    () => groupedSections.reduce((sum, s) => sum + s.groups.length, 0),
+    [groupedSections],
   )
 
   const totalPages = Math.max(1, Math.ceil(total / pageSize))
@@ -50,16 +59,16 @@ export function ProgressiveProducts({
   // Walk the sections in order, rendering only the slice of each that falls
   // within the current page's [pageStart, pageEnd) window.
   let cursor = 0
-  const renderedSections = sections.map((section) => {
+  const renderedSections = groupedSections.map((section) => {
     const start = cursor
-    const end = start + section.products.length
+    const end = start + section.groups.length
     cursor = end
 
     const from = Math.max(start, pageStart)
     const to = Math.min(end, pageEnd)
     if (to <= from) return null
 
-    const items = section.products.slice(from - start, to - start)
+    const items = section.groups.slice(from - start, to - start)
 
     return (
       <section
@@ -73,17 +82,18 @@ export function ProgressiveProducts({
               {section.title}
             </h2>
             <span className="text-sm text-muted-foreground">
-              {section.products.length}{' '}
-              {section.products.length === 1 ? 'item' : 'items'}
+              {section.groups.length}{' '}
+              {section.groups.length === 1 ? 'item' : 'items'}
             </span>
             <span className="h-px flex-1 bg-border" aria-hidden="true" />
           </div>
         )}
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
-          {items.map((product, i) => (
+          {items.map((grp, i) => (
             <ProductCard
-              key={product.id}
-              product={product}
+              key={grp.id}
+              product={grp.primary}
+              group={grp}
               priority={currentPage === 1 && from - start + i < 6}
             />
           ))}
