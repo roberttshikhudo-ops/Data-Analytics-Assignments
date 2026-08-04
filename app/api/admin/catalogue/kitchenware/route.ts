@@ -258,6 +258,27 @@ export async function GET(request: Request) {
     if (matched.length === 0) continue
     matched.forEach((p: any) => assigned.add(p))
 
+    // Within each sub-category, list product families first (items that share
+    // the same name across 2+ colour/variant rows), keeping each family's rows
+    // adjacent, then the individual standalone products. Sort is stable:
+    //   1. families (name count > 1) before individuals
+    //   2. name A→Z (keeps same-name rows together and orders the families)
+    //   3. price low→high within an identical name
+    const nameCounts = new Map<string, number>()
+    for (const p of matched) {
+      const key = (p.name || "").trim().toLowerCase()
+      nameCounts.set(key, (nameCounts.get(key) || 0) + 1)
+    }
+    matched.sort((a: any, b: any) => {
+      const aKey = (a.name || "").trim().toLowerCase()
+      const bKey = (b.name || "").trim().toLowerCase()
+      const aFamily = (nameCounts.get(aKey) || 0) > 1
+      const bFamily = (nameCounts.get(bKey) || 0) > 1
+      if (aFamily !== bFamily) return aFamily ? -1 : 1
+      if (aKey !== bKey) return aKey < bKey ? -1 : 1
+      return Number(a.price) - Number(b.price)
+    })
+
     const seriesProducts: CatalogueProduct[] = await Promise.all(
       matched.map(async (p: any) => ({
         name: p.name,
