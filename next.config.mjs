@@ -4,6 +4,9 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
   images: {
+    // Product cards intentionally use quality 60 for lighter catalogue pages.
+    // Next.js 16 requires every requested quality to be explicitly allowed.
+    qualities: [60, 75],
     // Serve modern, smaller formats. Next.js will pick AVIF/WebP when supported.
     formats: ["image/avif", "image/webp"],
     // Cache optimized images for 31 days to avoid re-optimizing on every request.

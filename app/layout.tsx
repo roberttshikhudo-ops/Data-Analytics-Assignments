@@ -80,12 +80,12 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className={`${geist.variable} ${geistMono.variable}`}>
-      <head>
+    <html lang="en" className={`${geist.variable} ${geistMono.variable} bg-background`}>
+      <body className="font-sans antialiased bg-background">
+        {/* Keep JSON-LD in the body so preview-injected head scripts cannot
+            shift these nodes and cause a hydration mismatch during HMR. */}
         <OrganizationSchema />
         <LocalBusinessSchema />
-      </head>
-      <body className="font-sans antialiased bg-background">
         <GoogleAnalytics />
         {children}
         <Toaster position="top-center" richColors />
