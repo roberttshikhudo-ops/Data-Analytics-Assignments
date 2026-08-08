@@ -221,16 +221,22 @@ export function ProductCard({ product, group, priority = false }: ProductCardPro
                       i === activeIndex ? 'ring-2 ring-primary ring-offset-1' : 'border-border',
                     )}
                   >
-                    {v.product.image_url ? (
+                    {v.product.image_url && !failedIds[v.product.id] ? (
                       <Image
                         src={v.product.image_url}
                         alt={v.label}
                         fill
                         className="object-cover"
                         sizes="32px"
+                        onError={() =>
+                          setFailedIds((prev) => ({ ...prev, [v.product.id]: true }))
+                        }
                       />
                     ) : (
-                      <span className="flex h-full w-full items-center justify-center bg-muted text-[10px]">
+                      <span
+                        className="flex h-full w-full items-center justify-center bg-muted px-0.5 text-center text-[8px] leading-tight"
+                        title={v.label}
+                      >
                         {v.label}
                       </span>
                     )}
