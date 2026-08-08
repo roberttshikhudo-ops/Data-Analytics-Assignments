@@ -11,12 +11,14 @@ declare global {
   }
 }
 
-const RAW_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID
-// A valid GA4 Measurement ID looks like "G-XXXXXXXXXX". Reject anything else
-// (e.g. a website URL) so we never load a broken gtag script that silently
-// tracks nothing.
+// GA4 Measurement ID. This value is PUBLIC by design (it appears in the page
+// source of every site running GA), so it is safe to keep as a fallback in
+// code. The env var is preferred, but it is only used when it is a valid
+// "G-XXXXXXXXXX" ID — a stray value like a website URL falls back to this.
+const FALLBACK_GA_ID = 'G-ELKHYGLZPN'
+const ENV_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID
 const GA_MEASUREMENT_ID =
-  RAW_ID && /^G-[A-Z0-9]+$/i.test(RAW_ID.trim()) ? RAW_ID.trim() : null
+  ENV_ID && /^G-[A-Z0-9]+$/i.test(ENV_ID.trim()) ? ENV_ID.trim() : FALLBACK_GA_ID
 
 function PageviewTracker() {
   const pathname = usePathname()
@@ -35,16 +37,7 @@ function PageviewTracker() {
 }
 
 export function GoogleAnalytics() {
-  if (!RAW_ID) return null
-
-  if (!GA_MEASUREMENT_ID) {
-    if (process.env.NODE_ENV !== 'production') {
-      console.warn(
-        `[v0] Google Analytics disabled: NEXT_PUBLIC_GA_MEASUREMENT_ID is "${RAW_ID}", but it must be a GA4 Measurement ID like "G-XXXXXXXXXX".`,
-      )
-    }
-    return null
-  }
+  if (!GA_MEASUREMENT_ID) return null
 
   return (
     <>
