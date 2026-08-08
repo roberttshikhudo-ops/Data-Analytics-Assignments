@@ -51,6 +51,11 @@ export function ProductCard({ product, group, priority = false }: ProductCardPro
 
   const [activeIndex, setActiveIndex] = useState(0)
   const [quickViewOpen, setQuickViewOpen] = useState(false)
+  // Track images that fail to load (e.g. an external retailer host that
+  // rate-limits or times out the Next.js optimizer) so we can degrade to a
+  // graceful placeholder instead of a blank box. Keyed by product id so
+  // switching colour variants re-evaluates per image.
+  const [failedIds, setFailedIds] = useState<Record<string, boolean>>({})
 
   const active = g.variants[activeIndex]?.product ?? g.primary
   const { isInWishlist, isLoading: wishlistLoading, toggleWishlist } = useWishlist(active.id)
@@ -86,7 +91,7 @@ export function ProductCard({ product, group, priority = false }: ProductCardPro
       <Link href={`/products/${active.slug}`} className="flex flex-1 flex-col">
         {/* Image */}
         <div className="relative aspect-square overflow-hidden bg-white">
-          {active.image_url ? (
+          {active.image_url && !failedIds[active.id] ? (
             <Image
               src={active.image_url}
               alt={displayName}
@@ -100,10 +105,12 @@ export function ProductCard({ product, group, priority = false }: ProductCardPro
               loading={priority ? 'eager' : 'lazy'}
               fetchPriority={priority ? 'high' : 'auto'}
               decoding="async"
+              onError={() => setFailedIds((prev) => ({ ...prev, [active.id]: true }))}
             />
           ) : (
-            <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary/5 to-accent/5 text-muted-foreground">
+            <div className="flex h-full w-full flex-col items-center justify-center gap-2 bg-gradient-to-br from-primary/5 to-accent/5 text-muted-foreground">
               <ShoppingCart className="h-12 w-12" />
+              <span className="px-2 text-center text-xs">{displayName}</span>
             </div>
           )}
 
