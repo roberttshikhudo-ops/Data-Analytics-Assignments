@@ -24,6 +24,7 @@ import {
   PlusCircle,
   DollarSign,
   Megaphone,
+  Gift,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -42,6 +43,7 @@ const navigation = [
   { name: "Coupons", href: "/admin/coupons", icon: Ticket },
   { name: "Subscribers", href: "/admin/subscribers", icon: Mail },
   { name: "Marketing", href: "/admin/marketing", icon: Megaphone },
+  { name: "Gift Vouchers", href: "/admin/vouchers", icon: Gift },
   { name: "Reports", href: "/admin/reports", icon: BarChart3 },
   { name: "Analytics", href: "/admin/analytics", icon: LineChart },
   { name: "Settings", href: "/admin/settings", icon: Settings },
