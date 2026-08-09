@@ -16,6 +16,11 @@ const BEDDING_FAMILIES: FamilyDef[] = [
   { id: 'moffy', name: 'Moffy 7pcs Super King Comforter', match: /^moffy\b/i },
   { id: 'rara', name: 'RARA Super King Quilt Set', match: /\brara\b/i },
   { id: 'generic-reversible', name: '5pcs Generic Reversible Comforters', match: /generic reversible/i },
+  {
+    id: '9pcs-carpet-combo',
+    name: '9pcs Comforter & 3D Carpet Combo SET',
+    match: /9pcs comforter & 3d carpet combo/i,
+  },
   { id: '9pcs', name: '9pcs Comforter Set', match: /^9pcs comforter set/i },
   { id: 'momo', name: 'MOMO Super King Quilt Set', match: /\bmomo\b/i },
   { id: 'geometric', name: '5pcs Geometric Comforter', match: /geometric comforter/i },
