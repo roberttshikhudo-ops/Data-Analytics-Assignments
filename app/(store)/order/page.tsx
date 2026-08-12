@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { OrderOnWhatsApp } from '@/components/store/order-on-whatsapp'
+import { BeddingCatalogueSection } from '@/components/store/bedding-catalogue-section'
 
 export const metadata: Metadata = {
   title: 'Order on WhatsApp | Agri Hub SA',
@@ -13,5 +14,10 @@ export const metadata: Metadata = {
 }
 
 export default function OrderPage() {
-  return <OrderOnWhatsApp />
+  return (
+    <>
+      <OrderOnWhatsApp />
+      <BeddingCatalogueSection />
+    </>
+  )
 }

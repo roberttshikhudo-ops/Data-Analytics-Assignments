@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useRef } from "react"
+import { upload } from "@vercel/blob/client"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -22,34 +23,47 @@ export function ImageUpload({ value, onChange, label = "Product Image" }: ImageU
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
+    // Always reset the input value right away so selecting the SAME file
+    // again after a failure still fires onChange (fixes "need to refresh").
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ""
+    }
     if (!file) return
+
+    // Validate client-side before hitting the network
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"]
+    if (!allowedTypes.includes(file.type)) {
+      setError("Invalid file type. Use JPEG, PNG, WebP, AVIF or GIF.")
+      return
+    }
+    const maxSize = 15 * 1024 * 1024
+    if (file.size > maxSize) {
+      setError("File too large. Maximum size is 15MB.")
+      return
+    }
 
     setIsUploading(true)
     setError(null)
 
     try {
-      const formData = new FormData()
-      formData.append("file", file)
-
-      const response = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
+      // Upload straight from the browser to Vercel Blob. This bypasses the
+      // serverless request-body limit that caused large images to fail.
+      const blob = await upload(`products/${Date.now()}-${file.name}`, file, {
+        access: "public",
+        handleUploadUrl: "/api/upload",
+        contentType: file.type,
       })
 
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || "Upload failed")
-      }
-
-      onChange(data.url)
+      onChange(blob.url)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Upload failed")
+      console.error("[v0] Image upload failed:", err)
+      setError(
+        err instanceof Error
+          ? `Upload failed: ${err.message}. Please try again.`
+          : "Upload failed. Please try again.",
+      )
     } finally {
       setIsUploading(false)
-      if (fileInputRef.current) {
-        fileInputRef.current.value = ""
-      }
     }
   }
 
@@ -107,7 +121,7 @@ export function ImageUpload({ value, onChange, label = "Product Image" }: ImageU
                   Click to upload image
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  JPEG, PNG, WebP, GIF (max 5MB)
+                  JPEG, PNG, WebP, AVIF, GIF (max 15MB)
                 </p>
               </div>
             )}
@@ -116,7 +130,7 @@ export function ImageUpload({ value, onChange, label = "Product Image" }: ImageU
           <input
             ref={fileInputRef}
             type="file"
-            accept="image/jpeg,image/png,image/webp,image/gif"
+            accept="image/jpeg,image/png,image/webp,image/gif,image/avif"
             className="hidden"
             onChange={handleFileSelect}
             disabled={isUploading}

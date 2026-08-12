@@ -1,64 +1,44 @@
-import { createAdminClient } from '@/lib/supabase/server'
+import { handleUpload, type HandleUploadBody } from '@vercel/blob/client'
 import { NextResponse } from 'next/server'
 
-export async function POST(request: Request) {
+// Client uploads send the file directly from the browser to Vercel Blob,
+// so this route only issues a short-lived upload token. This avoids the
+// ~4.5MB serverless request-body limit that made larger image uploads
+// fail intermittently and appear to require a page refresh.
+export async function POST(request: Request): Promise<NextResponse> {
+  const body = (await request.json()) as HandleUploadBody
+
   try {
-    const formData = await request.formData()
-    const file = formData.get('file') as File
-    
-    if (!file) {
-      return NextResponse.json({ error: 'No file provided' }, { status: 400 })
-    }
-
-    // Validate file type
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
-    if (!allowedTypes.includes(file.type)) {
-      return NextResponse.json({ error: 'Invalid file type. Only JPEG, PNG, WebP, and GIF are allowed.' }, { status: 400 })
-    }
-
-    // Validate file size (max 5MB)
-    const maxSize = 5 * 1024 * 1024
-    if (file.size > maxSize) {
-      return NextResponse.json({ error: 'File too large. Maximum size is 5MB.' }, { status: 400 })
-    }
-
-    const supabase = createAdminClient()
-
-    // Generate unique filename
-    const fileExt = file.name.split('.').pop()
-    const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`
-    const filePath = `products/${fileName}`
-
-    // Convert file to buffer
-    const arrayBuffer = await file.arrayBuffer()
-    const buffer = new Uint8Array(arrayBuffer)
-
-    // Upload to Supabase Storage
-    const { data, error } = await supabase.storage
-      .from('images')
-      .upload(filePath, buffer, {
-        contentType: file.type,
-        cacheControl: '3600',
-        upsert: false
-      })
-
-    if (error) {
-      console.error('Upload error:', error)
-      return NextResponse.json({ error: error.message }, { status: 500 })
-    }
-
-    // Get public URL
-    const { data: { publicUrl } } = supabase.storage
-      .from('images')
-      .getPublicUrl(filePath)
-
-    return NextResponse.json({ 
-      success: true, 
-      url: publicUrl,
-      path: filePath 
+    const jsonResponse = await handleUpload({
+      body,
+      request,
+      onBeforeGenerateToken: async (pathname) => {
+        return {
+          allowedContentTypes: [
+            'image/jpeg',
+            'image/png',
+            'image/webp',
+            'image/gif',
+            'image/avif',
+          ],
+          // Cap uploads at 15MB (generous for product photos)
+          maximumSizeInBytes: 15 * 1024 * 1024,
+          addRandomSuffix: true,
+          tokenPayload: JSON.stringify({ pathname }),
+        }
+      },
+      onUploadCompleted: async () => {
+        // Server-to-server callback. Nothing extra to persist here — the
+        // client receives the blob URL directly from the upload() call.
+      },
     })
+
+    return NextResponse.json(jsonResponse)
   } catch (error) {
-    console.error('Upload error:', error)
-    return NextResponse.json({ error: 'Upload failed' }, { status: 500 })
+    console.error('[v0] Upload token error:', error)
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Upload failed' },
+      { status: 400 },
+    )
   }
 }
