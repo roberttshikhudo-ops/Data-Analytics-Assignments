@@ -3,6 +3,7 @@ import { ArrowRight, Truck, Shield, MessageCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ProductCard } from '@/components/store/product-card'
 import { CategoryCard } from '@/components/store/category-card'
+import { CatalogueDownloadBadge } from '@/components/store/catalogue-download-badge'
 import { buildCuratedGroup, groupProductVariants, type ProductGroup } from '@/lib/product-variants'
 import { createClient } from '@/lib/supabase/server'
 import type { Product } from '@/lib/types'
@@ -154,6 +155,7 @@ export default async function HomePage() {
               </div>
             </div>
           </div>
+          <CatalogueDownloadBadge />
         </div>
       </section>
 
