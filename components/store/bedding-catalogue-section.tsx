@@ -13,7 +13,7 @@ export function BeddingCatalogueSection() {
     setIsLoading(true)
     setError(null)
     try {
-      const res = await fetch('/api/admin/catalogue/bedding-6')
+      const res = await fetch('/api/catalogue/bedding-6')
       if (!res.ok) {
         throw new Error(`Failed to generate catalogue (${res.status})`)
       }
