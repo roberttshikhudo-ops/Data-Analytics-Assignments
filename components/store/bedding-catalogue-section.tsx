@@ -100,6 +100,18 @@ export function BeddingCatalogueSection({ downloadUrl }: { downloadUrl?: string 
                   {error}
                 </p>
               )}
+
+              <p className="mt-6 border-t pt-4 text-sm text-muted-foreground">
+                Store management:{' '}
+                <a
+                  href="/agri-hub-bedding-kitchenware-shopify.csv"
+                  download="agri-hub-bedding-kitchenware-shopify.csv"
+                  className="inline-flex items-center gap-1 font-medium text-[#075E54] underline underline-offset-2 hover:text-[#064c44]"
+                >
+                  <Download className="h-3.5 w-3.5" />
+                  Download product CSV (Shopify)
+                </a>
+              </p>
             </div>
 
             {/* Visual */}
