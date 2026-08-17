@@ -11,9 +11,12 @@ export function CatalogueDownloadButtonSix() {
   async function handleDownload() {
     setIsLoading(true)
     try {
-      // Fetch within the current authenticated session (sends cookies), so the
-      // request is never treated as an unauthenticated new-tab navigation.
-      const res = await fetch("/api/admin/catalogue/bedding-6", {
+      // Regenerate the PDF with the latest products server-side and refresh the
+      // shared cache, then get back the small forced-download Blob URL. We
+      // navigate straight to that URL instead of pulling the whole ~7MB PDF
+      // through fetch().blob() — that approach timed out during generation and
+      // got blocked by the browser, which is why the download kept failing.
+      const res = await fetch("/api/catalogue/bedding-6?json=1&refresh=1", {
         credentials: "include",
       })
 
@@ -21,15 +24,17 @@ export function CatalogueDownloadButtonSix() {
         throw new Error(`Failed to generate catalogue (${res.status})`)
       }
 
-      const blob = await res.blob()
-      const url = URL.createObjectURL(blob)
+      const { downloadUrl } = (await res.json()) as { downloadUrl?: string }
+      if (!downloadUrl) {
+        throw new Error("Catalogue is not available right now.")
+      }
+
       const link = document.createElement("a")
-      link.href = url
-      link.download = "Agri-Hub-SA-Bedding-Catalogue-6.pdf"
+      link.href = downloadUrl
+      link.rel = "noopener"
       document.body.appendChild(link)
       link.click()
       link.remove()
-      URL.revokeObjectURL(url)
 
       toast.success("Catalogue downloaded")
     } catch (err) {
