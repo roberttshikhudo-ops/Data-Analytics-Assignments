@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { OrderOnWhatsApp } from '@/components/store/order-on-whatsapp'
 import { BeddingCatalogueSection } from '@/components/store/bedding-catalogue-section'
+import { getCachedCatalogue } from '@/lib/catalogue/cache-bedding-6'
 
 export const metadata: Metadata = {
   title: 'Order on WhatsApp | Agri Hub SA',
@@ -13,11 +14,12 @@ export const metadata: Metadata = {
   },
 }
 
-export default function OrderPage() {
+export default async function OrderPage() {
+  const catalogue = await getCachedCatalogue()
   return (
     <>
       <OrderOnWhatsApp />
-      <BeddingCatalogueSection />
+      <BeddingCatalogueSection downloadUrl={catalogue?.downloadUrl} />
     </>
   )
 }
