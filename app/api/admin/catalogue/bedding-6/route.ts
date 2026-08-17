@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { generateBeddingCatalogueSixPdf } from "@/lib/catalogue/generate-bedding-6"
+import { generateAndCacheCatalogue } from "@/lib/catalogue/cache-bedding-6"
 
 // @react-pdf/renderer and fs require the Node.js runtime, and the PDF must be
 // generated fresh on each request.
@@ -13,7 +13,9 @@ export async function GET(request: Request) {
   const origin = new URL(request.url).origin
 
   try {
-    const buffer = await generateBeddingCatalogueSixPdf(origin)
+    // Regenerate fresh AND refresh the shared public cache so the customer-
+    // facing download stays warm and current after product changes.
+    const { buffer } = await generateAndCacheCatalogue(origin)
 
     return new NextResponse(buffer as any, {
       headers: {

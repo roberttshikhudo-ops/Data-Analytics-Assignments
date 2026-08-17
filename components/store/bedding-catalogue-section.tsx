@@ -13,19 +13,22 @@ export function BeddingCatalogueSection() {
     setIsLoading(true)
     setError(null)
     try {
-      const res = await fetch('/api/catalogue/bedding-6')
+      // Ask for the cached forced-download URL, then navigate to it directly
+      // (avoids pulling the whole ~7MB PDF through fetch; reliable on live).
+      const res = await fetch('/api/catalogue/bedding-6?json=1')
       if (!res.ok) {
-        throw new Error(`Failed to generate catalogue (${res.status})`)
+        throw new Error(`Failed to prepare catalogue (${res.status})`)
       }
-      const blob = await res.blob()
-      const url = URL.createObjectURL(blob)
+      const { downloadUrl } = (await res.json()) as { downloadUrl?: string }
+      if (!downloadUrl) {
+        throw new Error('Catalogue is not available right now.')
+      }
       const link = document.createElement('a')
-      link.href = url
-      link.download = 'Agri-Hub-SA-Bedding-Catalogue.pdf'
+      link.href = downloadUrl
+      link.rel = 'noopener'
       document.body.appendChild(link)
       link.click()
       link.remove()
-      URL.revokeObjectURL(url)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not download the catalogue. Please try again.')
     } finally {
