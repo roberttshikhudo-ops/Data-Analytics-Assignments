@@ -5,30 +5,26 @@ import { BookOpen, Download, Loader2, MessageCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { buildOrderWaLink } from '@/lib/whatsapp'
 
-export function BeddingCatalogueSection() {
+const FILE_NAME = 'Agri-Hub-SA-Bedding-Catalogue.pdf'
+
+export function BeddingCatalogueSection({ downloadUrl }: { downloadUrl?: string | null }) {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  async function handleDownload() {
+  // Fallback for the rare case the cache wasn't warm at page render.
+  async function handleFallbackDownload() {
     setIsLoading(true)
     setError(null)
     try {
-      // Ask for the cached forced-download URL, then navigate to it directly
-      // (avoids pulling the whole ~7MB PDF through fetch; reliable on live).
       const res = await fetch('/api/catalogue/bedding-6?json=1')
       if (!res.ok) {
         throw new Error(`Failed to prepare catalogue (${res.status})`)
       }
-      const { downloadUrl } = (await res.json()) as { downloadUrl?: string }
-      if (!downloadUrl) {
+      const { downloadUrl: url } = (await res.json()) as { downloadUrl?: string }
+      if (!url) {
         throw new Error('Catalogue is not available right now.')
       }
-      const link = document.createElement('a')
-      link.href = downloadUrl
-      link.rel = 'noopener'
-      document.body.appendChild(link)
-      link.click()
-      link.remove()
+      window.location.href = url
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not download the catalogue. Please try again.')
     } finally {
@@ -57,19 +53,35 @@ export function BeddingCatalogueSection() {
               </p>
 
               <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-                <Button
-                  size="lg"
-                  onClick={handleDownload}
-                  disabled={isLoading}
-                  className="h-12 gap-2 bg-[#075E54] px-6 text-base font-semibold text-white hover:bg-[#064c44]"
-                >
-                  {isLoading ? (
-                    <Loader2 className="h-5 w-5 animate-spin" />
-                  ) : (
-                    <Download className="h-5 w-5" />
-                  )}
-                  {isLoading ? 'Preparing catalogue...' : 'Download Catalogue (PDF)'}
-                </Button>
+                {downloadUrl ? (
+                  // Direct link to the permanent public Blob file (served with
+                  // content-disposition: attachment). No serverless function in
+                  // the path, so it can never 500.
+                  <Button
+                    asChild
+                    size="lg"
+                    className="h-12 gap-2 bg-[#075E54] px-6 text-base font-semibold text-white hover:bg-[#064c44]"
+                  >
+                    <a href={downloadUrl} download={FILE_NAME} rel="noopener">
+                      <Download className="h-5 w-5" />
+                      Download Catalogue (PDF)
+                    </a>
+                  </Button>
+                ) : (
+                  <Button
+                    size="lg"
+                    onClick={handleFallbackDownload}
+                    disabled={isLoading}
+                    className="h-12 gap-2 bg-[#075E54] px-6 text-base font-semibold text-white hover:bg-[#064c44]"
+                  >
+                    {isLoading ? (
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                    ) : (
+                      <Download className="h-5 w-5" />
+                    )}
+                    {isLoading ? 'Preparing catalogue...' : 'Download Catalogue (PDF)'}
+                  </Button>
+                )}
                 <Button
                   asChild
                   size="lg"

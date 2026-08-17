@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button'
 import { ProductCard } from '@/components/store/product-card'
 import { CategoryCard } from '@/components/store/category-card'
 import { CatalogueDownloadBadge } from '@/components/store/catalogue-download-badge'
+import { getCachedCatalogue } from '@/lib/catalogue/cache-bedding-6'
 import { buildCuratedGroup, groupProductVariants, type ProductGroup } from '@/lib/product-variants'
 import { createClient } from '@/lib/supabase/server'
 import type { Product } from '@/lib/types'
@@ -76,7 +77,11 @@ async function getCategories() {
 }
 
 export default async function HomePage() {
-  const [products, categories] = await Promise.all([getCategoryProducts(), getCategories()])
+  const [products, categories, catalogue] = await Promise.all([
+    getCategoryProducts(),
+    getCategories(),
+    getCachedCatalogue(),
+  ])
 
   const buildFamilies = (defs: FamilyDef[]) =>
     defs
@@ -155,7 +160,7 @@ export default async function HomePage() {
               </div>
             </div>
           </div>
-          <CatalogueDownloadBadge />
+          <CatalogueDownloadBadge downloadUrl={catalogue?.downloadUrl} />
         </div>
       </section>
 
