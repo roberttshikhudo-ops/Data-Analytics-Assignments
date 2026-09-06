@@ -100,6 +100,19 @@ export function BeddingCatalogueSection({ downloadUrl }: { downloadUrl?: string 
                   {error}
                 </p>
               )}
+
+              <p className="mt-6 border-t pt-4 text-sm text-muted-foreground">
+                Store management:{' '}
+                <a
+                  href="https://tkhnvcciiwg6evoc.public.blob.vercel-storage.com/catalogues/agri-hub-bedding-kitchenware-shopify.csv"
+                  download="agri-hub-bedding-kitchenware-shopify.csv"
+                  rel="noopener"
+                  className="inline-flex items-center gap-1 font-medium text-[#075E54] underline underline-offset-2 hover:text-[#064c44]"
+                >
+                  <Download className="h-3.5 w-3.5" />
+                  Download product CSV (Shopify)
+                </a>
+              </p>
             </div>
 
             {/* Visual */}
