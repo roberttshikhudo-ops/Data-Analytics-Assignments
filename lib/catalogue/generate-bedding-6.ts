@@ -10,10 +10,14 @@ import {
   type CatalogueSeriesGroup,
 } from "@/lib/bedding-catalogue-pdf-6"
 
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-)
+// Created on demand (not at import time) so a missing env var can only fail the
+// generation call itself, never the module load.
+function getSupabaseAdmin() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  )
+}
 
 const BUSINESS_INFO = {
   name: "Agri Hub SA",
@@ -230,7 +234,7 @@ async function imageToDataUri(
 // Generates the full Edition 6 bedding catalogue PDF and returns it as a Buffer.
 // Shared by the admin route (always fresh) and the public route (cached).
 export async function generateBeddingCatalogueSixPdf(origin: string): Promise<Buffer> {
-  const { data: products, error } = await supabaseAdmin
+  const { data: products, error } = await getSupabaseAdmin()
     .from("products")
     .select("name, price, compare_at_price, image_url, short_description, categories(slug)")
     .eq("is_active", true)
