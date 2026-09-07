@@ -44,7 +44,7 @@ export const WHATSAPP_GREETING_MESSAGE =
   "1. Shop Comforters\n" +
   "2. Shop Duvets\n" +
   "3. Shop Blankets & Throws\n" +
-  "4. Winter Specials\n" +
+  "4. Hot Deals\n" +
   "5. Shop Any Other Products\n" +
   "6. Track My Order\n" +
   "7. Delivery Cost\n" +
@@ -143,12 +143,12 @@ export const ORDER_MENU: OrderMenuOption[] = [
   },
   {
     n: 4,
-    label: "Winter Specials",
-    description: "This season's best bedding deals",
-    icon: "Snowflake",
-    href: "/promo/winter-specials",
+    label: "Hot Deals",
+    description: "Our best bedding deals right now",
+    icon: "Flame",
+    href: "/promo/hot-deals",
     waMessage:
-      "Hello Agri Hub SA, I am interested in your Winter Specials (Option 4). Please send me today's best deals and a secure payment link once confirmed.",
+      "Hello Agri Hub SA, I am interested in your Hot Deals (Option 4). Please send me today's best deals and a secure payment link once confirmed.",
   },
   {
     n: 5,

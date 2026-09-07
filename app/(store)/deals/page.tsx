@@ -1,6 +1,6 @@
 import { Metadata } from 'next'
 import Link from 'next/link'
-import { Tag, Clock, Percent, Truck, ArrowRight, Snowflake } from 'lucide-react'
+import { Tag, Clock, Percent, Truck, ArrowRight, Flame } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { ProductCard } from '@/components/store/product-card'
 import { Button } from '@/components/ui/button'
@@ -9,8 +9,8 @@ import { Badge } from '@/components/ui/badge'
 import type { Product } from '@/lib/types'
 
 export const metadata: Metadata = {
-  title: 'Winter Specials',
-  description: 'Shop our Winter Specials at Agri Hub SA. Save big on cozy bedding, comforters, blankets, and farm essentials to get you through the cold season.',
+  title: 'Hot Deals',
+  description: 'Shop our Hot Deals at Agri Hub SA. Save big on cozy bedding, comforters, blankets, and farm essentials.',
 }
 
 const promotions = [
@@ -60,7 +60,7 @@ async function getDealsProducts() {
     .order('created_at', { ascending: false })
     .limit(8)
 
-  // Get winter specials (comforters, bedspreads, blankets, heaters)
+  // Get hot deals (comforters, bedspreads, blankets, heaters)
   const { data: winterProducts } = await supabase
     .from('products')
     .select(`
@@ -112,10 +112,10 @@ export default async function DealsPage() {
               Limited Time Offers
             </Badge>
             <h1 className="text-4xl font-bold tracking-tight md:text-5xl">
-              Winter Specials
+              Hot Deals
             </h1>
             <p className="mt-4 text-lg opacity-90">
-              Stay warm and save big this season. Check out our latest promotions on cozy 
+              Save big right now. Check out our latest promotions on cozy 
               bedding, comforters, blankets, and farm essentials below.
             </p>
           </div>
@@ -199,24 +199,24 @@ export default async function DealsPage() {
         </section>
       )}
 
-      {/* Winter Specials Section */}
+      {/* Hot Deals Section */}
       {winterProducts.length > 0 && (
-        <section className="py-12 md:py-16 bg-gradient-to-br from-blue-50 to-slate-100 dark:from-blue-950/30 dark:to-slate-900/50">
+        <section className="py-12 md:py-16 bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950/30 dark:to-slate-900/50">
           <div className="container">
             <div className="flex items-center justify-between mb-8">
               <div>
                 <div className="flex items-center gap-2 mb-2">
-                  <Snowflake className="h-5 w-5 text-blue-600" />
-                  <Badge className="bg-blue-600 hover:bg-blue-700">Winter Specials</Badge>
+                  <Flame className="h-5 w-5 text-orange-600" />
+                  <Badge className="bg-orange-600 hover:bg-orange-700">Hot Deals</Badge>
                 </div>
-                <h2 className="text-2xl font-bold md:text-3xl">Stay Warm This Winter</h2>
+                <h2 className="text-2xl font-bold md:text-3xl">Our Hottest Bedding Deals</h2>
                 <p className="mt-1 text-muted-foreground">
-                  Cozy comforters, bedspreads, blankets and more to keep you warm
+                  Cozy comforters, bedspreads, blankets and more at unbeatable prices
                 </p>
               </div>
               <Button variant="outline" asChild className="hidden sm:flex">
                 <Link href="/shop/home-living">
-                  View All Winter Items
+                  View All Hot Deals
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
@@ -228,7 +228,7 @@ export default async function DealsPage() {
             </div>
             <div className="mt-8 text-center sm:hidden">
               <Button asChild>
-                <Link href="/shop/home-living">View All Winter Items</Link>
+                <Link href="/shop/home-living">View All Hot Deals</Link>
               </Button>
             </div>
           </div>

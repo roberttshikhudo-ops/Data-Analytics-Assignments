@@ -3,6 +3,17 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  async redirects() {
+    return [
+      // The campaign was renamed from "Winter Specials" to "Hot Deals"; keep
+      // old links (emails, WhatsApp, social) working.
+      {
+        source: "/promo/winter-specials",
+        destination: "/promo/hot-deals",
+        permanent: true,
+      },
+    ]
+  },
   images: {
     // Product cards intentionally use quality 60 for lighter catalogue pages.
     // Next.js 16 requires every requested quality to be explicitly allowed.

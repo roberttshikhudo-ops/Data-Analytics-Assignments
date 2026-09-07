@@ -149,7 +149,7 @@ export function SiteHeader() {
             </DropdownMenuContent>
           </DropdownMenu>
           <Link href="/deals" className="text-base font-medium text-accent hover:text-accent/80 transition-colors">
-            Winter Specials
+            Hot Deals
           </Link>
           <Link href="/about" className="text-base font-medium text-secondary-foreground hover:text-primary transition-colors">
             About Us
