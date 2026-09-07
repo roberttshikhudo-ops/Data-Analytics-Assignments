@@ -1,7 +1,7 @@
 import { Resend } from "resend"
 
 const WELCOME_CODE = "WELCOME10"
-const SHOP_URL = "https://agrihubsa.co.za/promo/winter-specials"
+const SHOP_URL = "https://agrihubsa.co.za/promo/hot-deals"
 
 // Resend requires a verified domain for the "from" address. Until agrihubsa.co.za
 // is verified in Resend, the shared onboarding domain is used as a safe default.
@@ -79,7 +79,7 @@ function buildWelcomeHtml(): string {
 
       <div style="text-align:center; margin-bottom:24px;">
         <a href="${SHOP_URL}" style="display:inline-block; background:#166534; color:#ffffff; text-decoration:none; padding:14px 32px; border-radius:8px; font-size:16px; font-weight:bold;">
-          Shop Winter Specials
+          Shop Hot Deals
         </a>
       </div>
 

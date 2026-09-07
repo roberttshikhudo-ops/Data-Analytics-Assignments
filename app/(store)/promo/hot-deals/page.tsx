@@ -6,7 +6,6 @@ import {
   Truck,
   Shield,
   Star,
-  Snowflake,
   Phone,
   MessageCircle,
   Flame,
@@ -21,9 +20,9 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import type { Product } from '@/lib/types'
 
-const OFFER_TITLE = 'Winter Specials at Agri Hub SA'
+const OFFER_TITLE = 'Hot Deals at Agri Hub SA'
 const OFFER_DESCRIPTION =
-  'Stay warm for less this winter. Shop cozy corduroy comforters, fleece throws, blankets and home essentials — plus FREE delivery on orders over R1,000.'
+  'Save big on cozy corduroy comforters, fleece throws, blankets and home essentials — plus FREE delivery on orders over R1,000.'
 
 export const metadata: Metadata = {
   title: OFFER_TITLE,
@@ -86,7 +85,7 @@ async function getCampaignProducts() {
   }
 }
 
-export default async function WinterSpecialsPage() {
+export default async function HotDealsPage() {
   const { winterProducts, saleProducts } = await getCampaignProducts()
   const endDate = getOfferEndDate()
 
@@ -94,7 +93,7 @@ export default async function WinterSpecialsPage() {
     { icon: Truck, label: 'FREE delivery over R1,000' },
     { icon: Shield, label: 'Quality guaranteed' },
     { icon: Star, label: 'Trusted by 5,000+ customers' },
-    { icon: Snowflake, label: 'Winter essentials in stock' },
+    { icon: Flame, label: 'Deals updated regularly' },
   ]
 
   return (
@@ -104,13 +103,13 @@ export default async function WinterSpecialsPage() {
         <div className="container relative grid gap-10 py-14 md:py-20 lg:grid-cols-2 lg:items-center">
           <div className="text-center lg:text-left">
             <div className="mb-5 inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-2 text-sm font-medium backdrop-blur-sm">
-              <Snowflake className="h-4 w-4" />
-              Limited-Time Winter Event
+              <Flame className="h-4 w-4" />
+              Limited-Time Offers
             </div>
 
             <h1 className="text-balance text-4xl font-bold leading-tight md:text-5xl lg:text-6xl">
-              Stay Warm for Less
-              <span className="mt-2 block text-emerald-400">Winter Specials Are Here</span>
+              Save Big on Bedding
+              <span className="mt-2 block text-emerald-400">Hot Deals Are Here</span>
             </h1>
 
             <p className="mx-auto mt-5 max-w-xl text-pretty text-lg text-white/85 lg:mx-0">
@@ -133,7 +132,7 @@ export default async function WinterSpecialsPage() {
                 asChild
               >
                 <Link href="/shop/home-living">
-                  Shop Winter Deals
+                  Shop Hot Deals
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Link>
               </Button>
@@ -143,7 +142,7 @@ export default async function WinterSpecialsPage() {
                 className="h-14 border-2 border-white/40 bg-transparent px-8 text-lg text-white hover:bg-white/10"
                 asChild
               >
-                <Link href="/deals">View All Specials</Link>
+                <Link href="/deals">View All Deals</Link>
               </Button>
             </div>
           </div>
@@ -153,7 +152,7 @@ export default async function WinterSpecialsPage() {
             <div className="relative aspect-[4/3] overflow-hidden rounded-3xl shadow-2xl ring-1 ring-white/10">
               <Image
                 src="/images/promo/winter-specials-hero.png"
-                alt="Cozy winter bedroom with plush corduroy comforter and fleece throw from Agri Hub SA"
+                alt="Cozy bedroom with plush corduroy comforter and fleece throw from Agri Hub SA"
                 fill
                 priority
                 sizes="(max-width: 1024px) 100vw, 50vw"
@@ -183,7 +182,7 @@ export default async function WinterSpecialsPage() {
         </div>
       </section>
 
-      {/* Winter products */}
+      {/* Hot deal products */}
       {winterProducts.length > 0 && (
         <section className="py-12 md:py-16">
           <div className="container">
@@ -191,11 +190,11 @@ export default async function WinterSpecialsPage() {
               <div>
                 <div className="mb-2 flex items-center gap-2">
                   <Flame className="h-5 w-5 text-orange-500" />
-                  <Badge className="bg-orange-500 hover:bg-orange-600">Winter Favourites</Badge>
+                  <Badge className="bg-orange-500 hover:bg-orange-600">Customer Favourites</Badge>
                 </div>
-                <h2 className="text-2xl font-bold md:text-3xl">Cozy Up This Season</h2>
+                <h2 className="text-2xl font-bold md:text-3xl">Our Hottest Bedding Deals</h2>
                 <p className="mt-1 text-muted-foreground">
-                  Our most-loved comforters, throws and blankets to keep you warm.
+                  Our most-loved comforters, throws and blankets at unbeatable prices.
                 </p>
               </div>
               <Button variant="outline" asChild className="hidden shrink-0 sm:flex">
@@ -222,7 +221,7 @@ export default async function WinterSpecialsPage() {
             <div>
               <h3 className="text-xl font-bold md:text-2xl">Spend R1,000, Get FREE Delivery</h3>
               <p className="text-white/85">
-                Stock up on winter essentials and we&apos;ll ship them to your door — anywhere in South
+                Stock up on home essentials and we&apos;ll ship them to your door — anywhere in South
                 Africa, on us.
               </p>
             </div>
@@ -299,10 +298,10 @@ export default async function WinterSpecialsPage() {
       <section className="bg-gradient-to-r from-slate-900 to-emerald-900 py-16 text-white">
         <div className="container text-center">
           <h2 className="text-balance text-3xl font-bold md:text-4xl">
-            Winter Won&apos;t Wait — Neither Should the Savings
+            These Deals Won&apos;t Last — Grab Yours Now
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-pretty text-lg text-white/85">
-            These prices are for a limited time only. Grab your winter essentials before the offer ends.
+            These prices are for a limited time only. Grab your home essentials before the offer ends.
           </p>
 
           <div className="mt-8">
@@ -316,7 +315,7 @@ export default async function WinterSpecialsPage() {
               asChild
             >
               <Link href="/shop/home-living">
-                Shop Winter Specials
+                Shop Hot Deals
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
             </Button>
@@ -326,7 +325,7 @@ export default async function WinterSpecialsPage() {
               asChild
             >
               <Link
-                href="https://wa.me/27833061529?text=Hi!%20I%27m%20interested%20in%20the%20Winter%20Specials."
+                href="https://wa.me/27833061529?text=Hi!%20I%27m%20interested%20in%20the%20Hot%20Deals."
                 target="_blank"
               >
                 <MessageCircle className="h-5 w-5" />
