@@ -56,26 +56,39 @@ export default function AdminLayout({
 }) {
   const router = useRouter()
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null)
+  const [accessError, setAccessError] = useState<string | null>(null)
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   useEffect(() => {
     async function checkAdmin() {
+      setAccessError(null)
       const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
-      
-      if (!user) {
-        router.push("/auth/login?redirect=/admin")
+      const { data: { user }, error: userError } = await supabase.auth.getUser()
+
+      if (userError) {
+        // Transient auth failure: surface it instead of silently bouncing.
+        setAccessError("Could not verify your session. Please try again.")
         return
       }
 
-      const { data: profile } = await createClient()
+      if (!user) {
+        router.replace("/auth/login?redirect=/admin")
+        return
+      }
+
+      const { data: profile, error: profileError } = await supabase
         .from("profiles")
         .select("role")
         .eq("id", user.id)
-        .single()
+        .maybeSingle()
+
+      if (profileError) {
+        setAccessError("Could not load your account profile. Please try again.")
+        return
+      }
 
       if (profile?.role !== "admin") {
-        router.push("/")
+        setAccessError("This account does not have admin access.")
         return
       }
 
@@ -89,6 +102,25 @@ export default function AdminLayout({
     const supabase = createClient()
     await supabase.auth.signOut()
     router.push("/")
+  }
+
+  if (accessError) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-muted p-4">
+        <div className="flex w-full max-w-sm flex-col items-center gap-4 rounded-lg border bg-background p-6 text-center">
+          <p className="font-medium">Admin access</p>
+          <p className="text-sm text-muted-foreground" role="alert">{accessError}</p>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => window.location.reload()}>
+              Try again
+            </Button>
+            <Button onClick={async () => { await createClient().auth.signOut(); window.location.assign("/auth/login?redirect=/admin") }}>
+              Sign in again
+            </Button>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   if (isAdmin === null) {

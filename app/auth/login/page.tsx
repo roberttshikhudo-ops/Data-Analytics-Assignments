@@ -15,7 +15,12 @@ import { Loader2, AlertCircle } from "lucide-react"
 function LoginContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const redirect = searchParams.get("redirect") || "/"
+  const requestedRedirect = searchParams.get("redirect") || "/"
+  // Only allow same-site paths so the redirect can't be abused to send users off-site.
+  const redirect =
+    requestedRedirect.startsWith("/") && !requestedRedirect.startsWith("//")
+      ? requestedRedirect
+      : "/"
 
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -36,13 +41,25 @@ function LoginContent() {
     })
 
     if (signInError) {
-      setError(signInError.message)
+      const msg = signInError.message.toLowerCase()
+      if (msg.includes("email not confirmed")) {
+        setError("Please confirm your email address before signing in. Check your inbox for the confirmation link.")
+      } else if (msg.includes("rate limit") || msg.includes("too many")) {
+        setError("Too many attempts. Please wait a minute and try again.")
+      } else if (msg.includes("invalid login credentials")) {
+        setError("Invalid email or password.")
+      } else {
+        setError("Sign-in failed. Please try again.")
+      }
       setIsLoading(false)
       return
     }
 
-    router.push(redirect)
-    router.refresh()
+    // Full navigation (not a client-side router push) so the freshly-set
+    // session cookies are guaranteed to be sent with the next request.
+    // Previously push() + refresh() raced and the admin gate could load
+    // before the session was visible, bouncing the user back out.
+    window.location.assign(redirect)
   }
 
   return (
