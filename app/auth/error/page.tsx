@@ -3,15 +3,21 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { AlertTriangle } from "lucide-react"
 
-export default function AuthErrorPage() {
+export default async function AuthErrorPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ message?: string }>
+}) {
+  const { message } = await searchParams
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted p-4">
       <Card className="w-full max-w-md text-center">
         <CardHeader>
           <AlertTriangle className="mx-auto mb-2 h-10 w-10 text-destructive" />
-          <CardTitle className="text-2xl">That link didn&apos;t work</CardTitle>
+          <CardTitle className="text-2xl">{message ? "Access denied" : "That link didn't work"}</CardTitle>
           <CardDescription>
-            The sign-in or reset link is invalid, has expired, or was already used.
+            {message ?? "The sign-in or reset link is invalid, has expired, or was already used."}
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-2">

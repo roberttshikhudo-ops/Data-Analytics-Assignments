@@ -1,231 +1,35 @@
-"use client"
+import { redirect } from "next/navigation"
+import { createClient } from "@/lib/supabase/server"
+import { AdminShell } from "@/components/admin/admin-shell"
 
-import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
-import Link from "next/link"
-import Image from "next/image"
-import { createClient } from "@/lib/supabase/client"
-import {
-  LayoutDashboard,
-  Package,
-  ShoppingCart,
-  Users,
-  Tag,
-  Settings,
-  LogOut,
-  Menu,
-  X,
-  BarChart3,
-  Ticket,
-  FileText,
-  LineChart,
-  Mail,
-  Truck,
-  PlusCircle,
-  DollarSign,
-  Megaphone,
-  Gift,
-} from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { cn } from "@/lib/utils"
-import { OrderNotifications } from "@/components/admin/order-notifications"
-
-const navigation = [
-  { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
-  { name: "Products", href: "/admin/products", icon: Package },
-  { name: "Cost Prices", href: "/admin/products/costs", icon: DollarSign },
-  { name: "Orders", href: "/admin/orders", icon: ShoppingCart },
-  { name: "New Order", href: "/admin/orders/new", icon: PlusCircle },
-  { name: "Deliveries", href: "/admin/deliveries", icon: Truck },
-  { name: "Invoices", href: "/admin/invoices", icon: FileText },
-  { name: "Categories", href: "/admin/categories", icon: Tag },
-  { name: "Customers", href: "/admin/customers", icon: Users },
-  { name: "Coupons", href: "/admin/coupons", icon: Ticket },
-  { name: "Subscribers", href: "/admin/subscribers", icon: Mail },
-  { name: "Marketing", href: "/admin/marketing", icon: Megaphone },
-  { name: "Gift Vouchers", href: "/admin/vouchers", icon: Gift },
-  { name: "Reports", href: "/admin/reports", icon: BarChart3 },
-  { name: "Analytics", href: "/admin/analytics", icon: LineChart },
-  { name: "Settings", href: "/admin/settings", icon: Settings },
-]
-
-export default function AdminLayout({
+export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  const router = useRouter()
-  const [isAdmin, setIsAdmin] = useState<boolean | null>(null)
-  const [accessError, setAccessError] = useState<string | null>(null)
-  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const supabase = await createClient()
 
-  useEffect(() => {
-    async function checkAdmin() {
-      setAccessError(null)
-      const supabase = createClient()
-      const { data: { user }, error: userError } = await supabase.auth.getUser()
+  // The middleware already confirmed a session exists before this layout
+  // runs, so this reuses that same server-verified session instead of
+  // re-checking it a second time from the browser (which raced the
+  // middleware and could bounce users back to login right after signing in).
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
 
-      if (userError) {
-        // Transient auth failure: surface it instead of silently bouncing.
-        setAccessError("Could not verify your session. Please try again.")
-        return
-      }
-
-      if (!user) {
-        router.replace("/auth/login?redirect=/admin")
-        return
-      }
-
-      const { data: profile, error: profileError } = await supabase
-        .from("profiles")
-        .select("role")
-        .eq("id", user.id)
-        .maybeSingle()
-
-      if (profileError) {
-        setAccessError("Could not load your account profile. Please try again.")
-        return
-      }
-
-      if (profile?.role !== "admin") {
-        setAccessError("This account does not have admin access.")
-        return
-      }
-
-      setIsAdmin(true)
-    }
-
-    checkAdmin()
-  }, [router])
-
-  const handleSignOut = async () => {
-    const supabase = createClient()
-    await supabase.auth.signOut()
-    router.push("/")
+  if (!user) {
+    redirect("/auth/login?redirect=/admin")
   }
 
-  if (accessError) {
-    return (
-      <div className="flex h-screen items-center justify-center bg-muted p-4">
-        <div className="flex w-full max-w-sm flex-col items-center gap-4 rounded-lg border bg-background p-6 text-center">
-          <p className="font-medium">Admin access</p>
-          <p className="text-sm text-muted-foreground" role="alert">{accessError}</p>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={() => window.location.reload()}>
-              Try again
-            </Button>
-            <Button onClick={async () => { await createClient().auth.signOut(); window.location.assign("/auth/login?redirect=/admin") }}>
-              Sign in again
-            </Button>
-          </div>
-        </div>
-      </div>
-    )
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .maybeSingle()
+
+  if (profile?.role !== "admin") {
+    redirect("/auth/error?message=" + encodeURIComponent("This account does not have admin access."))
   }
 
-  if (isAdmin === null) {
-    return (
-      <div className="flex h-screen items-center justify-center bg-muted">
-        <div className="flex flex-col items-center gap-4">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-          <p className="text-muted-foreground">Verifying access...</p>
-        </div>
-      </div>
-    )
-  }
-
-  return (
-    <div className="flex h-screen bg-muted">
-      {/* Mobile sidebar backdrop */}
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 z-40 bg-black/50 lg:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
-
-      {/* Sidebar */}
-      <aside
-        className={cn(
-          "fixed inset-y-0 left-0 z-50 w-64 transform bg-card shadow-lg transition-transform duration-200 lg:static lg:translate-x-0",
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        )}
-      >
-        <div className="flex h-full flex-col">
-          {/* Logo */}
-          <div className="flex h-16 items-center justify-between border-b px-4">
-            <Link href="/admin" className="flex items-center gap-2">
-              <Image
-                src="/images/agri-hub-logo.jpg"
-                alt="Agri Hub SA"
-                width={32}
-                height={32}
-                className="rounded-lg"
-              />
-              <span className="font-bold text-foreground">Admin Panel</span>
-            </Link>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="lg:hidden"
-              onClick={() => setSidebarOpen(false)}
-            >
-              <X className="h-5 w-5" />
-            </Button>
-          </div>
-
-          {/* Navigation */}
-          <nav className="flex-1 space-y-1 overflow-y-auto p-4">
-            {navigation.map((item) => (
-              <Link
-                key={item.name}
-                href={item.href}
-                className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-              >
-                <item.icon className="h-5 w-5" />
-                {item.name}
-              </Link>
-            ))}
-          </nav>
-
-          {/* Footer */}
-          <div className="border-t p-4">
-            <Button
-              variant="ghost"
-              className="w-full justify-start gap-3 text-muted-foreground hover:text-foreground"
-              onClick={handleSignOut}
-            >
-              <LogOut className="h-5 w-5" />
-              Sign Out
-            </Button>
-          </div>
-        </div>
-      </aside>
-
-      {/* Main content */}
-      <div className="flex flex-1 flex-col overflow-hidden">
-        {/* Top bar */}
-        <header className="flex h-16 items-center gap-4 border-b bg-card px-4 lg:px-6">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="lg:hidden"
-            onClick={() => setSidebarOpen(true)}
-          >
-            <Menu className="h-5 w-5" />
-          </Button>
-          <div className="flex-1" />
-          <OrderNotifications />
-          <Link href="/" className="text-sm text-muted-foreground hover:text-foreground">
-            View Store
-          </Link>
-        </header>
-
-        {/* Page content */}
-        <main className="flex-1 overflow-y-auto p-4 lg:p-6">
-          {children}
-        </main>
-      </div>
-    </div>
-  )
+  return <AdminShell>{children}</AdminShell>
 }
