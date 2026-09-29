@@ -1,19 +1,18 @@
 "use client"
 
-import { useState, Suspense } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { Suspense, useActionState } from "react"
+import { useSearchParams } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
-import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Loader2, AlertCircle } from "lucide-react"
+import { loginAction, type LoginState } from "./actions"
 
 function LoginContent() {
-  const router = useRouter()
   const searchParams = useSearchParams()
   const requestedRedirect = searchParams.get("redirect") || "/"
   // Only allow same-site paths so the redirect can't be abused to send users off-site.
@@ -22,45 +21,11 @@ function LoginContent() {
       ? requestedRedirect
       : "/"
 
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-  })
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
-    setError(null)
-
-    const supabase = createClient()
-    const { error: signInError } = await supabase.auth.signInWithPassword({
-      email: formData.email,
-      password: formData.password,
-    })
-
-    if (signInError) {
-      const msg = signInError.message.toLowerCase()
-      if (msg.includes("email not confirmed")) {
-        setError("Please confirm your email address before signing in. Check your inbox for the confirmation link.")
-      } else if (msg.includes("rate limit") || msg.includes("too many")) {
-        setError("Too many attempts. Please wait a minute and try again.")
-      } else if (msg.includes("invalid login credentials")) {
-        setError("Invalid email or password.")
-      } else {
-        setError("Sign-in failed. Please try again.")
-      }
-      setIsLoading(false)
-      return
-    }
-
-    // Full navigation (not a client-side router push) so the freshly-set
-    // session cookies are guaranteed to be sent with the next request.
-    // Previously push() + refresh() raced and the admin gate could load
-    // before the session was visible, bouncing the user back out.
-    window.location.assign(redirect)
-  }
+  // Sign-in runs on the server so the browser never has to reach Supabase
+  // directly (ad-blockers, network filters and iframe sandboxes were causing
+  // "Failed to fetch" before the password was even checked).
+  const [state, formAction, isPending] = useActionState<LoginState, FormData>(loginAction, { error: null })
+  const error = state.error
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted p-4">
@@ -81,7 +46,8 @@ function LoginContent() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form action={formAction} className="space-y-4">
+            <input type="hidden" name="redirect" value={redirect} />
             {error && (
               <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
@@ -93,10 +59,11 @@ function LoginContent() {
               <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
+                name="email"
                 type="email"
                 placeholder="you@example.com"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                autoComplete="email"
+                defaultValue={state.email ?? ""}
                 required
               />
             </div>
@@ -113,15 +80,15 @@ function LoginContent() {
               </div>
               <Input
                 id="password"
+                name="password"
                 type="password"
-                value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                autoComplete="current-password"
                 required
               />
             </div>
 
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            <Button type="submit" className="w-full" disabled={isPending}>
+              {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Sign In
             </Button>
           </form>
