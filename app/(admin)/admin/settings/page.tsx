@@ -9,8 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Switch } from "@/components/ui/switch"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Store, Truck, CreditCard, Bell, Shield, Save, CheckCircle, AlertCircle } from "lucide-react"
-import { Badge } from "@/components/ui/badge"
+import { Store, Truck, Bell, Shield, Save } from "lucide-react"
 
 export default function SettingsPage() {
   const [loading, setLoading] = useState(false)
@@ -61,7 +60,7 @@ export default function SettingsPage() {
       </div>
 
       <Tabs defaultValue="store" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5 lg:w-auto lg:grid-cols-5">
+        <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:grid-cols-4">
           <TabsTrigger value="store" className="flex items-center gap-2">
             <Store className="h-4 w-4" />
             <span className="hidden sm:inline">Store</span>
@@ -73,10 +72,6 @@ export default function SettingsPage() {
           <TabsTrigger value="notifications" className="flex items-center gap-2">
             <Bell className="h-4 w-4" />
             <span className="hidden sm:inline">Notifications</span>
-          </TabsTrigger>
-          <TabsTrigger value="payments" className="flex items-center gap-2">
-            <CreditCard className="h-4 w-4" />
-            <span className="hidden sm:inline">Payments</span>
           </TabsTrigger>
           <TabsTrigger value="security" className="flex items-center gap-2">
             <Shield className="h-4 w-4" />
@@ -261,118 +256,6 @@ export default function SettingsPage() {
                   checked={notificationSettings.emailCustomerSignup}
                   onCheckedChange={(checked) => setNotificationSettings({ ...notificationSettings, emailCustomerSignup: checked })}
                 />
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Payment Settings */}
-        <TabsContent value="payments">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                Payment Gateway
-                <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                  <CheckCircle className="h-3 w-3 mr-1" />
-                  Active
-                </Badge>
-              </CardTitle>
-              <CardDescription>PayFast payment integration for South African transactions</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {/* PayFast Integration */}
-              <div className="rounded-lg border p-4 bg-muted/50">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="h-10 w-10 rounded-lg bg-[#00457C] flex items-center justify-center">
-                    <span className="text-white font-bold text-xs">PF</span>
-                  </div>
-                  <div>
-                    <h3 className="font-semibold">PayFast</h3>
-                    <p className="text-sm text-muted-foreground">South African payment gateway</p>
-                  </div>
-                </div>
-                <div className="grid gap-3 text-sm">
-                  <div className="flex justify-between py-2 border-b">
-                    <span className="text-muted-foreground">Status</span>
-                    <span className="text-green-600 font-medium flex items-center gap-1">
-                      <CheckCircle className="h-4 w-4" />
-                      Active
-                    </span>
-                  </div>
-                  <div className="flex justify-between py-2 border-b">
-                    <span className="text-muted-foreground">Merchant ID</span>
-                    <span className="font-mono">11768265</span>
-                  </div>
-                  <div className="flex justify-between py-2 border-b">
-                    <span className="text-muted-foreground">Payment Methods</span>
-                    <span>Card, EFT, SnapScan, Mobicred</span>
-                  </div>
-                  <div className="flex justify-between py-2">
-                    <span className="text-muted-foreground">Currency</span>
-                    <span>ZAR (South African Rand)</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="rounded-lg border p-4">
-                <h3 className="font-medium mb-2">PayFast ITN (Webhook) Endpoint</h3>
-                <p className="text-sm text-muted-foreground mb-3">
-                  Configure this URL in your PayFast Dashboard under Settings &gt; Integration.
-                </p>
-                <code className="block p-3 bg-muted rounded text-sm font-mono break-all">
-                  {typeof window !== "undefined" ? window.location.origin : "https://your-domain.com"}/api/payfast/itn
-                </code>
-              </div>
-
-              <div className="rounded-lg border border-green-200 bg-green-50 p-4">
-                <div className="flex gap-3">
-                  <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0" />
-                  <div>
-                    <h3 className="font-medium text-green-800">PayFast Ready</h3>
-                    <p className="text-sm text-green-700 mt-1">
-                      PayFast is configured and ready to accept payments. 
-                      Customers can pay via Card, Instant EFT, SnapScan, or Mobicred.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                <h3 className="font-medium">Payment Features</h3>
-                <div className="grid gap-2 md:grid-cols-2">
-                  <div className="flex items-center gap-2 text-sm">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    <span>Card payments (Visa, Mastercard)</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    <span>Instant EFT</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    <span>SnapScan</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    <span>Mobicred</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    <span>Automatic stock management</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    <span>Order status updates via webhooks</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    <span>Coupon code support</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    <span>Secure PCI-compliant processing</span>
-                  </div>
-                </div>
               </div>
             </CardContent>
           </Card>

@@ -4,7 +4,7 @@ import { createClient as createServerClient } from "@/lib/supabase/server"
 import { SHIPPING_RATES, type ShippingMethod } from "@/lib/types"
 
 // Calculate shipping the SAME way the checkout/cart does, so the stored order
-// total always matches the amount the customer is charged via PayFast.
+// total always matches the amount the customer is asked to pay.
 function calculateShipping(method: ShippingMethod, subtotal: number): number {
   if (method === "pickup") return 0
   const rate = method === "express" ? SHIPPING_RATES.express : SHIPPING_RATES.standard

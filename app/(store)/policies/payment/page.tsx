@@ -1,11 +1,11 @@
 import { Metadata } from "next"
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { CreditCard, Building, Banknote } from "lucide-react"
+import { Building, Banknote } from "lucide-react"
 
 export const metadata: Metadata = {
   title: "Payment Policy",
-  description: "Agri Hub SA payment options - card payments, EFT, and cash on delivery.",
+  description: "Agri Hub SA payment options - EFT and cash on delivery.",
 }
 
 export default function PaymentPolicyPage() {
@@ -20,22 +20,6 @@ export default function PaymentPolicyPage() {
         </div>
 
         <div className="space-y-6">
-          {/* Online Payments */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <CreditCard className="h-5 w-5 text-primary" />
-                Online Payments
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-                <li>Card payments (Visa, Mastercard, American Express)</li>
-                <li>Instant EFT (PayFast / Peach Payments)</li>
-              </ul>
-            </CardContent>
-          </Card>
-
           {/* Manual EFT */}
           <Card>
             <CardHeader>
