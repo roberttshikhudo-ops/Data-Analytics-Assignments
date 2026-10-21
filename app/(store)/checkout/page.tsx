@@ -13,7 +13,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { formatPrice } from "@/lib/utils"
-import { ArrowLeft, CreditCard, Banknote, Loader2, Truck, MapPin, Zap } from "lucide-react"
+import { ArrowLeft, CreditCard, Loader2, Truck, MapPin, Zap } from "lucide-react"
 import { SHIPPING_RATES } from "@/lib/types"
 
 // localStorage key for remembering a shopper's checkout details between visits.
@@ -51,7 +51,7 @@ interface CheckoutForm {
   billingCity: string
   billingProvince: string
   billingPostalCode: string
-  paymentMethod: "payfast" | "eft"
+  paymentMethod: "payfast"
   shippingMethod: "standard" | "express" | "pickup"
   notes: string
 }
@@ -324,11 +324,6 @@ export default function CheckoutPage() {
         document.body.appendChild(payfastForm)
         payfastForm.submit()
         // Don't remove form - page will redirect
-      } else {
-        // EFT payment - redirect to order confirmation with banking details
-        setIsRedirecting(true)
-        clearCart()
-        router.push(`/checkout/eft-instructions?order=${orderData.orderNumber}`)
       }
     } catch (error) {
       console.error("Checkout error:", error)
@@ -725,9 +720,7 @@ export default function CheckoutPage() {
                 <CardContent>
                   <RadioGroup
                     value={form.paymentMethod}
-                    onValueChange={(value) =>
-                      handleInputChange("paymentMethod", value as "payfast" | "eft")
-                    }
+                    onValueChange={() => handleInputChange("paymentMethod", "payfast")}
                     className="space-y-3"
                   >
                     <div className="flex items-center space-x-3 border rounded-lg p-4 cursor-pointer hover:bg-muted/50 border-primary bg-primary/5">
@@ -738,24 +731,9 @@ export default function CheckoutPage() {
                       >
                         <CreditCard className="h-5 w-5 text-primary" />
                         <div>
-                          <p className="font-medium">PayFast (Recommended)</p>
+                          <p className="font-medium">PayFast Secure Payment Link</p>
                           <p className="text-sm text-muted-foreground">
-                            Card, Instant EFT, SnapScan, Mobicred
-                          </p>
-                        </div>
-                      </Label>
-                    </div>
-                    <div className="flex items-center space-x-3 border rounded-lg p-4 cursor-pointer hover:bg-muted/50">
-                      <RadioGroupItem value="eft" id="eft" />
-                      <Label
-                        htmlFor="eft"
-                        className="flex-1 cursor-pointer flex items-center gap-3"
-                      >
-                        <Banknote className="h-5 w-5 text-muted-foreground" />
-                        <div>
-                          <p className="font-medium">Manual EFT/Bank Transfer</p>
-                          <p className="text-sm text-muted-foreground">
-                            Pay directly to our bank account
+                            You will be taken to PayFast to pay by Card, Instant EFT, SnapScan or Mobicred
                           </p>
                         </div>
                       </Label>
@@ -909,10 +887,8 @@ export default function CheckoutPage() {
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                         Processing...
                       </>
-                    ) : form.paymentMethod === "payfast" ? (
-                      "Pay with PayFast"
                     ) : (
-                      "Complete Order (EFT)"
+                      "Pay with PayFast"
                     )}
                   </Button>
 
