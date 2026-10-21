@@ -13,7 +13,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { formatPrice } from "@/lib/utils"
-import { ArrowLeft, CreditCard, Loader2, Truck, MapPin, Zap } from "lucide-react"
+import { ArrowLeft, Banknote, Loader2, Truck, MapPin, Zap } from "lucide-react"
 import { SHIPPING_RATES } from "@/lib/types"
 
 // localStorage key for remembering a shopper's checkout details between visits.
@@ -51,7 +51,7 @@ interface CheckoutForm {
   billingCity: string
   billingProvince: string
   billingPostalCode: string
-  paymentMethod: "payfast"
+  paymentMethod: "eft"
   shippingMethod: "standard" | "express" | "pickup"
   notes: string
 }
@@ -86,7 +86,7 @@ export default function CheckoutPage() {
     billingCity: "",
     billingProvince: "",
     billingPostalCode: "",
-    paymentMethod: "payfast",
+    paymentMethod: "eft",
     shippingMethod: "standard",
     notes: "",
   })
@@ -96,7 +96,7 @@ export default function CheckoutPage() {
 
   // Restore saved checkout details on first load so returning shoppers don't
   // have to re-enter everything (Shein-style faster checkout). We never store
-  // payment card data here — payment is handled by PayFast on their servers.
+  // payment card data here — payment is made by EFT outside the site.
   useEffect(() => {
     try {
       const saved = localStorage.getItem(SAVED_DETAILS_KEY)
@@ -271,60 +271,10 @@ export default function CheckoutPage() {
         throw new Error(orderData.error || "Failed to create order")
       }
 
-      if (form.paymentMethod === "payfast") {
-        // Redirect to PayFast
-        const paymentRes = await fetch("/api/payfast/create-payment", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            orderId: orderData.orderId,
-            orderNumber: orderData.orderNumber,
-            // Use the server-calculated total so the amount charged always
-            // matches the stored order total (prevents ITN amount mismatches).
-            amount: orderData.total ?? total,
-            email: form.email,
-            firstName: form.firstName,
-            lastName: form.lastName,
-          }),
-        })
-
-        const paymentData = await paymentRes.json()
-
-        if (!paymentRes.ok) {
-          throw new Error(paymentData.error || "Failed to initiate payment")
-        }
-
-        // Store order number in localStorage for after payment
-        localStorage.setItem("pendingOrder", orderData.orderNumber)
-        
-        // Mark as redirecting so the empty-cart screen doesn't flash
-        setIsRedirecting(true)
-        
-        // Clear cart before redirecting
-        clearCart()
-        
-        // Create a hidden form and submit it to PayFast
-        // PayFast requires POST submission - this will redirect the page
-        const payfastForm = document.createElement("form")
-        payfastForm.method = "POST"
-        payfastForm.action = paymentData.payfastUrl
-        // Don't use target="_blank" - submit directly in current window
-        
-        // Add all form fields
-        for (const [key, value] of Object.entries(paymentData.formData)) {
-          if (value !== undefined && value !== "") {
-            const input = document.createElement("input")
-            input.type = "hidden"
-            input.name = key
-            input.value = String(value)
-            payfastForm.appendChild(input)
-          }
-        }
-        
-        document.body.appendChild(payfastForm)
-        payfastForm.submit()
-        // Don't remove form - page will redirect
-      }
+      // EFT payment - redirect to order confirmation with banking details
+      setIsRedirecting(true)
+      clearCart()
+      router.push(`/checkout/eft-instructions?order=${orderData.orderNumber}`)
     } catch (error) {
       console.error("Checkout error:", error)
       alert(error instanceof Error ? error.message : "Checkout failed. Please try again.")
@@ -720,20 +670,20 @@ export default function CheckoutPage() {
                 <CardContent>
                   <RadioGroup
                     value={form.paymentMethod}
-                    onValueChange={() => handleInputChange("paymentMethod", "payfast")}
+                    onValueChange={() => handleInputChange("paymentMethod", "eft")}
                     className="space-y-3"
                   >
                     <div className="flex items-center space-x-3 border rounded-lg p-4 cursor-pointer hover:bg-muted/50 border-primary bg-primary/5">
-                      <RadioGroupItem value="payfast" id="payfast" />
+                      <RadioGroupItem value="eft" id="eft" />
                       <Label
-                        htmlFor="payfast"
+                        htmlFor="eft"
                         className="flex-1 cursor-pointer flex items-center gap-3"
                       >
-                        <CreditCard className="h-5 w-5 text-primary" />
+                        <Banknote className="h-5 w-5 text-primary" />
                         <div>
-                          <p className="font-medium">PayFast Secure Payment Link</p>
+                          <p className="font-medium">Manual EFT/Bank Transfer</p>
                           <p className="text-sm text-muted-foreground">
-                            You will be taken to PayFast to pay by Card, Instant EFT, SnapScan or Mobicred
+                            Pay directly to our bank account
                           </p>
                         </div>
                       </Label>
@@ -888,7 +838,7 @@ export default function CheckoutPage() {
                         Processing...
                       </>
                     ) : (
-                      "Pay with PayFast"
+                      "Complete Order (EFT)"
                     )}
                   </Button>
 
