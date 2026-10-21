@@ -407,9 +407,7 @@ Bank: First National Bank (FNB)
 Account Name: Agri Hub SA
 Account Number: 63014180606
 Branch Code: 250655
-Reference: Invoice Number
-
-Or pay via PayFast on our website.`
+Reference: Invoice Number`
 
 // Default terms
 export const DEFAULT_TERMS = `1. Payment is due within 7 days of invoice date unless otherwise specified.
